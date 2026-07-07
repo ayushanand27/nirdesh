@@ -1,0 +1,45 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+  body {
+    @apply bg-canvas text-ink font-sans;
+    font-feature-settings: "tnum" 1, "cv05" 1;
+  }
+  /* Tabular numbers everywhere numeric data appears. */
+  .tnum {
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+@layer components {
+  .hairline {
+    @apply border border-hair;
+  }
+  .card {
+    @apply bg-surface border border-hair rounded-card shadow-card;
+  }
+  .label-caps {
+    @apply text-[11px] uppercase tracking-[0.12em] text-muted font-medium;
+  }
+}
+
+/* Deliberate matrix cell recalculation transition. */
+.cell-recalc {
+  animation: cellRecalc 520ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+@keyframes cellRecalc {
+  0% {
+    transform: translateY(-2px);
+    opacity: 0.35;
+  }
+  100% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}

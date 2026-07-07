@@ -1,0 +1,92 @@
+"""Initialise and seed the SQLite database.
+
+Run: `python seed_db.py` (safe to re-run; it drops and recreates for a clean
+demo state). Flow:
+  1. Load the canonical, human-reviewed rule set (app/canonical_rules.py).
+     This guarantees the matrix/delta are deterministic regardless of any live
+     model variance. The live /extract endpoint separately demonstrates raw LLM
+     extraction and its needs-human-review guardrail.
+  2. Persist rules append-only, wiring the clause 4.4 phase-2 rule to SUPERSEDE
+     the clause 2.1 base-price rule via supersedes_id.
+  3. Seed the 3 fictional AMCs.
+  4. Log the load event to the audit trail.
+"""
+
+from __future__ import annotations
+
+from app.canonical_rules import CANONICAL_RULES, CIRCULAR_ID
+from app.db import Base, SessionLocal, engine, init_db
+from app.firms_seed import FIRMS
+from app.models import AuditLog, Firm, Rule
+
+
+def reset_schema() -> None:
+    Base.metadata.drop_all(bind=engine)
+    init_db()
+
+
+def seed_rules(session) -> None:
+    slug_to_row: dict[str, Rule] = {}
+    for r in CANONICAL_RULES:
+        row = Rule(
+            rule_id=r.rule_id,
+            clause_id=r.clause_id,
+            source_circular_id=r.source_circular_id,
+            plain_description=r.plain_description,
+            applicable_entity_type=r.applicable_entity_type.value,
+            condition=(r.condition.model_dump() if r.condition else None),
+            threshold=(r.threshold.model_dump() if r.threshold else None),
+            required_action=r.required_action,
+            deadline=r.deadline,
+            effective_from=r.effective_from,
+            confidence=r.confidence,
+            needs_human_review=r.needs_human_review,
+            review_reason=r.review_reason,
+            status="active",
+        )
+        session.add(row)
+        slug_to_row[r.rule_id] = row
+    session.flush()  # assign ids
+
+    # Wire the phase-2 amendment: clause 4.4 supersedes clause 2.1 (base price).
+    phase2 = slug_to_row.get("MRD-POD3-2026__base_price_phase2")
+    base = slug_to_row.get("MRD-POD3-2026__base_price")
+    if phase2 and base:
+        phase2.supersedes_id = base.id
+
+    session.add(
+        AuditLog(
+            event_type="extraction",
+            entity_ref=CIRCULAR_ID,
+            message=(
+                f"Loaded {len(CANONICAL_RULES)} human-reviewed compliance rules "
+                f"(normalized from circular extraction) into the control library."
+            ),
+            meta={"source": "canonical_reviewed", "rule_count": len(CANONICAL_RULES)},
+            actor="compliance-analyst",
+        )
+    )
+    session.commit()
+
+
+def seed_firms(session) -> None:
+    for f in FIRMS:
+        session.add(Firm(name=f["name"], legal_type=f["legal_type"], profile=f["profile"]))
+    session.commit()
+
+
+def main() -> None:
+    reset_schema()
+    session = SessionLocal()
+    try:
+        seed_rules(session)
+        seed_firms(session)
+        n_rules = session.query(Rule).count()
+        n_firms = session.query(Firm).count()
+        print(f"Seeded DB: {n_rules} rules, {n_firms} firms.")
+    finally:
+        session.close()
+
+
+if __name__ == "__main__":
+    main()

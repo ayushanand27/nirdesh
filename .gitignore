@@ -1,0 +1,19 @@
+# Secrets
+**/.env
+
+# Python
+backend/.venv/
+__pycache__/
+*.pyc
+
+# Local database (regenerate with: python seed_db.py)
+backend/data/nirdesh.db
+
+# Node / frontend
+frontend/node_modules/
+frontend/dist/
+frontend/*.tsbuildinfo
+
+# Editor / OS
+.DS_Store
+Thumbs.db

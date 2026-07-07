@@ -1,0 +1,146 @@
+{
+  "rules": [
+    {
+      "rule_id": "MRD-POD3-2026__base_price",
+      "clause_id": "2.1",
+      "source_circular_id": "HO/47/11/11(1)2026-MRD-POD3/I/13804/2026",
+      "plain_description": "Base price of ETF units must be the T-1 closing price (last 30-min VWAP).",
+      "applicable_entity_type": "all_etf",
+      "condition": {
+        "field": "base_price_method",
+        "operator": "equals",
+        "value": "T-1_closing_vwap"
+      },
+      "threshold": null,
+      "required_action": "Adopt T-1 closing VWAP (last 30 minutes) as the ETF base price; discontinue T-2 day NAV.",
+      "deadline": "2026-09-01",
+      "effective_from": "2026-09-01",
+      "confidence": 0.96,
+      "needs_human_review": false,
+      "review_reason": null
+    },
+    {
+      "rule_id": "MRD-POD3-2026__equity_debt_band",
+      "clause_id": "3.1",
+      "source_circular_id": "HO/47/11/11(1)2026-MRD-POD3/I/13804/2026",
+      "plain_description": "Equity/Debt ETFs: dynamic +/-10% band, flex +5%, max 2 flexes (cap +/-20%).",
+      "applicable_entity_type": "equity_debt_etf",
+      "condition": {
+        "field": "band_config.equity_debt_etf",
+        "operator": "equals",
+        "value": "dynamic_10_flex5_max2"
+      },
+      "threshold": {
+        "static_band_pct": null,
+        "dynamic_band_pct": 10.0,
+        "flex_pct": 5.0,
+        "max_flexes": 2,
+        "trigger_pct": null,
+        "uncapped": false
+      },
+      "required_action": "Configure dynamic +/-10% price band with +5% flexing, capped at 2 flexes.",
+      "deadline": "2026-09-01",
+      "effective_from": "2026-09-01",
+      "confidence": 0.9,
+      "needs_human_review": false,
+      "review_reason": null
+    },
+    {
+      "rule_id": "MRD-POD3-2026__overnight_band",
+      "clause_id": "3.2",
+      "source_circular_id": "HO/47/11/11(1)2026-MRD-POD3/I/13804/2026",
+      "plain_description": "Overnight ETFs: fixed +/-5% band (unchanged).",
+      "applicable_entity_type": "overnight_etf",
+      "condition": {
+        "field": "band_config.overnight_etf",
+        "operator": "equals",
+        "value": "fixed_5"
+      },
+      "threshold": {
+        "static_band_pct": 5.0,
+        "dynamic_band_pct": null,
+        "flex_pct": null,
+        "max_flexes": null,
+        "trigger_pct": null,
+        "uncapped": false
+      },
+      "required_action": "Maintain fixed +/-5% price band.",
+      "deadline": "2026-09-01",
+      "effective_from": "2026-09-01",
+      "confidence": 0.94,
+      "needs_human_review": false,
+      "review_reason": null
+    },
+    {
+      "rule_id": "MRD-POD3-2026__liquid_band",
+      "clause_id": "3.3",
+      "source_circular_id": "HO/47/11/11(1)2026-MRD-POD3/I/13804/2026",
+      "plain_description": "Liquid ETFs: fixed +/-5% band (newly tightened from flat +/-20%).",
+      "applicable_entity_type": "liquid_etf",
+      "condition": {
+        "field": "band_config.liquid_etf",
+        "operator": "equals",
+        "value": "fixed_5"
+      },
+      "threshold": {
+        "static_band_pct": 5.0,
+        "dynamic_band_pct": null,
+        "flex_pct": null,
+        "max_flexes": null,
+        "trigger_pct": null,
+        "uncapped": false
+      },
+      "required_action": "Tighten liquid ETF price band to fixed +/-5%.",
+      "deadline": "2026-09-01",
+      "effective_from": "2026-09-01",
+      "confidence": 0.92,
+      "needs_human_review": false,
+      "review_reason": null
+    },
+    {
+      "rule_id": "MRD-POD3-2026__gold_silver_band",
+      "clause_id": "3.4",
+      "source_circular_id": "HO/47/11/11(1)2026-MRD-POD3/I/13804/2026",
+      "plain_description": "Gold/Silver ETFs: dynamic +/-6% band, flex +3% at 5.90% trigger, uncapped flexing.",
+      "applicable_entity_type": "gold_silver_etf",
+      "condition": {
+        "field": "band_config.gold_silver_etf",
+        "operator": "equals",
+        "value": "dynamic_6_flex3_trig5.90_uncapped"
+      },
+      "threshold": {
+        "static_band_pct": null,
+        "dynamic_band_pct": 6.0,
+        "flex_pct": 3.0,
+        "max_flexes": null,
+        "trigger_pct": 5.9,
+        "uncapped": true
+      },
+      "required_action": "Configure dynamic +/-6% band with +3% uncapped flexing triggered at 5.90%.",
+      "deadline": "2026-09-01",
+      "effective_from": "2026-09-01",
+      "confidence": 0.88,
+      "needs_human_review": false,
+      "review_reason": null
+    },
+    {
+      "rule_id": "MRD-POD3-2026__base_price_phase2",
+      "clause_id": "4.4",
+      "source_circular_id": "HO/47/11/11(1)2026-MRD-POD3/I/13804/2026",
+      "plain_description": "Phase 2: migrate base price to T-1 closing NAV, superseding the T-1 VWAP method in clause 2.1.",
+      "applicable_entity_type": "all_etf",
+      "condition": {
+        "field": "base_price_method",
+        "operator": "equals",
+        "value": "T-1_closing_nav"
+      },
+      "threshold": null,
+      "required_action": "Migrate ETF base price computation to T-1 closing NAV.",
+      "deadline": "2027-04-01",
+      "effective_from": "2027-04-01",
+      "confidence": 0.9,
+      "needs_human_review": false,
+      "review_reason": null
+    }
+  ]
+}

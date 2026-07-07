@@ -1,0 +1,48 @@
+>>> SEED / PLACEHOLDER TEXT <<<
+This file is a faithful reconstruction from the provided rule table so the
+extraction pipeline runs end-to-end during the hackathon. REPLACE everything
+below this header with the VERBATIM text of the SEBI circular when available —
+the extraction module reads this file as-is, no code change needed.
+--------------------------------------------------------------------------------
+
+Securities and Exchange Board of India
+Circular No. HO/47/11/11(1)2026-MRD-POD3/I/13804/2026
+Date: June 15, 2026
+
+To
+All Recognised Stock Exchanges
+All Asset Management Companies (AMCs) / Mutual Funds offering Exchange Traded Funds
+
+Subject: Norms for base price and price bands for units of Exchange Traded Funds (ETFs)
+
+1. Applicability and effective date
+1.1 This circular shall come into effect from September 1, 2026, unless otherwise
+    specified for a particular clause herein.
+
+2. Base price
+2.1 With effect from September 1, 2026, the base price for units of an ETF shall be
+    determined on the basis of the T-1 closing price, computed as the volume weighted
+    average price (VWAP) of the last 30 minutes of trading on the previous trading day.
+2.2 The erstwhile practice of using the T-2 day Net Asset Value (NAV) as the base
+    price shall stand discontinued from the effective date.
+
+3. Price bands
+3.1 Equity and Debt ETFs: A dynamic price band of +/- 10% shall apply. On triggering
+    the band, a flexing of an additional 5% shall be permitted, subject to a maximum
+    of 2 flexes, so that the band shall not exceed +/- 20%.
+3.2 Overnight ETFs: A fixed price band of +/- 5% shall apply. This is unchanged from
+    the existing norm.
+3.3 Liquid ETFs: A fixed price band of +/- 5% shall apply, replacing the erstwhile
+    flat +/- 20% band.
+3.4 Gold and Silver ETFs: A dynamic price band of +/- 6% shall apply, with flexing of
+    an additional 3% each time the band is triggered at 5.90%, with no upper cap on the
+    number of flexes.
+
+4. Transition
+4.1 AMCs shall put in place systems to comply with the price band norms in Clause 3 by
+    the effective date of September 1, 2026.
+4.2 Stock exchanges shall make consequential amendments to their bye-laws.
+4.3 This circular is issued in exercise of powers conferred under the SEBI Act, 1992.
+4.4 As a second phase, AMCs shall migrate the base price computation to the T-1 closing
+    NAV of the ETF by April 1, 2027, superseding the T-1 closing VWAP methodology
+    specified in Clause 2.1 for the purpose of base price determination.
