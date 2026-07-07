@@ -30,7 +30,6 @@ services:
     name: nirdesh-frontend
     runtime: static
     rootDir: frontend
-    plan: free
     buildCommand: npm install && npm run build
     staticPublishPath: ./dist
     # SPA + API proxy niceties
