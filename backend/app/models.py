@@ -11,6 +11,7 @@ Auditability principles (part of the product pitch):
 from __future__ import annotations
 
 from datetime import datetime, timezone
+from typing import Any
 
 from sqlalchemy import JSON, Boolean, DateTime, Float, ForeignKey, Integer, String, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
@@ -46,7 +47,7 @@ class Rule(Base):
     source_circular_id: Mapped[str] = mapped_column(String(120))
     plain_description: Mapped[str] = mapped_column(Text)
 
-    applicable_entity_type: Mapped[str] = mapped_column(String(40))
+    applicable_entity_type: Mapped[Any] = mapped_column(JSON)
 
     condition: Mapped[dict | None] = mapped_column(JSON, nullable=True)
     threshold: Mapped[dict | None] = mapped_column(JSON, nullable=True)

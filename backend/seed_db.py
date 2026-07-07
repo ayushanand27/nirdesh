@@ -3,13 +3,10 @@
 Run: `python seed_db.py` (safe to re-run; it drops and recreates for a clean
 demo state). Flow:
   1. Load the canonical, human-reviewed rule set (app/canonical_rules.py).
-     This guarantees the matrix/delta are deterministic regardless of any live
-     model variance. The live /extract endpoint separately demonstrates raw LLM
-     extraction and its needs-human-review guardrail.
-  2. Persist rules append-only, wiring the clause 4.4 phase-2 rule to SUPERSEDE
-     the clause 2.1 base-price rule via supersedes_id.
+  2. Persist rules append-only, wiring supersession chain:
+       legacy §2 -> §4.1 -> §4.4 (phase-2).
   3. Seed the 3 fictional AMCs.
-  4. Log the load event to the audit trail.
+  4. Log the load event to the audit trail (8 rules total).
 """
 
 from __future__ import annotations
@@ -25,6 +22,12 @@ def reset_schema() -> None:
     init_db()
 
 
+def _serialize_entity_type(aet) -> str | list[str]:
+    if isinstance(aet, list):
+        return [x.value if hasattr(x, "value") else x for x in aet]
+    return aet.value if hasattr(aet, "value") else aet
+
+
 def seed_rules(session) -> None:
     slug_to_row: dict[str, Rule] = {}
     for r in CANONICAL_RULES:
@@ -33,7 +36,7 @@ def seed_rules(session) -> None:
             clause_id=r.clause_id,
             source_circular_id=r.source_circular_id,
             plain_description=r.plain_description,
-            applicable_entity_type=r.applicable_entity_type.value,
+            applicable_entity_type=_serialize_entity_type(r.applicable_entity_type),
             condition=(r.condition.model_dump() if r.condition else None),
             threshold=(r.threshold.model_dump() if r.threshold else None),
             required_action=r.required_action,
@@ -48,21 +51,32 @@ def seed_rules(session) -> None:
         slug_to_row[r.rule_id] = row
     session.flush()  # assign ids
 
-    # Wire the phase-2 amendment: clause 4.4 supersedes clause 2.1 (base price).
-    phase2 = slug_to_row.get("MRD-POD3-2026__base_price_phase2")
+    # Supersession chain: legacy §2 -> §4.1 -> §4.4
+    legacy = slug_to_row.get("MRD-POD3-2026__base_price_legacy")
     base = slug_to_row.get("MRD-POD3-2026__base_price")
+    phase2 = slug_to_row.get("MRD-POD3-2026__base_price_phase2")
+    if base and legacy:
+        base.supersedes_id = legacy.id
     if phase2 and base:
         phase2.supersedes_id = base.id
+
+    review_count = sum(1 for r in CANONICAL_RULES if r.needs_human_review)
+    evaluable_count = len(CANONICAL_RULES) - review_count
 
     session.add(
         AuditLog(
             event_type="extraction",
             entity_ref=CIRCULAR_ID,
             message=(
-                f"Loaded {len(CANONICAL_RULES)} human-reviewed compliance rules "
-                f"(normalized from circular extraction) into the control library."
+                f"Loaded {len(CANONICAL_RULES)} compliance rules from the verified circular "
+                f"({evaluable_count} evaluable, {review_count} flagged for human review)."
             ),
-            meta={"source": "canonical_reviewed", "rule_count": len(CANONICAL_RULES)},
+            meta={
+                "source": "canonical_reviewed",
+                "rule_count": len(CANONICAL_RULES),
+                "evaluable_count": evaluable_count,
+                "human_review_count": review_count,
+            },
             actor="compliance-analyst",
         )
     )

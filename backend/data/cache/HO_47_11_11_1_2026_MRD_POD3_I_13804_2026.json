@@ -1,10 +1,41 @@
 {
   "rules": [
     {
-      "rule_id": "MRD-POD3-2026__base_price",
-      "clause_id": "2.1",
+      "rule_id": "MRD-POD3-2026__base_price_legacy",
+      "clause_id": "2",
       "source_circular_id": "HO/47/11/11(1)2026-MRD-POD3/I/13804/2026",
-      "plain_description": "Base price of ETF units must be the T-1 closing price (last 30-min VWAP).",
+      "plain_description": "Legacy regime: base price is T-2 day NAV with a fixed +/-20% band (superseded from 01 Sep 2026).",
+      "applicable_entity_type": "all_etf",
+      "condition": {
+        "field": "base_price_method",
+        "operator": "equals",
+        "value": "T-2_NAV"
+      },
+      "threshold": {
+        "static_band_pct": 20.0,
+        "dynamic_band_pct": null,
+        "flex_pct": null,
+        "max_flexes": null,
+        "trigger_pct": null,
+        "uncapped": false,
+        "cooling_off_trigger_pct": null,
+        "cooling_off_minutes": null,
+        "cooling_off_minutes_last_30": null,
+        "dpl_pct": null,
+        "dpl_relaxation_step_pct": null
+      },
+      "required_action": "Historic baseline retained for audit lineage; superseded by clause 4.1.",
+      "deadline": null,
+      "effective_from": "2020-01-01",
+      "confidence": 0.97,
+      "needs_human_review": false,
+      "review_reason": null
+    },
+    {
+      "rule_id": "MRD-POD3-2026__base_price",
+      "clause_id": "4.1",
+      "source_circular_id": "HO/47/11/11(1)2026-MRD-POD3/I/13804/2026",
+      "plain_description": "Base price for ETF price bands is the T-1 day closing price, i.e. last 30-minute VWAP of the ETF.",
       "applicable_entity_type": "all_etf",
       "condition": {
         "field": "base_price_method",
@@ -12,7 +43,7 @@
         "value": "T-1_closing_vwap"
       },
       "threshold": null,
-      "required_action": "Adopt T-1 closing VWAP (last 30 minutes) as the ETF base price; discontinue T-2 day NAV.",
+      "required_action": "Adopt T-1 day closing price (last 30-min VWAP) as the base price; discontinue T-2 day NAV.",
       "deadline": "2026-09-01",
       "effective_from": "2026-09-01",
       "confidence": 0.96,
@@ -20,10 +51,29 @@
       "review_reason": null
     },
     {
-      "rule_id": "MRD-POD3-2026__equity_debt_band",
-      "clause_id": "3.1",
+      "rule_id": "MRD-POD3-2026__base_price_phase2",
+      "clause_id": "4.4",
       "source_circular_id": "HO/47/11/11(1)2026-MRD-POD3/I/13804/2026",
-      "plain_description": "Equity/Debt ETFs: dynamic +/-10% band, flex +5%, max 2 flexes (cap +/-20%).",
+      "plain_description": "Second phase: Stock Exchanges and AMCs shall jointly address the operational challenges to implement T-1 day closing NAV as the base price w.e.f. 01 Apr 2027.",
+      "applicable_entity_type": "all_etf",
+      "condition": {
+        "field": "base_price_method",
+        "operator": "equals",
+        "value": "T-1_closing_nav"
+      },
+      "threshold": null,
+      "required_action": "Jointly work towards using T-1 day closing NAV as the ETF base price by 01 Apr 2027.",
+      "deadline": "2027-04-01",
+      "effective_from": "2027-04-01",
+      "confidence": 0.9,
+      "needs_human_review": false,
+      "review_reason": null
+    },
+    {
+      "rule_id": "MRD-POD3-2026__equity_debt_band",
+      "clause_id": "5.1.1",
+      "source_circular_id": "HO/47/11/11(1)2026-MRD-POD3/I/13804/2026",
+      "plain_description": "Equity/Debt ETFs (excl. Overnight/Liquid): dynamic band +/-10%, flexed by +5% after cooling-off, max 2 instances per direction (cap +/-20%).",
       "applicable_entity_type": "equity_debt_etf",
       "condition": {
         "field": "band_config.equity_debt_etf",
@@ -36,9 +86,14 @@
         "flex_pct": 5.0,
         "max_flexes": 2,
         "trigger_pct": null,
-        "uncapped": false
+        "uncapped": false,
+        "cooling_off_trigger_pct": 9.9,
+        "cooling_off_minutes": 15,
+        "cooling_off_minutes_last_30": 5,
+        "dpl_pct": null,
+        "dpl_relaxation_step_pct": null
       },
-      "required_action": "Configure dynamic +/-10% price band with +5% flexing, capped at 2 flexes.",
+      "required_action": "Configure dynamic +/-10% band with +5% flexing (cooling-off trigger 9.90%), capped at 2 flexes per direction.",
       "deadline": "2026-09-01",
       "effective_from": "2026-09-01",
       "confidence": 0.9,
@@ -46,13 +101,16 @@
       "review_reason": null
     },
     {
-      "rule_id": "MRD-POD3-2026__overnight_band",
-      "clause_id": "3.2",
+      "rule_id": "MRD-POD3-2026__overnight_liquid_band",
+      "clause_id": "5.2.1",
       "source_circular_id": "HO/47/11/11(1)2026-MRD-POD3/I/13804/2026",
-      "plain_description": "Overnight ETFs: fixed +/-5% band (unchanged).",
-      "applicable_entity_type": "overnight_etf",
+      "plain_description": "Overnight and Liquid ETFs: fixed price band of +/-5%.",
+      "applicable_entity_type": [
+        "overnight_etf",
+        "liquid_etf"
+      ],
       "condition": {
-        "field": "band_config.overnight_etf",
+        "field": "band_config.overnight_liquid_etf",
         "operator": "equals",
         "value": "fixed_5"
       },
@@ -62,46 +120,25 @@
         "flex_pct": null,
         "max_flexes": null,
         "trigger_pct": null,
-        "uncapped": false
+        "uncapped": false,
+        "cooling_off_trigger_pct": null,
+        "cooling_off_minutes": null,
+        "cooling_off_minutes_last_30": null,
+        "dpl_pct": null,
+        "dpl_relaxation_step_pct": null
       },
-      "required_action": "Maintain fixed +/-5% price band.",
+      "required_action": "Maintain a fixed +/-5% price band for Overnight and Liquid ETFs.",
       "deadline": "2026-09-01",
       "effective_from": "2026-09-01",
-      "confidence": 0.94,
+      "confidence": 0.93,
       "needs_human_review": false,
       "review_reason": null
     },
     {
-      "rule_id": "MRD-POD3-2026__liquid_band",
-      "clause_id": "3.3",
+      "rule_id": "MRD-POD3-2026__commodity_band",
+      "clause_id": "5.3.1",
       "source_circular_id": "HO/47/11/11(1)2026-MRD-POD3/I/13804/2026",
-      "plain_description": "Liquid ETFs: fixed +/-5% band (newly tightened from flat +/-20%).",
-      "applicable_entity_type": "liquid_etf",
-      "condition": {
-        "field": "band_config.liquid_etf",
-        "operator": "equals",
-        "value": "fixed_5"
-      },
-      "threshold": {
-        "static_band_pct": 5.0,
-        "dynamic_band_pct": null,
-        "flex_pct": null,
-        "max_flexes": null,
-        "trigger_pct": null,
-        "uncapped": false
-      },
-      "required_action": "Tighten liquid ETF price band to fixed +/-5%.",
-      "deadline": "2026-09-01",
-      "effective_from": "2026-09-01",
-      "confidence": 0.92,
-      "needs_human_review": false,
-      "review_reason": null
-    },
-    {
-      "rule_id": "MRD-POD3-2026__gold_silver_band",
-      "clause_id": "3.4",
-      "source_circular_id": "HO/47/11/11(1)2026-MRD-POD3/I/13804/2026",
-      "plain_description": "Gold/Silver ETFs: dynamic +/-6% band, flex +3% at 5.90% trigger, uncapped flexing.",
+      "plain_description": "Commodity (Gold/Silver) ETFs: dynamic band +/-6%, flexed by +3% after cooling-off; DPL +/-9% relaxation in 3% steps; cooling-off trigger 5.90%; no cap on number of flexes.",
       "applicable_entity_type": "gold_silver_etf",
       "condition": {
         "field": "band_config.gold_silver_etf",
@@ -113,10 +150,15 @@
         "dynamic_band_pct": 6.0,
         "flex_pct": 3.0,
         "max_flexes": null,
-        "trigger_pct": 5.9,
-        "uncapped": true
+        "trigger_pct": null,
+        "uncapped": true,
+        "cooling_off_trigger_pct": 5.9,
+        "cooling_off_minutes": 15,
+        "cooling_off_minutes_last_30": 5,
+        "dpl_pct": 9.0,
+        "dpl_relaxation_step_pct": 3.0
       },
-      "required_action": "Configure dynamic +/-6% band with +3% uncapped flexing triggered at 5.90%.",
+      "required_action": "Configure dynamic +/-6% band with +3% uncapped flexing (cooling-off 5.90%); apply DPL +/-9% relaxation in 3% steps.",
       "deadline": "2026-09-01",
       "effective_from": "2026-09-01",
       "confidence": 0.88,
@@ -124,23 +166,49 @@
       "review_reason": null
     },
     {
-      "rule_id": "MRD-POD3-2026__base_price_phase2",
-      "clause_id": "4.4",
+      "rule_id": "MRD-POD3-2026__closeout",
+      "clause_id": "6.1",
       "source_circular_id": "HO/47/11/11(1)2026-MRD-POD3/I/13804/2026",
-      "plain_description": "Phase 2: migrate base price to T-1 closing NAV, superseding the T-1 VWAP method in clause 2.1.",
-      "applicable_entity_type": "all_etf",
-      "condition": {
-        "field": "base_price_method",
-        "operator": "equals",
-        "value": "T-1_closing_nav"
+      "plain_description": "Close-out for Overnight/Liquid ETFs: higher of (a) highest price recorded in the settlement, or (b) 5% above latest available closing price. Other ETFs follow existing Master Circular provisions.",
+      "applicable_entity_type": [
+        "overnight_etf",
+        "liquid_etf"
+      ],
+      "condition": null,
+      "threshold": {
+        "static_band_pct": 5.0,
+        "dynamic_band_pct": null,
+        "flex_pct": null,
+        "max_flexes": null,
+        "trigger_pct": null,
+        "uncapped": false,
+        "cooling_off_trigger_pct": null,
+        "cooling_off_minutes": null,
+        "cooling_off_minutes_last_30": null,
+        "dpl_pct": null,
+        "dpl_relaxation_step_pct": null
       },
+      "required_action": "Compliance officer to confirm close-out mark-up handling against Master Circular Chapter 3.",
+      "deadline": "2026-09-01",
+      "effective_from": "2026-09-01",
+      "confidence": 0.55,
+      "needs_human_review": true,
+      "review_reason": "Close-out mark-up is a conditional 'whichever is higher' rule requiring settlement-level data; not reducible to a single firm-config check."
+    },
+    {
+      "rule_id": "MRD-POD3-2026__call_auction",
+      "clause_id": "7.1",
+      "source_circular_id": "HO/47/11/11(1)2026-MRD-POD3/I/13804/2026",
+      "plain_description": "A call auction in the pre-open session shall be conducted for Commodity (Gold/Silver) ETFs to aid equilibrium price discovery.",
+      "applicable_entity_type": "gold_silver_etf",
+      "condition": null,
       "threshold": null,
-      "required_action": "Migrate ETF base price computation to T-1 closing NAV.",
-      "deadline": "2027-04-01",
-      "effective_from": "2027-04-01",
-      "confidence": 0.9,
-      "needs_human_review": false,
-      "review_reason": null
+      "required_action": "Compliance officer to confirm pre-open call-auction participation for Gold/Silver ETFs.",
+      "deadline": "2026-09-01",
+      "effective_from": "2026-09-01",
+      "confidence": 0.6,
+      "needs_human_review": true,
+      "review_reason": "New pre-open call-auction mechanism references Master Circular para 17.1; operational readiness is a process check, not a firm-config comparison."
     }
   ]
 }

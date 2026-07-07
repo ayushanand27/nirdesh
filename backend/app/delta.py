@@ -52,14 +52,25 @@ def _rule_value_summary(rule: Rule) -> str:
         parts.append(f"max {t['max_flexes']} flexes")
     if t.get("trigger_pct") is not None:
         parts.append(f"trigger {t['trigger_pct']}%")
+    if t.get("cooling_off_trigger_pct") is not None:
+        parts.append(f"cooling-off {t['cooling_off_trigger_pct']}%")
+    if t.get("dpl_pct") is not None:
+        parts.append(f"DPL ±{t['dpl_pct']}%")
+    if t.get("dpl_relaxation_step_pct") is not None:
+        parts.append(f"relax +{t['dpl_relaxation_step_pct']}% steps")
     if t.get("uncapped"):
         parts.append("uncapped")
     return ", ".join(parts) if parts else (str(value) if value is not None else "—")
 
 
-def _find_superseded_pairs(session: Session, to_as_of: str) -> list[tuple[Rule, Rule]]:
-    """Return (old_rule, new_rule) pairs where new_rule supersedes old_rule and
-    is effective as of `to_as_of`.
+def _find_superseded_pairs(
+    session: Session, from_as_of: str, to_as_of: str
+) -> list[tuple[Rule, Rule]]:
+    """Return (old_rule, new_rule) pairs whose effective date falls in the
+    amendment window (from_as_of, to_as_of].
+
+    This ensures the Sept-2026 → Apr-2027 delta shows only clause 4.1 → 4.4,
+    not the earlier legacy → 4.1 transition that already happened at Sept 2026.
     """
     from datetime import date
 
@@ -69,6 +80,7 @@ def _find_superseded_pairs(session: Session, to_as_of: str) -> list[tuple[Rule, 
         except ValueError:
             return None
 
+    from_d = to_d(from_as_of)
     to_d_val = to_d(to_as_of)
     all_rules = {r.id: r for r in session.query(Rule).all()}
     pairs: list[tuple[Rule, Rule]] = []
@@ -76,7 +88,7 @@ def _find_superseded_pairs(session: Session, to_as_of: str) -> list[tuple[Rule, 
         if new_rule.supersedes_id is None:
             continue
         eff = to_d(new_rule.effective_from)
-        if to_d_val and eff and eff <= to_d_val:
+        if from_d and to_d_val and eff and eff > from_d and eff <= to_d_val:
             old_rule = all_rules.get(new_rule.supersedes_id)
             if old_rule:
                 pairs.append((old_rule, new_rule))
@@ -88,14 +100,17 @@ def compute_delta(
 ) -> dict:
     firms = session.query(Firm).order_by(Firm.id).all()
 
-    before_rules = active_rules(session, from_as_of)
-    after_rules = active_rules(session, to_as_of)
+    before_all = active_rules(session, from_as_of)
+    after_all = active_rules(session, to_as_of)
+    before_rules = [r for r in before_all if not r.needs_human_review]
+    after_rules = [r for r in after_all if not r.needs_human_review]
     before_ids = {r.rule_id for r in before_rules}
     after_ids = {r.rule_id for r in after_rules}
 
-    # --- Rule-level changes (superseded obligations) ---
+    # --- Rule-level changes (superseded obligations in this window) ---
     rule_changes = []
-    for old_rule, new_rule in _find_superseded_pairs(session, to_as_of):
+    window_pairs = _find_superseded_pairs(session, from_as_of, to_as_of)
+    for old_rule, new_rule in window_pairs:
         rule_changes.append(
             {
                 "change_type": "superseded",

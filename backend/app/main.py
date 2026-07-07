@@ -6,6 +6,8 @@ Step 2: firms + deterministic evaluation (/firms, /rules, /evaluate, /matrix, /a
 
 from __future__ import annotations
 
+import os
+
 from fastapi import Depends, FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
@@ -27,11 +29,18 @@ class ReviewSignoff(BaseModel):
 
 DEFAULT_AS_OF = "2026-09-01"
 
-app = FastAPI(title="Nirdesh — Agentic Compliance", version="0.2.0")
+app = FastAPI(title="Nirdesh — Agentic Compliance", version="0.3.0")
+
+# CORS: set ALLOWED_ORIGINS to a comma-separated list of frontend URLs in prod.
+# Defaults to "*" for local dev; lock this down to the real frontend URL on Render.
+_origins_env = os.getenv("ALLOWED_ORIGINS", "*").strip()
+ALLOWED_ORIGINS = ["*"] if _origins_env in ("", "*") else [
+    o.strip() for o in _origins_env.split(",") if o.strip()
+]
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=ALLOWED_ORIGINS,
     allow_methods=["*"],
     allow_headers=["*"],
 )
@@ -39,7 +48,27 @@ app.add_middleware(
 
 @app.on_event("startup")
 def _startup() -> None:
+    """Ensure schema + demo data exist.
+
+    Render's free tier disk is ephemeral, so on every cold start (deploy,
+    restart, wake-from-sleep) the SQLite file is gone. We rebuild the canonical
+    8-rule / 3-firm demo state automatically when the DB is empty, so the live
+    site always boots into the correct, deterministic demo posture. An existing
+    populated DB (e.g. a warm worker restart mid-demo) is left untouched.
+    """
     init_db()
+    from .db import SessionLocal
+    from .models import Rule as _Rule
+
+    session = SessionLocal()
+    try:
+        if session.query(_Rule).count() == 0:
+            import seed_db
+
+            seed_db.seed_rules(session)
+            seed_db.seed_firms(session)
+    finally:
+        session.close()
 
 
 @app.get("/health")

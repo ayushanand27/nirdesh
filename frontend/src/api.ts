@@ -1,6 +1,10 @@
 import type { AuditEntry, Delta, Firm, Matrix, ReviewTask, Rule } from "./types";
 
-const BASE = "/api";
+// In production (Render), set VITE_API_BASE_URL to the deployed backend URL,
+// e.g. https://nirdesh-backend.onrender.com. Locally it defaults to the Vite
+// dev proxy at "/api" (see vite.config.ts). Trailing slashes are trimmed.
+const RAW_BASE = import.meta.env.VITE_API_BASE_URL ?? "/api";
+const BASE = RAW_BASE.replace(/\/+$/, "");
 
 async function get<T>(path: string): Promise<T> {
   const res = await fetch(`${BASE}${path}`);

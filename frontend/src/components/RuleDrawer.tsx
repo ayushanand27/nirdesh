@@ -154,6 +154,15 @@ function ThresholdBlock({ threshold }: { threshold: NonNullable<Rule["threshold"
   if (threshold.flex_pct != null) rows.push(["Flex", `+${threshold.flex_pct}%`]);
   if (threshold.max_flexes != null) rows.push(["Max flexes", String(threshold.max_flexes)]);
   if (threshold.trigger_pct != null) rows.push(["Trigger", `${threshold.trigger_pct}%`]);
+  if (threshold.cooling_off_trigger_pct != null)
+    rows.push(["Cooling-off trigger", `${threshold.cooling_off_trigger_pct}%`]);
+  if (threshold.cooling_off_minutes != null)
+    rows.push(["Cooling-off period", `${threshold.cooling_off_minutes} min`]);
+  if (threshold.cooling_off_minutes_last_30 != null)
+    rows.push(["Cooling-off (last 30 min)", `${threshold.cooling_off_minutes_last_30} min`]);
+  if (threshold.dpl_pct != null) rows.push(["DPL limit", `±${threshold.dpl_pct}%`]);
+  if (threshold.dpl_relaxation_step_pct != null)
+    rows.push(["DPL relaxation step", `+${threshold.dpl_relaxation_step_pct}%`]);
   rows.push(["Uncapped", threshold.uncapped ? "Yes" : "No"]);
 
   return (

@@ -9,7 +9,7 @@ and the LLM is never trusted to "decide" breach vs compliant.
 from __future__ import annotations
 
 from enum import Enum
-from typing import Any, Optional
+from typing import Any, Optional, Union
 
 from pydantic import BaseModel, Field
 
@@ -46,7 +46,12 @@ class Condition(BaseModel):
 
 
 class Threshold(BaseModel):
-    """Numeric price-band components. Any unused component is null."""
+    """Numeric price-band components. Any unused component is null.
+
+    Cooling-off and DPL fields capture genuinely checkable numeric conditions
+    from clauses 5.1.2 (equity/debt cooling-off), 5.3.2 (commodity DPL relaxation)
+    and 5.3.3 (commodity cooling-off).
+    """
 
     static_band_pct: Optional[float] = None
     dynamic_band_pct: Optional[float] = None
@@ -55,6 +60,15 @@ class Threshold(BaseModel):
     trigger_pct: Optional[float] = None
     uncapped: bool = False
 
+    # Cooling-off (5.1.2 / 5.3.3)
+    cooling_off_trigger_pct: Optional[float] = None
+    cooling_off_minutes: Optional[int] = None
+    cooling_off_minutes_last_30: Optional[int] = None
+
+    # Daily Price Limit relaxation for commodity ETFs (5.3.2)
+    dpl_pct: Optional[float] = None
+    dpl_relaxation_step_pct: Optional[float] = None
+
 
 class RuleObject(BaseModel):
     rule_id: str = Field(..., description="Stable slug, e.g. 'MRD-POD3-2026__equity_debt_price_band'")
@@ -62,7 +76,9 @@ class RuleObject(BaseModel):
     source_circular_id: str
     plain_description: str
 
-    applicable_entity_type: EntityType
+    # Single entity type, or a list when one obligation covers several (e.g.
+    # clause 5.2.1 applies to both Overnight and Liquid ETFs).
+    applicable_entity_type: Union[EntityType, list[EntityType]]
 
     condition: Optional[Condition] = None
     threshold: Optional[Threshold] = None

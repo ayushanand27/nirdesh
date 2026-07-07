@@ -13,6 +13,11 @@ export interface Threshold {
   max_flexes: number | null;
   trigger_pct: number | null;
   uncapped: boolean;
+  cooling_off_trigger_pct?: number | null;
+  cooling_off_minutes?: number | null;
+  cooling_off_minutes_last_30?: number | null;
+  dpl_pct?: number | null;
+  dpl_relaxation_step_pct?: number | null;
 }
 
 export interface Rule {
@@ -20,7 +25,7 @@ export interface Rule {
   clause_id: string;
   source_circular_id: string;
   plain_description: string;
-  applicable_entity_type: string;
+  applicable_entity_type: string | string[];
   condition: Condition | null;
   threshold: Threshold | null;
   required_action: string;

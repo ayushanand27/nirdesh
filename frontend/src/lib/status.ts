@@ -27,7 +27,10 @@ export const STATUS_META: Record<
   },
 };
 
-export function formatEntity(entity: string): string {
+export function formatEntity(entity: string | string[]): string {
+  if (Array.isArray(entity)) {
+    return entity.map((e) => formatEntity(e)).join(" / ");
+  }
   return entity
     .replace(/_etf$/, " ETF")
     .replace(/_/g, " ")

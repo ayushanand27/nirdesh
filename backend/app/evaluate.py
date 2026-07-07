@@ -81,9 +81,14 @@ def check_condition(condition: dict, profile: dict) -> tuple[bool, dict]:
 
 def is_applicable(rule: Rule, profile: dict) -> bool:
     offered = profile.get("offers_etf_types") or []
-    if rule.applicable_entity_type == "all_etf":
+    aet = rule.applicable_entity_type
+    if aet == "all_etf":
         return len(offered) > 0
-    return rule.applicable_entity_type in offered
+    if isinstance(aet, list):
+        # Obligation covers several entity types (e.g. Overnight + Liquid);
+        # applies if the firm offers any of them.
+        return any(t in offered for t in aet)
+    return aet in offered
 
 
 def evaluate_rule(rule: Rule, profile: dict) -> tuple[str, dict]:
@@ -137,7 +142,10 @@ def run_evaluation(
     trail. Either way the engine never mutates existing rows.
     """
     firms = session.query(Firm).order_by(Firm.id).all()
-    rules = sorted(active_rules(session, as_of), key=lambda r: (r.effective_from or "", r.clause_id))
+    all_active = sorted(active_rules(session, as_of), key=lambda r: (r.effective_from or "", r.clause_id))
+    # Matrix shows only machine-evaluable obligations; review-flagged rules are
+    # surfaced in Officer Sign-off, not as matrix columns.
+    rules = [r for r in all_active if not r.needs_human_review]
 
     cells = []
     counts = {COMPLIANT: 0, BREACH: 0, NOT_APPLICABLE: 0}

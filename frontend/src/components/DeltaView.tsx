@@ -37,12 +37,15 @@ export function DeltaView({ delta, applying, applied, onApply }: Props) {
               )}
             </div>
             <h2 className="mt-1 font-serif text-xl text-navy">
-              Phase 2 — Base price migration to T-1 closing NAV
+              Phase 2 — Joint transition to T-1 closing NAV
             </h2>
             <p className="mt-1 max-w-xl text-sm text-muted">
-              Clause 4.4 of the same circular supersedes clause 2.1 effective{" "}
-              <span className="font-mono text-ink tnum">01 Apr 2027</span>. The
-              system will recalculate all firm obligations deterministically.
+              Clause 4.4 requires Stock Exchanges and AMCs to jointly address the
+              operational challenges to implement T-1 day closing NAV as the base price
+              w.e.f.{" "}
+              <span className="font-mono text-ink tnum">01 Apr 2027</span>, superseding
+              clause 4.1. The system will recalculate all firm obligations
+              deterministically.
             </p>
           </div>
           <button
