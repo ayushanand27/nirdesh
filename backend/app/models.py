@@ -55,6 +55,7 @@ class Rule(Base):
     required_action: Mapped[str] = mapped_column(Text)
     deadline: Mapped[str | None] = mapped_column(String(20), nullable=True)
     effective_from: Mapped[str | None] = mapped_column(String(20), nullable=True)
+    source_text_span: Mapped[str | None] = mapped_column(Text, nullable=True)
 
     confidence: Mapped[float] = mapped_column(Float)
     needs_human_review: Mapped[bool] = mapped_column(Boolean, default=False)

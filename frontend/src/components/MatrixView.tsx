@@ -1,5 +1,5 @@
 import type { Cell, CellStatus, Firm, Matrix, Rule } from "../types";
-import { STATUS_META, formatEntity } from "../lib/status";
+import { STATUS_META, formatClause, formatEntity } from "../lib/status";
 
 interface Props {
   matrix: Matrix;
@@ -42,7 +42,7 @@ export function MatrixView({ matrix, recalcKey, selectedRuleId, onSelectRule }: 
                   }`}
                 >
                   <div className="font-mono text-xs font-semibold text-navy tnum">
-                    § {r.clause_id}
+                    {formatClause(r.clause_id)}
                   </div>
                   <div className="mt-0.5 text-[11px] leading-tight text-muted">
                     {formatEntity(r.applicable_entity_type)}

@@ -237,6 +237,21 @@ function RuleChangeCard({
           >
             {change.new.value_summary}
           </div>
+          {change.new.source_text_span && (
+            <div
+              className={`mt-3 transition-all duration-700 ease-precise ${
+                revealed ? "opacity-100 translate-y-0" : "opacity-0 translate-y-1"
+              }`}
+              style={{ transitionDelay: revealed ? "450ms" : "0ms" }}
+            >
+              <div className="label-caps mb-1 text-muted">
+                Source text — § {change.new.clause_id}
+              </div>
+              <blockquote className="border-l-2 border-navy bg-canvas px-3 py-2 font-mono text-[11px] leading-relaxed text-ink">
+                “{change.new.source_text_span}”
+              </blockquote>
+            </div>
+          )}
         </div>
       </div>
     </div>

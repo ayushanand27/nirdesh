@@ -37,6 +37,12 @@ export function formatEntity(entity: string | string[]): string {
     .replace(/\b\w/g, (c) => c.toUpperCase());
 }
 
+// Renders a clause reference. Numeric clauses (e.g. "4.1") get a "§" prefix;
+// descriptive labels (e.g. "Pre-2026 regime (¶2 context)") are shown verbatim.
+export function formatClause(clauseId: string): string {
+  return /^[0-9]/.test(clauseId) ? `§ ${clauseId}` : clauseId;
+}
+
 export function formatDate(iso: string | null): string {
   if (!iso) return "—";
   const d = new Date(iso.length <= 10 ? `${iso}T00:00:00` : iso);

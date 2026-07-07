@@ -128,6 +128,7 @@ def compute_delta(
                     "value_summary": _rule_value_summary(new_rule),
                     "effective_from": new_rule.effective_from,
                     "deadline": new_rule.deadline,
+                    "source_text_span": new_rule.source_text_span,
                 },
             }
         )

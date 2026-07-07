@@ -31,6 +31,7 @@ export interface Rule {
   required_action: string;
   deadline: string | null;
   effective_from: string | null;
+  source_text_span?: string | null;
   confidence: number;
   needs_human_review: boolean;
   review_reason: string | null;
@@ -84,6 +85,7 @@ export interface DeltaRuleSide {
   value_summary: string;
   effective_from: string | null;
   deadline?: string | null;
+  source_text_span?: string | null;
 }
 
 export interface DeltaRuleChange {

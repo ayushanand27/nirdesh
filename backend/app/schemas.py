@@ -87,6 +87,10 @@ class RuleObject(BaseModel):
     deadline: Optional[str] = Field(None, description="ISO date YYYY-MM-DD or null")
     effective_from: Optional[str] = Field(None, description="ISO date the rule takes effect")
 
+    # Verbatim (line-break/page-artifact-cleaned) quote from the source circular,
+    # preserving the regulator's own notation. Powers the 'Source Text' citation.
+    source_text_span: Optional[str] = None
+
     confidence: float = Field(..., ge=0.0, le=1.0)
     needs_human_review: bool = False
     review_reason: Optional[str] = None

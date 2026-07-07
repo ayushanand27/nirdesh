@@ -1,7 +1,7 @@
 import type { Cell, Firm, Rule } from "../types";
 import { ConfidenceBar } from "./ConfidenceBar";
 import { StatusBadge } from "./StatusBadge";
-import { formatDate, formatEntity } from "../lib/status";
+import { formatClause, formatDate, formatEntity } from "../lib/status";
 
 interface Props {
   rule: Rule | null;
@@ -44,7 +44,7 @@ function RuleDetail({ rule, firms, cells, onClose }: { rule: Rule; firms: Firm[]
         <div>
           <div className="flex items-center gap-2">
             <span className="font-mono text-sm font-semibold text-navy tnum">
-              Clause § {rule.clause_id}
+              {formatClause(rule.clause_id)}
             </span>
             {rule.status === "superseded" && (
               <span className="rounded bg-na-bg px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wide text-na-text">
@@ -89,6 +89,17 @@ function RuleDetail({ rule, firms, cells, onClose }: { rule: Rule; firms: Firm[]
         </Section>
 
         {rule.threshold && <ThresholdBlock threshold={rule.threshold} />}
+
+        {rule.source_text_span && (
+          <Section label="Source text — verbatim from circular">
+            <blockquote className="border-l-2 border-navy bg-canvas px-3 py-2.5 font-mono text-[12px] leading-relaxed text-ink">
+              “{rule.source_text_span}”
+            </blockquote>
+            <div className="mt-1.5 font-mono text-[10px] text-muted">
+              {formatClause(rule.clause_id)} · {rule.source_circular_id}
+            </div>
+          </Section>
+        )}
 
         <div className="grid grid-cols-2 gap-4">
           <Section label="Confidence">

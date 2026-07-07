@@ -4,7 +4,7 @@ Run: `python seed_db.py` (safe to re-run; it drops and recreates for a clean
 demo state). Flow:
   1. Load the canonical, human-reviewed rule set (app/canonical_rules.py).
   2. Persist rules append-only, wiring supersession chain:
-       legacy §2 -> §4.1 -> §4.4 (phase-2).
+       Pre-2026 regime (¶2 context) -> §4.1 -> §4.4 (phase-2).
   3. Seed the 3 fictional AMCs.
   4. Log the load event to the audit trail (8 rules total).
 """
@@ -42,6 +42,7 @@ def seed_rules(session) -> None:
             required_action=r.required_action,
             deadline=r.deadline,
             effective_from=r.effective_from,
+            source_text_span=r.source_text_span,
             confidence=r.confidence,
             needs_human_review=r.needs_human_review,
             review_reason=r.review_reason,
@@ -51,7 +52,7 @@ def seed_rules(session) -> None:
         slug_to_row[r.rule_id] = row
     session.flush()  # assign ids
 
-    # Supersession chain: legacy §2 -> §4.1 -> §4.4
+    # Supersession chain: Pre-2026 regime (¶2 context) -> §4.1 -> §4.4
     legacy = slug_to_row.get("MRD-POD3-2026__base_price_legacy")
     base = slug_to_row.get("MRD-POD3-2026__base_price")
     phase2 = slug_to_row.get("MRD-POD3-2026__base_price_phase2")
