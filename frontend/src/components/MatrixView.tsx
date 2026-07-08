@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import type { Cell, CellStatus, Firm, Matrix, Rule } from "../types";
+import type { Cell, CellDetail, CellStatus, Firm, Matrix, Rule } from "../types";
 import { STATUS_META, formatClause, formatEntity } from "../lib/status";
 import { SourcePopover } from "./SourcePopover";
 
@@ -55,11 +55,13 @@ export function MatrixView({ matrix, recalcKey, selectedRuleId, onSelectRule }: 
 
   return (
     <div className="card-primary overflow-hidden">
-      <div className="flex items-center justify-between border-b border-hair/30 px-5 py-4">
+      <div className="flex items-center justify-between border-b border-hair/40 px-5 py-4">
         <div>
           <h2 className="font-serif text-lg text-ink">Compliance Matrix</h2>
-          <p className="text-[11px] text-muted/80">
-            Firms evaluated against active obligations
+          <p className="text-[11px] text-muted">
+            {mode === "simple"
+              ? "Plain-English posture across funds"
+              : "Machine fields · thresholds · actual vs expected"}
           </p>
         </div>
         <div className="flex items-center gap-4">
@@ -71,18 +73,16 @@ export function MatrixView({ matrix, recalcKey, selectedRuleId, onSelectRule }: 
       <div className="overflow-x-auto">
         <table
           className={`w-full border-collapse ${
-            mode === "technical"
-              ? '[font-family:"Courier_New",ui-monospace,monospace]'
-              : "font-sans"
+            mode === "technical" ? "font-mono" : "font-sans"
           }`}
         >
           <thead>
             <tr>
               <th
-                className={`sticky left-0 z-10 min-w-[220px] border-b border-r bg-elevated/30 text-left ${
+                className={`sticky left-0 z-10 min-w-[220px] border-b border-r bg-elevated/40 text-left ${
                   mode === "technical"
-                    ? "border-hair/45 px-4 py-2.5"
-                    : "border-hair/25 px-5 py-4"
+                    ? "border-hair/60 px-3 py-2"
+                    : "border-hair/30 px-5 py-4"
                 }`}
               >
                 <span className="label-caps">Firm</span>
@@ -91,12 +91,12 @@ export function MatrixView({ matrix, recalcKey, selectedRuleId, onSelectRule }: 
                 <th
                   key={r.rule_id}
                   onClick={() => onSelectRule(r)}
-                  className={`min-w-[130px] cursor-pointer border-b text-left align-bottom transition-colors hover:bg-elevated/50 ${
+                  className={`min-w-[140px] cursor-pointer border-b text-left align-bottom transition-colors hover:bg-elevated/50 ${
                     selectedRuleId === r.rule_id ? "bg-elevated/50" : ""
-                  } ${mode === "technical" ? "border-hair/45 px-2.5 py-2.5" : "border-hair/25 px-3 py-4"} ${
+                  } ${
                     mode === "technical"
-                      ? '[font-family:"Courier_New",ui-monospace,monospace]'
-                      : ""
+                      ? "border-hair/60 px-2 py-2"
+                      : "border-hair/30 px-3 py-4"
                   }`}
                 >
                   {mode === "simple" ? (
@@ -104,22 +104,25 @@ export function MatrixView({ matrix, recalcKey, selectedRuleId, onSelectRule }: 
                       <div className="text-sm font-semibold leading-tight text-ink">
                         {r.plain_label ?? formatEntity(r.applicable_entity_type)}
                       </div>
-                      <div className="mt-1 text-[11px] leading-tight text-muted/80">
-                        {formatEntity(r.applicable_entity_type)}
+                      <div className="mt-1 text-[11px] leading-tight text-muted">
+                        Applies to {formatEntity(r.applicable_entity_type)}
                       </div>
                       <div className="absolute right-0 top-0 inline-flex rounded-full bg-gold/12 px-2 py-0.5 font-mono text-[9px] text-gold">
                         {formatClause(r.clause_id)}
                       </div>
                     </div>
                   ) : (
-                    <>
-                      <div className='text-xs font-semibold uppercase tracking-[0.08em] text-gold [font-family:"Courier_New",ui-monospace,monospace]'>
+                    <div>
+                      <div className="text-[11px] font-semibold uppercase tracking-[0.08em] text-gold">
                         {formatClause(r.clause_id)}
                       </div>
-                      <div className='mt-1 text-[10px] uppercase leading-tight text-muted [font-family:"Courier_New",ui-monospace,monospace]'>
-                        {formatEntity(r.applicable_entity_type)}
+                      <div className="mt-1 text-[10px] leading-tight text-ink/80">
+                        {technicalField(r)}
                       </div>
-                    </>
+                      <div className="mt-0.5 text-[9px] text-muted">
+                        {thresholdSummary(r)}
+                      </div>
+                    </div>
                   )}
                   {r.needs_human_review && (
                     <div className="mt-1 inline-block rounded bg-gold/12 px-1 py-0.5 text-[9px] font-medium uppercase tracking-wide text-gold-700">
@@ -188,19 +191,18 @@ function FirmRow({
     <tr className="group">
       <td
         className={`sticky left-0 z-10 border-b border-r bg-elevated/20 group-hover:bg-elevated/40 ${
-          mode === "technical"
-            ? "border-hair/45 px-4 py-2.5"
-            : "border-hair/25 px-5 py-4"
+          mode === "technical" ? "border-hair/60 px-3 py-2" : "border-hair/30 px-5 py-4"
         }`}
       >
         <div className="font-medium text-ink">{firm.name}</div>
-        <div
-          className={`text-[11px] text-muted/70 ${
-            mode === "technical" ? '[font-family:"Courier_New",ui-monospace,monospace]' : "font-mono"
-          }`}
-        >
-          {firm.profile.base_price_method ?? "—"}
-        </div>
+        {mode === "simple" ? (
+          <div className="mt-0.5 text-[11px] text-muted">{friendlyFirmType(firm)}</div>
+        ) : (
+          <div className="mt-1 space-y-0.5 font-mono text-[10px] text-muted">
+            <div>base={firm.profile.base_price_method ?? "—"}</div>
+            <div>type={firm.legal_type}</div>
+          </div>
+        )}
       </td>
       {rules.map((rule) => {
         const cellKey = `${firm.id}:${rule.rule_id}`;
@@ -214,9 +216,9 @@ function FirmRow({
           <MatrixCell
             key={rule.rule_id}
             status={status}
-            statusKey={status}
             meta={m}
             mode={mode}
+            detail={cell?.detail}
             recalcKey={recalcKey}
             isPopoverOpen={popoverKey === cellKey}
             hasSource={Boolean(rule.source_text_span)}
@@ -233,11 +235,8 @@ function FirmRow({
                 onSelectRule(rule);
                 return;
               }
-              if (popoverKey === cellKey) {
-                onScheduleHide();
-              } else {
-                onShowPopover(cellKey, el);
-              }
+              if (popoverKey === cellKey) onScheduleHide();
+              else onShowPopover(cellKey, el);
             }}
           />
         );
@@ -247,10 +246,10 @@ function FirmRow({
 }
 
 function MatrixCell({
-  statusKey,
   status,
   meta,
   mode,
+  detail,
   recalcKey,
   isPopoverOpen,
   hasSource,
@@ -259,10 +258,10 @@ function MatrixCell({
   onHoverEnd,
   onTouchTap,
 }: {
-  statusKey: CellStatus;
   status: CellStatus;
   meta: (typeof STATUS_META)[CellStatus];
   mode: ViewMode;
+  detail?: CellDetail;
   recalcKey: number;
   isPopoverOpen: boolean;
   hasSource: boolean;
@@ -276,7 +275,7 @@ function MatrixCell({
   return (
     <td
       className={`border-b align-middle ${
-        mode === "technical" ? "border-hair/45 p-1" : "border-hair/25 p-1.5"
+        mode === "technical" ? "border-hair/60 p-1" : "border-hair/30 p-1.5"
       }`}
     >
       <div
@@ -296,19 +295,24 @@ function MatrixCell({
         className={`cell-recalc flex cursor-pointer flex-col items-center justify-center rounded text-center transition-colors ${meta.cell} ${
           isPopoverOpen ? "ring-1 ring-gold/40" : ""
         } ${hasSource ? "hover:brightness-110" : ""} ${
-          mode === "technical" ? "h-12 px-1" : "h-16 px-2"
+          mode === "technical" ? "min-h-[52px] px-1.5 py-1.5" : "h-16 px-2"
         }`}
         key={`${status}-${recalcKey}`}
       >
         {mode === "simple" ? (
           <div className="flex items-center gap-1.5 text-[11px] font-semibold">
-            <StatusIcon status={statusKey} />
+            <StatusIcon status={status} />
             <span>{meta.label}</span>
           </div>
         ) : (
-          <span className='text-xs font-semibold uppercase tracking-[0.08em] [font-family:"Courier_New",ui-monospace,monospace]'>
-            {meta.short}
-          </span>
+          <>
+            <span className="text-[11px] font-semibold uppercase tracking-[0.08em]">
+              {meta.short}
+            </span>
+            <span className="mt-0.5 max-w-[120px] truncate text-[9px] leading-tight opacity-80">
+              {technicalCellLine(detail, status)}
+            </span>
+          </>
         )}
       </div>
     </td>
@@ -317,7 +321,7 @@ function MatrixCell({
 
 function ModeToggle({ mode, onChange }: { mode: ViewMode; onChange: (mode: ViewMode) => void }) {
   return (
-    <div className="flex items-center rounded border border-gold/20 bg-canvas/80 p-0.5">
+    <div className="flex items-center rounded border border-gold/25 bg-canvas p-0.5">
       {(["simple", "technical"] as const).map((option) => (
         <button
           key={option}
@@ -339,14 +343,25 @@ function StatusIcon({ status }: { status: CellStatus }) {
   if (status === "compliant") {
     return (
       <svg className="h-3.5 w-3.5" viewBox="0 0 16 16" fill="none">
-        <path d="M3 8.5l3 3 7-7" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+        <path
+          d="M3 8.5l3 3 7-7"
+          stroke="currentColor"
+          strokeWidth="1.8"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
       </svg>
     );
   }
   if (status === "breach") {
     return (
       <svg className="h-3.5 w-3.5" viewBox="0 0 16 16" fill="none">
-        <path d="M8 2.5L14 13H2L8 2.5z" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round" />
+        <path
+          d="M8 2.5L14 13H2L8 2.5z"
+          stroke="currentColor"
+          strokeWidth="1.4"
+          strokeLinejoin="round"
+        />
         <path d="M8 6v3.2" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
         <circle cx="8" cy="11.4" r="0.8" fill="currentColor" />
       </svg>
@@ -362,9 +377,58 @@ function Legend() {
       {items.map((s) => (
         <div key={s} className="flex items-center gap-1.5">
           <span className={`h-2.5 w-2.5 rounded-sm ${STATUS_META[s].dot}`} />
-          <span className="text-[11px] text-muted/80">{STATUS_META[s].label}</span>
+          <span className="text-[11px] text-muted">{STATUS_META[s].label}</span>
         </div>
       ))}
     </div>
   );
+}
+
+function friendlyFirmType(firm: Firm): string {
+  const types = firm.profile.offers_etf_types ?? [];
+  if (types.length === 0) return "No ETF offerings";
+  return types.map((t) => formatEntity(t)).join(", ");
+}
+
+function technicalField(rule: Rule): string {
+  if (rule.condition?.field) return rule.condition.field;
+  return "needs_human_review";
+}
+
+function thresholdSummary(rule: Rule): string {
+  const t = rule.threshold;
+  if (!t) return rule.condition ? `op=${rule.condition.operator}` : "no threshold";
+  const parts: string[] = [];
+  if (t.static_band_pct != null) parts.push(`±${t.static_band_pct}%`);
+  if (t.dynamic_band_pct != null) parts.push(`dyn±${t.dynamic_band_pct}%`);
+  if (t.flex_pct != null) parts.push(`flex+${t.flex_pct}%`);
+  if (t.max_flexes != null) parts.push(`max${t.max_flexes}`);
+  if (t.cooling_off_trigger_pct != null) parts.push(`cool@${t.cooling_off_trigger_pct}%`);
+  if (t.dpl_pct != null) parts.push(`dpl±${t.dpl_pct}%`);
+  if (t.uncapped) parts.push("uncapped");
+  return parts.length ? parts.join(" · ") : "threshold set";
+}
+
+function technicalCellLine(detail: CellDetail | undefined, status: CellStatus): string {
+  if (status === "not_applicable") return "out of scope";
+  if (!detail) return "—";
+  if (detail.actual != null && detail.expected != null) {
+    const a = stringify(detail.actual);
+    const e = stringify(detail.expected);
+    if (a === e) return `actual=${a}`;
+    return `${a} ≠ ${e}`;
+  }
+  if (detail.actual != null) return `actual=${stringify(detail.actual)}`;
+  if (detail.reason) return detail.reason.slice(0, 28);
+  return "checked";
+}
+
+function stringify(v: unknown): string {
+  if (typeof v === "string") return v.length > 22 ? `${v.slice(0, 20)}…` : v;
+  try {
+    const s = JSON.stringify(v);
+    return s.length > 22 ? `${s.slice(0, 20)}…` : s;
+  } catch {
+    return String(v);
+  }
 }

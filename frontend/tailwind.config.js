@@ -4,22 +4,20 @@ export default {
   theme: {
     extend: {
       colors: {
-        // Dark-first surface stack (base -> card -> raised/hover).
-        // Near-black navy, never pure black, so card elevation stays visible.
-        canvas: "#090F1C", // base page background (darkest)
-        surface: "#111A2E", // card background
-        elevated: "#1C2740", // hover / active / raised surfaces
-        // Deep navy retained as a brand surface tone (logo chip, circular band).
+        // Neutral black/charcoal stack — premium, no blue cast.
+        canvas: "#0A0A0A", // page base
+        surface: "#141414", // cards
+        elevated: "#1F1F1F", // hover / raised
         navy: {
-          DEFAULT: "#16213B",
-          700: "#1F2D4D",
-          600: "#2A3B60",
-          400: "#6B7BA0",
+          DEFAULT: "#161616",
+          700: "#222222",
+          600: "#2E2E2E",
+          400: "#8A8A8A",
         },
-        ink: "#E6EAF2", // primary text, near-white on dark
-        muted: "#8B94A7", // secondary text
-        hair: "#232E45", // hairline borders (visible on dark)
-        // Compliance states — functional only, brighter/warmer fills tuned for dark.
+        ink: "#F0F0F0",
+        muted: "#8F8F8F",
+        hair: "#2A2A2A",
+        // Compliance states — functional only; unchanged semantics.
         compliant: {
           DEFAULT: "#3DD68C",
           bg: "#1C5238",
@@ -31,12 +29,10 @@ export default {
           text: "#FFB4A2",
         },
         na: {
-          DEFAULT: "#8A93A8",
-          bg: "#2A3348",
-          text: "#C3CADA",
+          DEFAULT: "#8A8A8A",
+          bg: "#262626",
+          text: "#C8C8C8",
         },
-        // Premium black+gold accent. `accent` aliases to gold so every
-        // existing blue call site flips without leaving stale blue islands.
         gold: {
           DEFAULT: "#C9A227",
           400: "#E0BC4A",
@@ -53,15 +49,13 @@ export default {
         mono: ['"IBM Plex Mono"', "ui-monospace", "monospace"],
       },
       boxShadow: {
-        // Subtle depth — dark UIs read as premium through surface tone, not shadow.
-        card: "0 1px 2px rgba(0, 0, 0, 0.30), 0 2px 8px rgba(0, 0, 0, 0.22)",
-        drawer: "-16px 0 48px rgba(0, 0, 0, 0.55)",
+        card: "0 1px 2px rgba(0, 0, 0, 0.40), 0 2px 10px rgba(0, 0, 0, 0.35)",
+        drawer: "-16px 0 48px rgba(0, 0, 0, 0.70)",
       },
       borderRadius: {
         card: "6px",
       },
       transitionTimingFunction: {
-        // Deliberate, non-bouncy easing for the "system recalculated" feel.
         precise: "cubic-bezier(0.4, 0.0, 0.2, 1)",
       },
     },

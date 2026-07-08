@@ -86,7 +86,7 @@ function RuleDetail({
         <Section label="Extracted condition — machine-checkable">
           {rule.condition ? (
             <div className="rounded border border-hair bg-canvas px-3 py-2.5 font-mono text-xs text-ink">
-              <span className="text-navy-400">{rule.condition.field}</span>{" "}
+              <span className="text-muted">{rule.condition.field}</span>{" "}
               <span className="text-gold">{rule.condition.operator}</span>{" "}
               <span className="text-compliant-text">
                 {JSON.stringify(rule.condition.value)}
