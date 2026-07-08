@@ -97,9 +97,12 @@ def main() -> None:
     try:
         seed_rules(session)
         seed_firms(session)
+        from app.evaluate import run_evaluation
+
+        run_evaluation(session, as_of="2026-09-01", actor="seed", persist=True)
         n_rules = session.query(Rule).count()
         n_firms = session.query(Firm).count()
-        print(f"Seeded DB: {n_rules} rules, {n_firms} firms.")
+        print(f"Seeded DB: {n_rules} rules, {n_firms} firms + baseline evaluation.")
     finally:
         session.close()
 

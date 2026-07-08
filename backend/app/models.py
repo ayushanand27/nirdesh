@@ -13,7 +13,7 @@ from __future__ import annotations
 from datetime import datetime, timezone
 from typing import Any
 
-from sqlalchemy import JSON, Boolean, DateTime, Float, ForeignKey, Integer, String, Text
+from sqlalchemy import JSON, Boolean, DateTime, Float, ForeignKey, Index, Integer, String, Text, UniqueConstraint, text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from .db import Base
@@ -109,6 +109,17 @@ class ReviewTask(Base):
     """
 
     __tablename__ = "review_tasks"
+    __table_args__ = (
+        # At most one open (pending) task per firm + rule + as-of window.
+        Index(
+            "uq_review_pending_firm_rule_asof",
+            "firm_id",
+            "rule_id",
+            "as_of_date",
+            unique=True,
+            sqlite_where=text("status = 'pending'"),
+        ),
+    )
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     firm_id: Mapped[int] = mapped_column(ForeignKey("firms.id"))
@@ -126,3 +137,25 @@ class ReviewTask(Base):
         DateTime(timezone=True), nullable=True
     )
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow)
+
+
+class AmendmentState(Base):
+    """Idempotent application record for a (from_as_of → to_as_of) delta window.
+
+    status is NOT_APPLIED | APPLIED. Re-applying an already-APPLIED window is a
+    no-op and must not write a second amendment audit entry.
+    """
+
+    __tablename__ = "amendment_state"
+    __table_args__ = (UniqueConstraint("from_as_of", "to_as_of", name="uq_amendment_window"),)
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    from_as_of: Mapped[str] = mapped_column(String(20))
+    to_as_of: Mapped[str] = mapped_column(String(20))
+    status: Mapped[str] = mapped_column(String(20), default="NOT_APPLIED")  # NOT_APPLIED | APPLIED
+    applied_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    summary: Mapped[dict | None] = mapped_column(JSON, nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow)
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=_utcnow, onupdate=_utcnow
+    )

@@ -2,29 +2,33 @@
 
 Nirdesh is decision-support only. When the deterministic engine finds a breach,
 it does NOT act — it generates a review task that a named Compliance Officer must
-explicitly sign off before the obligation is considered actioned. Nothing here
-files, submits, or auto-remediates anything.
+explicitly sign off before the obligation is considered actioned.
 
-Task generation is idempotent per (firm, rule, as_of): re-running never creates
-duplicates, and existing reviewed tasks are never reset.
+Idempotency:
+  * generate_review_tasks never creates a second pending task for the same
+    (firm, rule, as_of); duplicates are blocked in app logic and by a unique
+    partial index on pending rows.
+  * mark_reviewed is a no-op if the task is already reviewed — no second audit.
 """
 
 from __future__ import annotations
 
 from datetime import datetime, timezone
 
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from .evaluate import BREACH, active_rules, evaluate_rule
-from .models import AuditLog, Firm, ReviewTask, Rule
+from .models import AuditLog, Firm, ReviewTask
 
 
 def generate_review_tasks(session: Session, as_of: str, actor: str = "system") -> dict:
     """Create a pending review task for every current breach that lacks one."""
     firms = session.query(Firm).order_by(Firm.id).all()
-    rules = {r.rule_id: r for r in active_rules(session, as_of)}
+    rules = {r.rule_id: r for r in active_rules(session, as_of) if not r.needs_human_review}
 
     created = 0
+    already_pending = 0
     for firm in firms:
         for rule in rules.values():
             status, _ = evaluate_rule(rule, firm.profile)
@@ -32,41 +36,92 @@ def generate_review_tasks(session: Session, as_of: str, actor: str = "system") -
                 continue
             exists = (
                 session.query(ReviewTask)
-                .filter_by(firm_id=firm.id, rule_id=rule.rule_id, as_of_date=as_of)
+                .filter_by(
+                    firm_id=firm.id,
+                    rule_id=rule.rule_id,
+                    as_of_date=as_of,
+                    status="pending",
+                )
                 .first()
             )
             if exists:
+                already_pending += 1
                 continue
-            session.add(
-                ReviewTask(
+            # Also skip if a reviewed task already exists for the same triple —
+            # officer already signed off this breach; don't resurface it.
+            reviewed = (
+                session.query(ReviewTask)
+                .filter_by(
                     firm_id=firm.id,
-                    firm_name=firm.name,
                     rule_id=rule.rule_id,
-                    clause_id=rule.clause_id,
                     as_of_date=as_of,
-                    title=f"{firm.name} — potential breach of clause §{rule.clause_id}",
-                    recommended_action=rule.required_action,
-                    severity="high",
+                    status="reviewed",
                 )
+                .first()
             )
-            created += 1
+            if reviewed:
+                already_pending += 1
+                continue
+            try:
+                with session.begin_nested():
+                    session.add(
+                        ReviewTask(
+                            firm_id=firm.id,
+                            firm_name=firm.name,
+                            rule_id=rule.rule_id,
+                            clause_id=rule.clause_id,
+                            as_of_date=as_of,
+                            title=f"{firm.name} — potential breach of clause §{rule.clause_id}",
+                            recommended_action=rule.required_action,
+                            severity="high",
+                        )
+                    )
+                    session.flush()
+                created += 1
+            except IntegrityError:
+                # Concurrent create of the same pending (firm, rule, as_of):
+                # savepoint rolls back only this insert.
+                already_pending += 1
+                continue
 
     if created:
+        message = (
+            f"{created} new review task(s) created for Compliance Officer sign-off. "
+            f"No automated action taken."
+        )
+        if already_pending:
+            message += f" ({already_pending} already pending/signed off — not duplicated.)"
         session.add(
             AuditLog(
                 event_type="review",
                 entity_ref=f"as_of={as_of}",
-                message=(
-                    f"Generated {created} review task(s) for Compliance Officer sign-off. "
-                    f"No automated action taken."
-                ),
-                meta={"as_of": as_of, "created": created},
+                message=message,
+                meta={
+                    "as_of": as_of,
+                    "created": created,
+                    "already_pending": already_pending,
+                    "noop": False,
+                },
                 actor=actor,
             )
         )
         session.commit()
+    elif already_pending:
+        # Idempotent no-op: clear response, no second audit write.
+        message = (
+            f"No new tasks — {already_pending} already pending or signed off "
+            f"for current breaches as of {as_of}."
+        )
+    else:
+        message = f"No open breaches as of {as_of}; no review tasks to generate."
 
-    return {"as_of": as_of, "created": created}
+    return {
+        "as_of": as_of,
+        "created": created,
+        "already_pending": already_pending,
+        "noop": created == 0,
+        "message": message,
+    }
 
 
 def list_tasks(session: Session) -> list[dict]:
@@ -82,6 +137,12 @@ def mark_reviewed(session: Session, task_id: int, reviewed_by: str) -> dict:
     task = session.query(ReviewTask).filter_by(id=task_id).first()
     if task is None:
         raise ValueError(f"review task {task_id} not found")
+
+    # Idempotent: second click on an already-reviewed task is a safe no-op.
+    if task.status == "reviewed":
+        out = _serialize(task)
+        out["noop"] = True
+        return out
 
     officer = reviewed_by.strip() or "Compliance Officer"
     task.status = "reviewed"
@@ -101,7 +162,9 @@ def mark_reviewed(session: Session, task_id: int, reviewed_by: str) -> dict:
         )
     )
     session.commit()
-    return _serialize(task)
+    out = _serialize(task)
+    out["noop"] = False
+    return out
 
 
 def _serialize(t: ReviewTask) -> dict:

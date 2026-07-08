@@ -41,10 +41,22 @@ export const api = {
     ),
   reviewTasks: () => get<ReviewTask[]>("/review-tasks"),
   generateReviewTasks: (asOf: string) =>
-    post<{ as_of: string; created: number }>(
-      `/review-tasks/generate?as_of=${encodeURIComponent(asOf)}`
-    ),
+    post<{
+      as_of: string;
+      created: number;
+      already_pending: number;
+      noop: boolean;
+      message: string;
+    }>(`/review-tasks/generate?as_of=${encodeURIComponent(asOf)}`),
   markReviewed: (taskId: number, reviewedBy: string) =>
-    post<ReviewTask>(`/review-tasks/${taskId}/review`, { reviewed_by: reviewedBy }),
+    post<ReviewTask & { noop?: boolean }>(`/review-tasks/${taskId}/review`, {
+      reviewed_by: reviewedBy,
+    }),
+  resetDelta: (fromAsOf: string, toAsOf: string) =>
+    post<Delta>(
+      `/delta/reset?from_as_of=${encodeURIComponent(fromAsOf)}&to_as_of=${encodeURIComponent(
+        toAsOf
+      )}`
+    ),
   audit: () => get<AuditEntry[]>("/audit"),
 };

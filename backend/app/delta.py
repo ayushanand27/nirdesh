@@ -1,33 +1,24 @@
 """Regulatory delta computation.
 
 Compares the compliance posture at two points in time (before / after an
-amendment becomes effective) and produces a structured diff:
+amendment becomes effective) and produces a structured diff.
 
-  * rule_changes  — obligations that were superseded, with a human-readable
-                    old-value -> new-value summary drawn from the structured
-                    condition/threshold (NOT prose, so it stays auditable).
-  * firm_transitions — per (firm, obligation) status changes, highlighting the
-                    firms that FLIP from compliant to breach purely because the
-                    regulation changed.
-
-All of this is derived from the same deterministic engine used elsewhere; the
-delta itself performs no independent judgement.
+Applying an amendment (persist=True) is idempotent: once a (from, to) window is
+APPLIED, subsequent applies return the stored result without a new audit write.
 """
 
 from __future__ import annotations
 
+from datetime import date, datetime, timezone
+
 from sqlalchemy.orm import Session
 
-from .evaluate import BREACH, COMPLIANT, active_rules, evaluate_rule
-from .models import AuditLog, Firm, Rule
+from .evaluate import BREACH, COMPLIANT, active_rules, evaluate_rule, run_evaluation
+from .models import AmendmentState, AuditLog, Firm, Rule
 
 
 def _rule_value_summary(rule: Rule) -> str:
-    """Render a rule's operative value as a compact, human-readable string.
-
-    Reads only the structured fields so the summary is a faithful projection of
-    what the engine actually checks.
-    """
+    """Render a rule's operative value as a compact, human-readable string."""
     cond = rule.condition or {}
     field = cond.get("field", "")
     value = cond.get("value")
@@ -66,13 +57,7 @@ def _rule_value_summary(rule: Rule) -> str:
 def _find_superseded_pairs(
     session: Session, from_as_of: str, to_as_of: str
 ) -> list[tuple[Rule, Rule]]:
-    """Return (old_rule, new_rule) pairs whose effective date falls in the
-    amendment window (from_as_of, to_as_of].
-
-    This ensures the Sept-2026 → Apr-2027 delta shows only clause 4.1 → 4.4,
-    not the earlier legacy → 4.1 transition that already happened at Sept 2026.
-    """
-    from datetime import date
+    """Return (old_rule, new_rule) pairs effective in (from_as_of, to_as_of]."""
 
     def to_d(v: str | None):
         try:
@@ -95,9 +80,21 @@ def _find_superseded_pairs(
     return pairs
 
 
-def compute_delta(
-    session: Session, from_as_of: str, to_as_of: str, persist: bool = False
-) -> dict:
+def _get_or_create_state(session: Session, from_as_of: str, to_as_of: str) -> AmendmentState:
+    row = (
+        session.query(AmendmentState)
+        .filter_by(from_as_of=from_as_of, to_as_of=to_as_of)
+        .first()
+    )
+    if row:
+        return row
+    row = AmendmentState(from_as_of=from_as_of, to_as_of=to_as_of, status="NOT_APPLIED")
+    session.add(row)
+    session.flush()
+    return row
+
+
+def _compute_payload(session: Session, from_as_of: str, to_as_of: str) -> dict:
     firms = session.query(Firm).order_by(Firm.id).all()
 
     before_all = active_rules(session, from_as_of)
@@ -107,7 +104,6 @@ def compute_delta(
     before_ids = {r.rule_id for r in before_rules}
     after_ids = {r.rule_id for r in after_rules}
 
-    # --- Rule-level changes (superseded obligations in this window) ---
     rule_changes = []
     window_pairs = _find_superseded_pairs(session, from_as_of, to_as_of)
     for old_rule, new_rule in window_pairs:
@@ -142,9 +138,6 @@ def compute_delta(
         and r.rule_id not in {c["new"]["rule_id"] for c in rule_changes}
     ]
 
-    # --- Firm status transitions across the full posture ---
-    # Map each superseded old rule to its replacement so a firm's obligation is
-    # tracked continuously across the amendment.
     supersede_map = {c["old"]["rule_id"]: c["new"]["rule_id"] for c in rule_changes}
 
     before_status: dict[tuple[int, str], str] = {}
@@ -176,7 +169,7 @@ def compute_delta(
                     }
                 )
 
-    result = {
+    return {
         "from_as_of": from_as_of,
         "to_as_of": to_as_of,
         "rule_changes": rule_changes,
@@ -192,20 +185,90 @@ def compute_delta(
         },
     }
 
-    if persist:
-        superseded_clauses = ", ".join(f"§{c['old']['clause_id']}" for c in rule_changes) or "none"
-        session.add(
-            AuditLog(
-                event_type="amendment",
-                entity_ref=f"{from_as_of} -> {to_as_of}",
-                message=(
-                    f"Regulatory delta applied: {len(rule_changes)} obligation(s) superseded "
-                    f"({superseded_clauses}); {newly_flagged_count} firm(s) newly flagged."
-                ),
-                meta=result["summary"],
-                actor="delta-engine",
-            )
-        )
-        session.commit()
 
+def compute_delta(
+    session: Session, from_as_of: str, to_as_of: str, persist: bool = False
+) -> dict:
+    state = _get_or_create_state(session, from_as_of, to_as_of)
+    result = _compute_payload(session, from_as_of, to_as_of)
+
+    applied = state.status == "APPLIED"
+    result["application"] = {
+        "status": state.status,
+        "applied_at": state.applied_at.isoformat() if state.applied_at else None,
+        "noop": False,
+    }
+
+    if not persist:
+        session.commit()  # persist newly created NOT_APPLIED state row if any
+        return result
+
+    # Idempotent apply: already APPLIED → return payload, no second audit write.
+    if applied:
+        result["application"]["noop"] = True
+        session.commit()
+        return result
+
+    superseded_clauses = ", ".join(f"§{c['old']['clause_id']}" for c in result["rule_changes"]) or "none"
+    newly_flagged = result["summary"]["firms_newly_flagged"]
+    session.add(
+        AuditLog(
+            event_type="amendment",
+            entity_ref=f"{from_as_of} -> {to_as_of}",
+            message=(
+                f"Regulatory delta applied: {result['summary']['obligations_superseded']} "
+                f"obligation(s) superseded ({superseded_clauses}); "
+                f"{newly_flagged} firm(s) newly flagged."
+            ),
+            meta=result["summary"],
+            actor="delta-engine",
+        )
+    )
+    state.status = "APPLIED"
+    state.applied_at = datetime.now(timezone.utc)
+    state.summary = result["summary"]
+    # Record the post-amendment evaluation once as part of the apply event.
+    run_evaluation(session, as_of=to_as_of, actor="delta-engine", persist=True)
+    session.commit()
+
+    result["application"] = {
+        "status": "APPLIED",
+        "applied_at": state.applied_at.isoformat() if state.applied_at else None,
+        "noop": False,
+    }
+    return result
+
+
+def reset_amendment(
+    session: Session, from_as_of: str, to_as_of: str, actor: str = "demo-reset"
+) -> dict:
+    """Dev-only: flip a window back to NOT_APPLIED so the demo can be re-run.
+
+    Writes a distinct audit event (never disguised as an apply).
+    """
+    state = _get_or_create_state(session, from_as_of, to_as_of)
+    was = state.status
+    state.status = "NOT_APPLIED"
+    state.applied_at = None
+    state.summary = None
+    session.add(
+        AuditLog(
+            event_type="amendment_reset",
+            entity_ref=f"{from_as_of} -> {to_as_of}",
+            message=(
+                f"Demo reset: amendment window set to NOT_APPLIED "
+                f"(was {was}). Re-apply is now available."
+            ),
+            meta={"from_as_of": from_as_of, "to_as_of": to_as_of, "previous_status": was},
+            actor=actor,
+        )
+    )
+    session.commit()
+    result = _compute_payload(session, from_as_of, to_as_of)
+    result["application"] = {
+        "status": "NOT_APPLIED",
+        "applied_at": None,
+        "noop": False,
+        "reset": True,
+    }
     return result

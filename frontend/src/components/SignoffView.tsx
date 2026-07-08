@@ -9,6 +9,7 @@ interface Props {
   onGenerate: () => void;
   onReview: (taskId: number) => Promise<void>;
   generating: boolean;
+  generateMessage?: string | null;
 }
 
 export function SignoffView({
@@ -18,6 +19,7 @@ export function SignoffView({
   onGenerate,
   onReview,
   generating,
+  generateMessage,
 }: Props) {
   const pending = tasks.filter((t) => t.status === "pending");
   const reviewed = tasks.filter((t) => t.status === "reviewed");
@@ -55,6 +57,9 @@ export function SignoffView({
           <p className="mt-1 text-[11px] text-muted">
             Sign-offs are attributed to this name in the audit trail.
           </p>
+          {generateMessage && (
+            <p className="mt-2 max-w-md text-xs text-gold">{generateMessage}</p>
+          )}
         </div>
         <button
           onClick={onGenerate}

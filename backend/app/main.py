@@ -14,8 +14,9 @@ from sqlalchemy.orm import Session
 
 from pydantic import BaseModel
 
+from .audit_hygiene import cleanup_duplicate_audits, ensure_schema_extras
 from .db import get_session, init_db
-from .delta import compute_delta
+from .delta import compute_delta, reset_amendment
 from .evaluate import run_evaluation
 from .extraction import extract_rules
 from .llm_client import LLMUnavailable, is_configured
@@ -54,9 +55,11 @@ def _startup() -> None:
     restart, wake-from-sleep) the SQLite file is gone. We rebuild the canonical
     8-rule / 3-firm demo state automatically when the DB is empty, so the live
     site always boots into the correct, deterministic demo posture. An existing
-    populated DB (e.g. a warm worker restart mid-demo) is left untouched.
+    populated DB (e.g. a warm worker restart mid-demo) is left untouched aside
+    from idempotency schema extras and duplicate-audit cleanup.
     """
     init_db()
+    ensure_schema_extras()
     from .db import SessionLocal
     from .models import Rule as _Rule
 
@@ -67,6 +70,11 @@ def _startup() -> None:
 
             seed_db.seed_rules(session)
             seed_db.seed_firms(session)
+            # One baseline evaluation so the trail opens with a real state snapshot
+            # (subsequent identical /evaluate calls are no-ops and do not re-log).
+            run_evaluation(session, as_of=DEFAULT_AS_OF, actor="seed", persist=True)
+        else:
+            cleanup_duplicate_audits(session)
     finally:
         session.close()
 
@@ -127,8 +135,11 @@ def list_rules(db: Session = Depends(get_session)) -> list[dict]:
 def evaluate(
     as_of: str = Query(DEFAULT_AS_OF), db: Session = Depends(get_session)
 ) -> dict:
-    """Run the deterministic engine for a given date and persist the results."""
-    return run_evaluation(db, as_of=as_of)
+    """Record an evaluation only when the outcome differs from the last one.
+
+    Identical re-runs return the matrix with noop=true and do not append audit.
+    """
+    return run_evaluation(db, as_of=as_of, persist=True)
 
 
 @app.get("/matrix")
@@ -146,10 +157,20 @@ def delta(
 ) -> dict:
     """Regulatory delta between two dates: superseded obligations + firm flips.
 
-    persist=False (default) is a read-only preview. persist=True records the
-    amendment as an audit event — used when the officer actually applies it.
+    persist=False (default) is a read-only preview. persist=True applies the
+    amendment once; already-APPLIED windows return 200 noop with no new audit.
     """
     return compute_delta(db, from_as_of=from_as_of, to_as_of=to_as_of, persist=persist)
+
+
+@app.post("/delta/reset")
+def delta_reset(
+    from_as_of: str = Query("2026-09-01"),
+    to_as_of: str = Query("2027-04-01"),
+    db: Session = Depends(get_session),
+) -> dict:
+    """Dev/demo only: reset amendment window to NOT_APPLIED (distinct audit event)."""
+    return reset_amendment(db, from_as_of=from_as_of, to_as_of=to_as_of)
 
 
 @app.get("/review-tasks")

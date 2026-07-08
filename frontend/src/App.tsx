@@ -27,7 +27,10 @@ export default function App() {
   const [loading, setLoading] = useState(true);
   const [evaluating, setEvaluating] = useState(false);
   const [applying, setApplying] = useState(false);
+  const [resetting, setResetting] = useState(false);
   const [amendmentApplied, setAmendmentApplied] = useState(false);
+  const [amendmentAppliedAt, setAmendmentAppliedAt] = useState<string | null>(null);
+  const [generateMsg, setGenerateMsg] = useState<string | null>(null);
   const [health, setHealth] = useState<Health | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -79,12 +82,15 @@ export default function App() {
   };
 
   const handleApplyAmendment = async () => {
+    if (amendmentApplied || applying) return;
     setApplying(true);
     setError(null);
     try {
       const d = await api.delta(PHASE1, PHASE2, true);
       setDelta(d);
-      setAmendmentApplied(true);
+      const applied = d.application?.status === "APPLIED";
+      setAmendmentApplied(applied);
+      setAmendmentAppliedAt(d.application?.applied_at ?? null);
       setAsOf(PHASE2);
       const [m, a] = await Promise.all([api.matrix(PHASE2), api.audit()]);
       setMatrix(m);
@@ -97,11 +103,33 @@ export default function App() {
     }
   };
 
+  const handleResetAmendment = async () => {
+    setResetting(true);
+    setError(null);
+    try {
+      const d = await api.resetDelta(PHASE1, PHASE2);
+      setDelta(d);
+      setAmendmentApplied(false);
+      setAmendmentAppliedAt(null);
+      setAsOf(PHASE1);
+      const [m, a] = await Promise.all([api.matrix(PHASE1), api.audit()]);
+      setMatrix(m);
+      setAudit(a);
+      setRecalcKey((k) => k + 1);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Reset failed");
+    } finally {
+      setResetting(false);
+    }
+  };
+
   const handleGenerateTasks = async () => {
     setGenerating(true);
     setError(null);
+    setGenerateMsg(null);
     try {
-      await api.generateReviewTasks(asOf);
+      const result = await api.generateReviewTasks(asOf);
+      setGenerateMsg(result.message);
       const [t, a] = await Promise.all([api.reviewTasks(), api.audit()]);
       setTasks(t);
       setAudit(a);
@@ -125,13 +153,15 @@ export default function App() {
 
   const handlePreviewDelta = async () => {
     setView("delta");
-    if (!delta) {
-      try {
-        const d = await api.delta(PHASE1, PHASE2, false);
-        setDelta(d);
-      } catch (e) {
-        setError(e instanceof Error ? e.message : "Failed to load delta");
+    try {
+      const d = await api.delta(PHASE1, PHASE2, false);
+      setDelta(d);
+      if (d.application?.status === "APPLIED") {
+        setAmendmentApplied(true);
+        setAmendmentAppliedAt(d.application.applied_at ?? null);
       }
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Failed to load delta");
     }
   };
 
@@ -203,7 +233,10 @@ export default function App() {
               delta={delta}
               applying={applying}
               applied={amendmentApplied}
+              appliedAt={amendmentAppliedAt}
+              resetting={resetting}
               onApply={handleApplyAmendment}
+              onReset={handleResetAmendment}
             />
             <AuditPanel entries={audit} health={health} />
           </div>
@@ -218,6 +251,7 @@ export default function App() {
               onGenerate={handleGenerateTasks}
               onReview={handleReviewTask}
               generating={generating}
+              generateMessage={generateMsg}
             />
             <AuditPanel entries={audit} health={health} />
           </div>

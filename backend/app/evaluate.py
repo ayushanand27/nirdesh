@@ -131,15 +131,59 @@ def active_rules(session: Session, as_of: str) -> list[Rule]:
     return result
 
 
+def _evaluation_fingerprint(as_of: str, cells: list[dict]) -> list:
+    """Stable, comparable signature of an evaluation outcome.
+
+    Includes as-of and every cell's (firm, rule, status) so identical counts with
+    different underlying cells still count as a real state change.
+    Stored as nested lists so JSON round-trips compare equal.
+    """
+    sig = sorted([c["firm_id"], c["rule_id"], c["status"]] for c in cells)
+    return [as_of, *sig]
+
+
+def _last_evaluation_fingerprint(session: Session, as_of: str) -> list | None:
+    last = (
+        session.query(AuditLog)
+        .filter_by(event_type="evaluation", entity_ref=f"as_of={as_of}")
+        .order_by(AuditLog.id.desc())
+        .first()
+    )
+    if last is None or not last.meta:
+        return None
+    fp = last.meta.get("fingerprint")
+    return fp if isinstance(fp, list) else None
+
+
+def _legacy_counts_match(session: Session, as_of: str, counts: dict) -> bool:
+    """True if the latest evaluation audit for as_of has the same counts (no fingerprint)."""
+    last = (
+        session.query(AuditLog)
+        .filter_by(event_type="evaluation", entity_ref=f"as_of={as_of}")
+        .order_by(AuditLog.id.desc())
+        .first()
+    )
+    if last is None or not last.meta:
+        return False
+    if last.meta.get("fingerprint"):
+        return False
+    prior_counts = last.meta.get("counts") or {}
+    return (
+        prior_counts.get(BREACH) == counts.get(BREACH)
+        and prior_counts.get(COMPLIANT) == counts.get(COMPLIANT)
+        and prior_counts.get(NOT_APPLICABLE) == counts.get(NOT_APPLICABLE)
+    )
+
+
 def run_evaluation(
     session: Session, as_of: str, actor: str = "system", persist: bool = True
 ) -> dict:
     """Evaluate every firm against every active rule and return a matrix payload.
 
-    When `persist` is True (the /evaluate action), append Evaluation + AuditLog
-    rows — this is a recorded 'recalculation' event. When False (the /matrix read
-    view), compute without writing, so polling the view never pollutes the audit
-    trail. Either way the engine never mutates existing rows.
+    When `persist` is True, Evaluation + AuditLog rows are written only if the
+    computed outcome differs from the last recorded evaluation for this as_of
+    (real state change). Identical re-runs are a no-op — no duplicate trail.
+    When False (matrix / tab reads), compute without writing.
     """
     firms = session.query(Firm).order_by(Firm.id).all()
     all_active = sorted(active_rules(session, as_of), key=lambda r: (r.effective_from or "", r.clause_id))
@@ -153,39 +197,55 @@ def run_evaluation(
         for rule in rules:
             status, detail = evaluate_rule(rule, firm.profile)
             counts[status] += 1
-            if persist:
-                session.add(
-                    Evaluation(
-                        firm_id=firm.id,
-                        rule_id=rule.rule_id,
-                        as_of_date=as_of,
-                        status=status,
-                        detail=detail,
-                    )
-                )
             cells.append(
                 {"firm_id": firm.id, "rule_id": rule.rule_id, "status": status, "detail": detail}
             )
 
+    fingerprint = _evaluation_fingerprint(as_of, cells)
+    noop = False
+
     if persist:
-        session.add(
-            AuditLog(
-                event_type="evaluation",
-                entity_ref=f"as_of={as_of}",
-                message=(
-                    f"Evaluated {len(firms)} firms x {len(rules)} active rules "
-                    f"({counts[BREACH]} breach, {counts[COMPLIANT]} compliant, "
-                    f"{counts[NOT_APPLICABLE]} N/A)."
-                ),
-                meta={"as_of": as_of, "counts": counts},
-                actor=actor,
-            )
+        prior = _last_evaluation_fingerprint(session, as_of)
+        identical = (prior is not None and prior == fingerprint) or _legacy_counts_match(
+            session, as_of, counts
         )
-        session.commit()
+        if identical:
+            noop = True
+        else:
+            for c in cells:
+                session.add(
+                    Evaluation(
+                        firm_id=c["firm_id"],
+                        rule_id=c["rule_id"],
+                        as_of_date=as_of,
+                        status=c["status"],
+                        detail=c["detail"],
+                    )
+                )
+            session.add(
+                AuditLog(
+                    event_type="evaluation",
+                    entity_ref=f"as_of={as_of}",
+                    message=(
+                        f"Compliance evaluation as of {as_of}: "
+                        f"{len(firms)} firms × {len(rules)} active rules "
+                        f"({counts[BREACH]} breach, {counts[COMPLIANT]} compliant, "
+                        f"{counts[NOT_APPLICABLE]} N/A)."
+                    ),
+                    meta={
+                        "as_of": as_of,
+                        "counts": counts,
+                        "fingerprint": fingerprint,
+                    },
+                    actor=actor,
+                )
+            )
+            session.commit()
 
     return {
         "as_of": as_of,
         "counts": counts,
+        "noop": noop,
         "firms": [
             {"id": f.id, "name": f.name, "legal_type": f.legal_type, "profile": f.profile}
             for f in firms

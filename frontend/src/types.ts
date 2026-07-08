@@ -115,6 +115,13 @@ export interface DeltaSummary {
   rules_after: number;
 }
 
+export interface DeltaApplication {
+  status: "NOT_APPLIED" | "APPLIED";
+  applied_at: string | null;
+  noop: boolean;
+  reset?: boolean;
+}
+
 export interface Delta {
   from_as_of: string;
   to_as_of: string;
@@ -122,6 +129,7 @@ export interface Delta {
   newly_effective: { rule_id: string; clause_id: string; value_summary: string }[];
   firm_transitions: DeltaTransition[];
   summary: DeltaSummary;
+  application?: DeltaApplication;
 }
 
 export interface ReviewTask {

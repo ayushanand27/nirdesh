@@ -1,20 +1,36 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type { Delta, DeltaRuleChange, DeltaTransition } from "../types";
 import { StatusBadge } from "./StatusBadge";
 import { SourceCallout } from "./RuleDrawer";
-import { formatDate } from "../lib/status";
+import { formatDate, formatTimestamp } from "../lib/status";
 
 interface Props {
   delta: Delta | null;
   applying: boolean;
   applied: boolean;
+  appliedAt: string | null;
+  resetting?: boolean;
   onApply: () => void;
+  onReset?: () => void;
 }
 
-export function DeltaView({ delta, applying, applied, onApply }: Props) {
+export function DeltaView({
+  delta,
+  applying,
+  applied,
+  appliedAt,
+  resetting = false,
+  onApply,
+  onReset,
+}: Props) {
   const [revealed, setRevealed] = useState(false);
 
+  useEffect(() => {
+    if (delta) setRevealed(true);
+  }, [delta]);
+
   const handleApply = async () => {
+    if (applied || applying) return;
     setRevealed(false);
     await onApply();
     // Stagger the reveal so the animation reads as "system recalculated".
@@ -50,18 +66,42 @@ export function DeltaView({ delta, applying, applied, onApply }: Props) {
               clause 4.1. The system will recalculate all firm obligations
               deterministically.
             </p>
+            {applied && appliedAt && (
+              <p className="mt-2 font-mono text-[11px] text-muted tnum">
+                Applied at {formatTimestamp(appliedAt)}
+              </p>
+            )}
           </div>
-          <button
-            onClick={handleApply}
-            disabled={applying}
-            className={`shrink-0 rounded border px-5 py-2.5 text-sm font-medium transition-all duration-300 ease-precise ${
-            applied
-              ? "border-gold bg-gold/10 text-gold hover:bg-gold/20"
-              : "border-gold bg-gold text-canvas hover:bg-gold-400"
-          } disabled:opacity-50`}
-          >
-            {applying ? "Recalculating…" : applied ? "Re-apply amendment" : "Apply amendment"}
-          </button>
+          <div className="flex shrink-0 flex-col items-end gap-2">
+            {applied ? (
+              <button
+                type="button"
+                disabled
+                className="cursor-not-allowed rounded border border-hair bg-elevated px-5 py-2.5 text-sm font-medium text-muted opacity-70"
+              >
+                Applied
+              </button>
+            ) : (
+              <button
+                onClick={handleApply}
+                disabled={applying}
+                className="rounded border border-gold bg-gold px-5 py-2.5 text-sm font-medium text-canvas transition-all duration-300 ease-precise hover:bg-gold-400 disabled:opacity-50"
+              >
+                {applying ? "Recalculating…" : "Apply amendment"}
+              </button>
+            )}
+            {applied && onReset && (
+              <button
+                type="button"
+                onClick={onReset}
+                disabled={resetting}
+                className="rounded border border-dashed border-muted/50 px-3 py-1.5 text-[11px] font-medium text-muted transition-colors hover:border-muted hover:text-ink disabled:opacity-50"
+                title="Dev/demo only — resets amendment state so the demo can be re-run"
+              >
+                {resetting ? "Resetting…" : "Reset to Phase 1 (dev only)"}
+              </button>
+            )}
+          </div>
         </div>
       </div>
 
