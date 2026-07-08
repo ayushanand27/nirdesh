@@ -25,11 +25,11 @@ export function SignoffView({
   return (
     <div className="space-y-5">
       {/* Decision-support banner — unmissable */}
-      <div className="rounded-card border-l-4 border-l-navy bg-navy/[0.04] px-5 py-4">
+      <div className="rounded-card border border-hair border-l-4 border-l-accent bg-accent/[0.06] px-5 py-4">
         <div className="flex items-start gap-3">
           <ShieldIcon />
           <div>
-            <h2 className="font-serif text-lg text-navy">
+            <h2 className="font-serif text-lg text-ink">
               Decision-support only — human authorisation required
             </h2>
             <p className="mt-1 max-w-3xl text-sm text-muted">
@@ -50,7 +50,7 @@ export function SignoffView({
             value={officer}
             onChange={(e) => onOfficerChange(e.target.value)}
             placeholder="Full name"
-            className="w-72 rounded border border-hair bg-surface px-3 py-2 text-sm text-ink outline-none transition-colors focus:border-navy"
+            className="w-72 rounded border border-hair bg-canvas px-3 py-2 text-sm text-ink outline-none transition-colors focus:border-accent"
           />
           <p className="mt-1 text-[11px] text-muted">
             Sign-offs are attributed to this name in the audit trail.
@@ -59,7 +59,7 @@ export function SignoffView({
         <button
           onClick={onGenerate}
           disabled={generating}
-          className="rounded border border-navy bg-navy px-4 py-2 text-sm font-medium text-white transition-opacity hover:bg-navy-700 disabled:opacity-50"
+          className="rounded border border-accent bg-accent px-4 py-2 text-sm font-semibold text-canvas transition-colors hover:bg-accent-600 disabled:opacity-50"
         >
           {generating ? "Scanning…" : "Generate tasks from current breaches"}
         </button>
@@ -68,7 +68,7 @@ export function SignoffView({
       {/* Pending queue */}
       <div>
         <div className="mb-2 flex items-center gap-2">
-          <h3 className="font-serif text-lg text-navy">Awaiting sign-off</h3>
+          <h3 className="font-serif text-lg text-ink">Awaiting sign-off</h3>
           <span className="rounded-full bg-breach/15 px-2 py-0.5 font-mono text-xs font-semibold text-breach tnum">
             {pending.length}
           </span>
@@ -90,7 +90,7 @@ export function SignoffView({
       {reviewed.length > 0 && (
         <div>
           <div className="mb-2 flex items-center gap-2">
-            <h3 className="font-serif text-lg text-navy">Signed off</h3>
+            <h3 className="font-serif text-lg text-ink">Signed off</h3>
             <span className="rounded-full bg-compliant/15 px-2 py-0.5 font-mono text-xs font-semibold text-compliant-text tnum">
               {reviewed.length}
             </span>
@@ -151,7 +151,7 @@ function TaskCard({
         <button
           onClick={handle}
           disabled={busy}
-          className="rounded border border-compliant bg-compliant px-3.5 py-1.5 text-xs font-medium text-white transition-opacity hover:opacity-90 disabled:opacity-50"
+          className="rounded border border-compliant bg-compliant px-3.5 py-1.5 text-xs font-semibold text-canvas transition-opacity hover:opacity-90 disabled:opacity-50"
         >
           {busy ? "Recording…" : "Mark reviewed by Compliance Officer"}
         </button>
@@ -182,7 +182,7 @@ function ReviewedRow({ task }: { task: ReviewTask }) {
 
 function ShieldIcon() {
   return (
-    <svg className="mt-0.5 h-5 w-5 shrink-0 text-navy" viewBox="0 0 20 20" fill="none">
+    <svg className="mt-0.5 h-5 w-5 shrink-0 text-accent" viewBox="0 0 20 20" fill="none">
       <path
         d="M10 2l6 2.5v5c0 3.5-2.5 6.5-6 8-3.5-1.5-6-4.5-6-8v-5L10 2z"
         stroke="currentColor"

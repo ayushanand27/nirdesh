@@ -6,6 +6,8 @@
   html {
     -webkit-font-smoothing: antialiased;
     text-rendering: optimizeLegibility;
+    /* Native form controls, scrollbars, etc. render in dark. */
+    color-scheme: dark;
   }
   body {
     @apply bg-canvas text-ink font-sans;
@@ -15,12 +17,31 @@
   .tnum {
     font-variant-numeric: tabular-nums;
   }
+  /* Layered, dim scrollbars that suit the dark surfaces. */
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: #26314a;
+    border-radius: 6px;
+    border: 2px solid transparent;
+    background-clip: content-box;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: #34405c;
+    background-clip: content-box;
+  }
 }
 
 @layer components {
   .hairline {
     @apply border border-hair;
   }
+  /* Depth via layered surface tone + hairline border, not heavy shadow. */
   .card {
     @apply bg-surface border border-hair rounded-card shadow-card;
   }

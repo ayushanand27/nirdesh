@@ -1,6 +1,7 @@
 import { useState } from "react";
 import type { Delta, DeltaRuleChange, DeltaTransition } from "../types";
 import { StatusBadge } from "./StatusBadge";
+import { SourceCallout } from "./RuleDrawer";
 import { formatDate } from "../lib/status";
 
 interface Props {
@@ -36,7 +37,7 @@ export function DeltaView({ delta, applying, applied, onApply }: Props) {
                 </span>
               )}
             </div>
-            <h2 className="mt-1 font-serif text-xl text-navy">
+            <h2 className="mt-1 font-serif text-xl text-ink">
               Phase 2 — Joint transition to T-1 closing NAV
             </h2>
             <p className="mt-1 max-w-xl text-sm text-muted">
@@ -52,10 +53,10 @@ export function DeltaView({ delta, applying, applied, onApply }: Props) {
             onClick={handleApply}
             disabled={applying}
             className={`shrink-0 rounded border px-5 py-2.5 text-sm font-medium transition-all duration-300 ease-precise ${
-              applied
-                ? "border-accent bg-accent/10 text-accent hover:bg-accent/20"
-                : "border-navy bg-navy text-white hover:bg-navy-700"
-            } disabled:opacity-50`}
+            applied
+              ? "border-accent bg-accent/10 text-accent hover:bg-accent/20"
+              : "border-accent bg-accent text-canvas hover:bg-accent-600"
+          } disabled:opacity-50`}
           >
             {applying ? "Recalculating…" : applied ? "Re-apply amendment" : "Apply amendment"}
           </button>
@@ -105,7 +106,7 @@ export function DeltaView({ delta, applying, applied, onApply }: Props) {
               style={{ transitionDelay: revealed ? "240ms" : "0ms" }}
             >
               <div className="border-b border-hair px-5 py-3.5">
-                <h3 className="font-serif text-lg text-navy">Firm status transitions</h3>
+                <h3 className="font-serif text-lg text-ink">Firm status transitions</h3>
                 <p className="text-xs text-muted">
                   Firms whose compliance posture changed due to the amendment
                 </p>
@@ -129,7 +130,7 @@ export function DeltaView({ delta, applying, applied, onApply }: Props) {
       {!delta && !applying && (
         <div className="card px-5 py-12 text-center">
           <p className="text-sm text-muted">
-            Click <strong className="text-navy">Apply amendment</strong> to compute the
+            Click <strong className="text-accent">Apply amendment</strong> to compute the
             regulatory delta and see which obligations and firms are affected.
           </p>
         </div>
@@ -244,12 +245,10 @@ function RuleChangeCard({
               }`}
               style={{ transitionDelay: revealed ? "450ms" : "0ms" }}
             >
-              <div className="label-caps mb-1 text-muted">
-                Source text — § {change.new.clause_id}
-              </div>
-              <blockquote className="border-l-2 border-navy bg-canvas px-3 py-2 font-mono text-[11px] leading-relaxed text-ink">
-                “{change.new.source_text_span}”
-              </blockquote>
+              <SourceCallout
+                text={change.new.source_text_span}
+                clause={`§ ${change.new.clause_id}`}
+              />
             </div>
           )}
         </div>

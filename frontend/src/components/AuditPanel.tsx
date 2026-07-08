@@ -16,7 +16,7 @@ export function AuditPanel({ entries }: Props) {
   return (
     <div className="card flex h-full flex-col">
       <div className="border-b border-hair px-5 py-3.5">
-        <h2 className="font-serif text-lg text-navy">Audit Trail</h2>
+        <h2 className="font-serif text-lg text-ink">Audit Trail</h2>
         <p className="text-xs text-muted">Append-only event log — history is never overwritten</p>
       </div>
 
@@ -30,10 +30,10 @@ export function AuditPanel({ entries }: Props) {
                 {i < entries.length - 1 && (
                   <span className="absolute left-[5px] top-3 h-full w-px bg-hair" />
                 )}
-                <span className="relative z-10 mt-1.5 h-2.5 w-2.5 shrink-0 rounded-full border-2 border-navy bg-surface" />
+                <span className="relative z-10 mt-1.5 h-2.5 w-2.5 shrink-0 rounded-full border-2 border-accent bg-surface" />
                 <div className="min-w-0 flex-1">
                   <div className="flex items-baseline justify-between gap-2">
-                    <span className="text-xs font-medium text-navy">
+                    <span className="text-xs font-medium text-ink">
                       {EVENT_LABELS[e.event_type] ?? e.event_type}
                     </span>
                     <time className="shrink-0 font-mono text-[10px] text-muted tnum">

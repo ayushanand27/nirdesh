@@ -1,14 +1,17 @@
 import type { Cell, CellStatus, Firm, Matrix, Rule } from "../types";
 import { STATUS_META, formatClause, formatEntity } from "../lib/status";
 
+type ViewMode = "simple" | "technical";
+
 interface Props {
   matrix: Matrix;
   recalcKey: number;
+  mode: ViewMode;
   selectedRuleId: string | null;
   onSelectRule: (rule: Rule) => void;
 }
 
-export function MatrixView({ matrix, recalcKey, selectedRuleId, onSelectRule }: Props) {
+export function MatrixView({ matrix, recalcKey, mode, selectedRuleId, onSelectRule }: Props) {
   const { firms, rules, cells } = matrix;
 
   const lookup = new Map<string, Cell>();
@@ -18,7 +21,7 @@ export function MatrixView({ matrix, recalcKey, selectedRuleId, onSelectRule }: 
     <div className="card overflow-hidden">
       <div className="flex items-center justify-between border-b border-hair px-5 py-3.5">
         <div>
-          <h2 className="font-serif text-lg text-navy">Compliance Matrix</h2>
+          <h2 className="font-serif text-lg text-ink">Compliance Matrix</h2>
           <p className="text-xs text-muted">
             Firms evaluated against active obligations · deterministic engine
           </p>
@@ -37,16 +40,29 @@ export function MatrixView({ matrix, recalcKey, selectedRuleId, onSelectRule }: 
                 <th
                   key={r.rule_id}
                   onClick={() => onSelectRule(r)}
-                  className={`min-w-[130px] cursor-pointer border-b border-hair px-3 py-3 text-left align-bottom transition-colors hover:bg-canvas ${
-                    selectedRuleId === r.rule_id ? "bg-canvas" : ""
+                  className={`min-w-[130px] cursor-pointer border-b border-hair px-3 py-3 text-left align-bottom transition-colors hover:bg-elevated ${
+                    selectedRuleId === r.rule_id ? "bg-elevated" : ""
                   }`}
                 >
-                  <div className="font-mono text-xs font-semibold text-navy tnum">
-                    {formatClause(r.clause_id)}
-                  </div>
-                  <div className="mt-0.5 text-[11px] leading-tight text-muted">
-                    {formatEntity(r.applicable_entity_type)}
-                  </div>
+                  {mode === "simple" ? (
+                    <>
+                      <div className="text-xs font-semibold leading-tight text-ink">
+                        {r.plain_label ?? formatEntity(r.applicable_entity_type)}
+                      </div>
+                      <div className="mt-1 inline-block rounded bg-canvas px-1.5 py-0.5 font-mono text-[10px] text-muted tnum">
+                        {formatClause(r.clause_id)}
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <div className="font-mono text-xs font-semibold text-ink tnum">
+                        {formatClause(r.clause_id)}
+                      </div>
+                      <div className="mt-0.5 text-[11px] leading-tight text-muted">
+                        {formatEntity(r.applicable_entity_type)}
+                      </div>
+                    </>
+                  )}
                   {r.needs_human_review && (
                     <div className="mt-1 inline-block rounded bg-accent/15 px-1 py-0.5 text-[9px] font-medium uppercase tracking-wide text-accent">
                       Review
@@ -64,6 +80,7 @@ export function MatrixView({ matrix, recalcKey, selectedRuleId, onSelectRule }: 
                 rules={rules}
                 lookup={lookup}
                 recalcKey={recalcKey}
+                mode={mode}
                 onSelectRule={onSelectRule}
               />
             ))}
@@ -79,17 +96,19 @@ function FirmRow({
   rules,
   lookup,
   recalcKey,
+  mode,
   onSelectRule,
 }: {
   firm: Firm;
   rules: Rule[];
   lookup: Map<string, Cell>;
   recalcKey: number;
+  mode: ViewMode;
   onSelectRule: (rule: Rule) => void;
 }) {
   return (
     <tr className="group">
-      <td className="sticky left-0 z-10 border-b border-r border-hair bg-surface px-5 py-3 group-hover:bg-canvas">
+      <td className="sticky left-0 z-10 border-b border-r border-hair bg-surface px-5 py-3 group-hover:bg-elevated">
         <div className="font-medium text-ink">{firm.name}</div>
         <div className="font-mono text-[11px] text-muted">
           {firm.profile.base_price_method ?? "—"}
@@ -99,18 +118,28 @@ function FirmRow({
         const cell = lookup.get(`${firm.id}:${rule.rule_id}`);
         const status: CellStatus = cell?.status ?? "not_applicable";
         const m = STATUS_META[status];
+        const ruleLabel = rule.plain_label ?? formatEntity(rule.applicable_entity_type);
+        const snippet = rule.source_text_span
+          ? `\n\nSource (§${rule.clause_id}): “${rule.source_text_span}”`
+          : "";
+        const tip = `${firm.name} — ${ruleLabel}: ${m.label}${snippet}`;
         return (
           <td
             key={rule.rule_id}
             onClick={() => onSelectRule(rule)}
+            title={tip}
             className="border-b border-hair p-1.5 align-middle"
           >
             <div
               key={`${status}-${recalcKey}`}
-              className={`cell-recalc flex h-14 cursor-pointer flex-col items-center justify-center rounded ${m.cell} transition-colors`}
+              className={`cell-recalc flex h-14 cursor-pointer flex-col items-center justify-center rounded px-1 text-center ${m.cell} transition-colors`}
             >
-              <span className="font-mono text-xs font-semibold tracking-wide">
-                {m.short}
+              <span
+                className={`font-semibold tracking-wide ${
+                  mode === "simple" ? "text-[11px]" : "font-mono text-xs"
+                }`}
+              >
+                {mode === "simple" ? m.label : m.short}
               </span>
             </div>
           </td>

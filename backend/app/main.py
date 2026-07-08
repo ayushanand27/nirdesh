@@ -111,6 +111,7 @@ def list_rules(db: Session = Depends(get_session)) -> list[dict]:
             "required_action": r.required_action,
             "deadline": r.deadline,
             "effective_from": r.effective_from,
+            "plain_label": r.plain_label,
             "source_text_span": r.source_text_span,
             "confidence": r.confidence,
             "needs_human_review": r.needs_human_review,

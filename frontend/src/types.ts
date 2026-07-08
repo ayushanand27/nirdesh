@@ -31,6 +31,7 @@ export interface Rule {
   required_action: string;
   deadline: string | null;
   effective_from: string | null;
+  plain_label?: string | null;
   source_text_span?: string | null;
   confidence: number;
   needs_human_review: boolean;
@@ -81,6 +82,7 @@ export interface Matrix {
 export interface DeltaRuleSide {
   rule_id: string;
   clause_id: string;
+  plain_label?: string | null;
   plain_description: string;
   value_summary: string;
   effective_from: string | null;

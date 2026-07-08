@@ -4,36 +4,42 @@ export default {
   theme: {
     extend: {
       colors: {
-        // Off-white canvas, never stark white.
-        canvas: "#F4F2EC",
-        surface: "#FBFAF6",
-        // Deep navy as the primary institutional accent.
+        // Dark-first surface stack (base -> card -> raised/hover).
+        // Near-black navy, never pure black, so card elevation stays visible.
+        canvas: "#090F1C", // base page background (darkest)
+        surface: "#111A2E", // card background
+        elevated: "#1C2740", // hover / active / raised surfaces
+        // Deep navy retained as a brand surface tone (logo chip, circular band).
         navy: {
-          DEFAULT: "#16233F",
-          700: "#1E304F",
-          600: "#294066",
-          400: "#5A6B87",
+          DEFAULT: "#16213B",
+          700: "#1F2D4D",
+          600: "#2A3B60",
+          400: "#6B7BA0",
         },
-        ink: "#1A1D24",
-        muted: "#6B7079",
-        hair: "#DAD6CB", // hairline borders
-        // Compliance states — muted, consistent everywhere.
+        ink: "#E6EAF2", // primary text, near-white on dark
+        muted: "#8B94A7", // secondary text
+        hair: "#232E45", // hairline borders (visible on dark)
+        // Compliance states — functional only, brighter/warmer fills tuned for dark.
         compliant: {
-          DEFAULT: "#3F7A5E",
-          bg: "#E7EEE7",
-          text: "#2C5A44",
+          DEFAULT: "#3DD68C",
+          bg: "#1C5238",
+          text: "#8BF0BD",
         },
         breach: {
-          DEFAULT: "#B4563C",
-          bg: "#F3E3DD",
-          text: "#8A3D28",
+          DEFAULT: "#FF7A5C",
+          bg: "#7A2E22",
+          text: "#FFB4A2",
         },
         na: {
-          DEFAULT: "#9A968C",
-          bg: "#ECEAE3",
-          text: "#6E6A61",
+          DEFAULT: "#8A93A8",
+          bg: "#2A3348",
+          text: "#C3CADA",
         },
-        accent: "#B7935A", // brass/gold hairline accent for delta highlights
+        // Single accent: brightened ink-blue, electric against dark surfaces.
+        accent: {
+          DEFAULT: "#4C8DFF",
+          600: "#3B7DF0",
+        },
       },
       fontFamily: {
         serif: ['"Newsreader"', "Georgia", "serif"],
@@ -41,8 +47,9 @@ export default {
         mono: ['"IBM Plex Mono"', "ui-monospace", "monospace"],
       },
       boxShadow: {
-        card: "0 1px 2px rgba(22, 35, 63, 0.04), 0 4px 12px rgba(22, 35, 63, 0.06)",
-        drawer: "-8px 0 32px rgba(22, 35, 63, 0.12)",
+        // Subtle depth — dark UIs read as premium through surface tone, not shadow.
+        card: "0 1px 2px rgba(0, 0, 0, 0.30), 0 2px 8px rgba(0, 0, 0, 0.22)",
+        drawer: "-16px 0 48px rgba(0, 0, 0, 0.55)",
       },
       borderRadius: {
         card: "6px",

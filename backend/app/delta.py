@@ -117,6 +117,7 @@ def compute_delta(
                 "old": {
                     "rule_id": old_rule.rule_id,
                     "clause_id": old_rule.clause_id,
+                    "plain_label": old_rule.plain_label,
                     "plain_description": old_rule.plain_description,
                     "value_summary": _rule_value_summary(old_rule),
                     "effective_from": old_rule.effective_from,
@@ -124,6 +125,7 @@ def compute_delta(
                 "new": {
                     "rule_id": new_rule.rule_id,
                     "clause_id": new_rule.clause_id,
+                    "plain_label": new_rule.plain_label,
                     "plain_description": new_rule.plain_description,
                     "value_summary": _rule_value_summary(new_rule),
                     "effective_from": new_rule.effective_from,
