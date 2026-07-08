@@ -89,8 +89,9 @@ def assemble_compliance_summary(
             }
         )
 
-    # Regulatory delta: include when an amendment covering this as_of is APPLIED,
-    # or when as_of is Phase 2 (preview the Phase 1→2 window for context).
+    # Regulatory delta: only when this report's as-of date is at/after Phase 2.
+    # A Phase 1 as-of report must not include Phase 2 "What Changed" noise even if
+    # the amendment was applied earlier in the same demo session.
     state = (
         session.query(AmendmentState)
         .filter_by(from_as_of=PHASE1, to_as_of=PHASE2)
@@ -98,7 +99,7 @@ def assemble_compliance_summary(
     )
     amendment_applied = bool(state and state.status == "APPLIED")
     delta_section = None
-    if amendment_applied or as_of >= PHASE2:
+    if as_of >= PHASE2:
         delta = compute_delta(session, PHASE1, PHASE2, persist=False)
         delta_section = {
             "from_as_of": PHASE1,
@@ -150,6 +151,12 @@ def assemble_compliance_summary(
         "generated_at": generated_at,
         "generated_by": officer,
         "disclaimer": DISCLAIMER,
+        "engine": {
+            "name": "nirdesh-deterministic-v1",
+            "ruleset": "canonical_MRD-POD3-2026",
+            "llm_at_evaluation": False,
+            "note": "LLM used only at rule-extraction ingest; evaluation is deterministic.",
+        },
         "circular": {
             "id": CIRCULAR_ID,
             "title": "Norms for ETF base price and price bands",
@@ -214,6 +221,7 @@ def assemble_compliance_summary(
                     "as_of": as_of,
                     "generated_at": generated_at,
                     "summary": report["summary"],
+                    "engine": report["engine"],
                     "format": "requested",
                 },
                 actor=officer,

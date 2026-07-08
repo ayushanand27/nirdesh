@@ -182,12 +182,30 @@ def _styles() -> dict[str, ParagraphStyle]:
 def _esc(text: str | None) -> str:
     if not text:
         return ""
-    return (
+    # Helvetica cannot draw Unicode arrows / section marks / fancy dashes.
+    cleaned = (
         str(text)
-        .replace("&", "&amp;")
-        .replace("<", "&lt;")
-        .replace(">", "&gt;")
+        .replace("→", "->")
+        .replace("←", "<-")
+        .replace("§", "Sec. ")
+        .replace("×", "x")
+        .replace("–", "-")
+        .replace("—", "-")
+        .replace("·", "|")
+        .replace("“", '"')
+        .replace("”", '"')
+        .replace("‘", "'")
+        .replace("’", "'")
     )
+    return cleaned.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
+
+
+def _arrow() -> str:
+    return "-&gt;"
+
+
+def _clause(clause_id: str | None) -> str:
+    return f"Sec. {_esc(clause_id)}"
 
 
 def _status_para(status: str, styles: dict) -> Paragraph:
@@ -299,11 +317,20 @@ def render_compliance_pdf(report: dict[str, Any]) -> bytes:
     )
     story.append(header)
     story.append(Spacer(1, 4 * mm))
+    engine = report.get("engine") or {}
     story.append(
         Paragraph(
             f"Circular <font face='Courier'>{_esc(circular.get('id'))}</font>"
-            f" — {_esc(circular.get('title'))}"
+            f" - {_esc(circular.get('title'))}"
             f" · Issued {_esc(circular.get('issued'))}",
+            styles["muted"],
+        )
+    )
+    story.append(
+        Paragraph(
+            f"Engine: <font face='Courier'>{_esc(engine.get('name', 'nirdesh-deterministic-v1'))}</font>"
+            f" · Ruleset {_esc(engine.get('ruleset', 'canonical'))}"
+            f" · LLM at evaluation: no (ingest-only)",
             styles["muted"],
         )
     )
@@ -349,51 +376,58 @@ def render_compliance_pdf(report: dict[str, Any]) -> bytes:
     story.append(stats)
     story.append(Spacer(1, 6 * mm))
 
-    # Matrix table
+    # Matrix: clauses as rows, firms as columns (readable with 3 firms).
     story.append(Paragraph("Compliance Matrix", styles["h2"]))
     matrix = report.get("matrix") or {}
     rules = matrix.get("rules") or []
+    firms = matrix.get("firms") or []
     rows = matrix.get("rows") or []
+    # Map firm_id -> cells_by_rule_id
+    by_firm: dict[int, dict] = {}
+    for row in rows:
+        by_firm[row["firm_id"]] = row.get("cells") or {}
 
-    header_cells = [Paragraph("<b>Firm</b>", styles["cell_left"])]
-    for r in rules:
-        label = r.get("plain_label") or f"§{r.get('clause_id')}"
-        header_cells.append(
-            Paragraph(
-                f"<b>§{_esc(r.get('clause_id'))}</b><br/><font size='5.5'>{_esc(label)}</font>",
-                styles["cell"],
-            )
-        )
+    header_cells = [Paragraph("<b>Clause / Obligation</b>", styles["cell_left"])]
+    for f in firms:
+        header_cells.append(Paragraph(f"<b>{_esc(f.get('name'))}</b>", styles["cell"]))
 
     table_data = [header_cells]
     style_cmds: list = [
         ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#1A1A1A")),
         ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
-        ("BOX", (0, 0), (-1, -1), 0.4, HAIR),
-        ("INNERGRID", (0, 0), (-1, -1), 0.25, HAIR),
+        ("BOX", (0, 0), (-1, -1), 0.5, HAIR),
+        ("INNERGRID", (0, 0), (-1, -1), 0.3, HAIR),
         ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
-        ("TOPPADDING", (0, 0), (-1, -1), 4),
-        ("BOTTOMPADDING", (0, 0), (-1, -1), 4),
-        ("LEFTPADDING", (0, 0), (-1, -1), 3),
-        ("RIGHTPADDING", (0, 0), (-1, -1), 3),
+        ("TOPPADDING", (0, 0), (-1, -1), 5),
+        ("BOTTOMPADDING", (0, 0), (-1, -1), 5),
+        ("LEFTPADDING", (0, 0), (-1, -1), 4),
+        ("RIGHTPADDING", (0, 0), (-1, -1), 4),
     ]
 
-    for ri, row in enumerate(rows):
-        line = [Paragraph(_esc(row.get("firm_name")), styles["cell_left"])]
-        cells_map = row.get("cells") or {}
-        for ci, rule in enumerate(rules):
-            cell = cells_map.get(rule["rule_id"]) or {}
+    for ri, rule in enumerate(rules):
+        label = rule.get("plain_label") or ""
+        clause_cell = Paragraph(
+            f"<b>{_clause(rule.get('clause_id'))}</b>  {_esc(label)}",
+            styles["cell_left"],
+        )
+        line = [clause_cell]
+        for ci, firm in enumerate(firms):
+            cell = (by_firm.get(firm["id"]) or {}).get(rule["rule_id"]) or {}
             status = cell.get("status", "not_applicable")
             line.append(_status_para(status, styles))
-            style_cmds.append(("BACKGROUND", (ci + 1, ri + 1), (ci + 1, ri + 1), _status_bg(status)))
+            style_cmds.append(
+                ("BACKGROUND", (ci + 1, ri + 1), (ci + 1, ri + 1), _status_bg(status))
+            )
         table_data.append(line)
         if ri % 2 == 1:
             style_cmds.append(("BACKGROUND", (0, ri + 1), (0, ri + 1), SURFACE))
 
-    firm_w = 48 * mm
-    remaining = 255 * mm - firm_w
-    col_w = remaining / max(len(rules), 1)
-    matrix_table = Table(table_data, colWidths=[firm_w] + [col_w] * len(rules), repeatRows=1)
+    clause_w = 70 * mm
+    firm_cols = max(len(firms), 1)
+    firm_w = (255 * mm - clause_w) / firm_cols
+    matrix_table = Table(
+        table_data, colWidths=[clause_w] + [firm_w] * firm_cols, repeatRows=1
+    )
     matrix_table.setStyle(TableStyle(style_cmds))
     story.append(matrix_table)
     story.append(Spacer(1, 5 * mm))
@@ -401,11 +435,11 @@ def render_compliance_pdf(report: dict[str, Any]) -> bytes:
     # Breach citations
     breaches = report.get("breaches") or []
     if breaches:
-        story.append(Paragraph("Breach Detail & Source Citations", styles["h2"]))
+        story.append(Paragraph("Breach Detail &amp; Source Citations", styles["h2"]))
         for b in breaches:
             block = [
                 Paragraph(
-                    f"<b>{_esc(b.get('firm_name'))}</b> — §{_esc(b.get('clause_id'))}"
+                    f"<b>{_esc(b.get('firm_name'))}</b> - {_clause(b.get('clause_id'))}"
                     f" · {_esc(b.get('plain_label') or '')}",
                     styles["body"],
                 ),
@@ -414,7 +448,7 @@ def render_compliance_pdf(report: dict[str, Any]) -> bytes:
             if b.get("source_text_span"):
                 block.append(
                     Paragraph(
-                        f"Source: “{_esc(b['source_text_span'])}”",
+                        f'Source: "{_esc(b["source_text_span"])}"',
                         styles["cite"],
                     )
                 )
@@ -428,17 +462,17 @@ def render_compliance_pdf(report: dict[str, Any]) -> bytes:
             block.append(Spacer(1, 2 * mm))
             story.append(KeepTogether(block))
 
-    # What Changed
+    # What Changed — only present when report assembler included delta (Phase 2+)
     delta = report.get("regulatory_delta")
     if delta and delta.get("rule_changes"):
-        story.append(Paragraph("What Changed — Regulatory Delta", styles["h2"]))
+        story.append(Paragraph("What Changed - Regulatory Delta", styles["h2"]))
         app = delta.get("application") or {}
         story.append(
             Paragraph(
-                f"Window {_esc(delta.get('from_as_of'))} → {_esc(delta.get('to_as_of'))}"
-                f" · Status: <b>{_esc(app.get('status', '—'))}</b>"
+                f"Window {_esc(delta.get('from_as_of'))} {_arrow()} {_esc(delta.get('to_as_of'))}"
+                f" · Status: <b>{_esc(app.get('status', '-'))}</b>"
                 + (
-                    f" · Applied {_esc((app.get('applied_at') or '')[:19])}"
+                    f" · Applied {_esc((app.get('applied_at') or '')[:19].replace('T', ' '))} UTC"
                     if app.get("applied_at")
                     else ""
                 ),
@@ -451,15 +485,15 @@ def render_compliance_pdf(report: dict[str, Any]) -> bytes:
             new = change.get("new") or {}
             story.append(
                 Paragraph(
-                    f"§{_esc(old.get('clause_id'))} → §{_esc(new.get('clause_id'))}: "
+                    f"{_clause(old.get('clause_id'))} {_arrow()} {_clause(new.get('clause_id'))}: "
                     f"<font color='#5A5A5A'>{_esc(old.get('value_summary'))}</font>"
-                    f"  →  <b>{_esc(new.get('value_summary'))}</b>",
+                    f"  {_arrow()}  <b>{_esc(new.get('value_summary'))}</b>",
                     styles["body"],
                 )
             )
             if new.get("source_text_span"):
                 story.append(
-                    Paragraph(f"Source: “{_esc(new['source_text_span'])}”", styles["cite"])
+                    Paragraph(f'Source: "{_esc(new["source_text_span"])}"', styles["cite"])
                 )
             story.append(Spacer(1, 2 * mm))
 
@@ -478,11 +512,11 @@ def render_compliance_pdf(report: dict[str, Any]) -> bytes:
                 t_data.append(
                     [
                         Paragraph(_esc(t.get("firm_name")), styles["cell_left"]),
-                        Paragraph(f"§{_esc(t.get('clause_id'))}", styles["cell"]),
+                        Paragraph(f"{_clause(t.get('clause_id'))}", styles["cell"]),
                         _status_para(t.get("from_status", ""), styles),
                         _status_para(t.get("to_status", ""), styles),
                         Paragraph(
-                            "Newly flagged" if t.get("newly_flagged") else "—",
+                            "Newly flagged" if t.get("newly_flagged") else "-",
                             styles["cell"],
                         ),
                     ]
@@ -521,11 +555,11 @@ def render_compliance_pdf(report: dict[str, Any]) -> bytes:
             Paragraph("<b>Firm / Clause</b>", styles["cell_left"]),
             Paragraph("<b>Recommended action</b>", styles["cell_left"]),
             Paragraph("<b>Signed off by</b>", styles["cell_left"]),
-            Paragraph("<b>When</b>", styles["cell"]),
+            Paragraph("<b>When (UTC)</b>", styles["cell"]),
         ]
         s_data = [s_header]
         for item in log:
-            when = (item.get("reviewed_at") or "—")[:19].replace("T", " ")
+            when = (item.get("reviewed_at") or "-")[:19].replace("T", " ")
             s_data.append(
                 [
                     Paragraph(
@@ -535,11 +569,11 @@ def render_compliance_pdf(report: dict[str, Any]) -> bytes:
                         else styles["status_breach"],
                     ),
                     Paragraph(
-                        f"{_esc(item.get('firm_name'))}<br/>§{_esc(item.get('clause_id'))}",
+                        f"{_esc(item.get('firm_name'))}<br/>{_clause(item.get('clause_id'))}",
                         styles["cell_left"],
                     ),
-                    Paragraph(_esc(item.get("recommended_action") or "—"), styles["cell_left"]),
-                    Paragraph(_esc(item.get("reviewed_by") or "—"), styles["cell_left"]),
+                    Paragraph(_esc(item.get("recommended_action") or "-"), styles["cell_left"]),
+                    Paragraph(_esc(item.get("reviewed_by") or "-"), styles["cell_left"]),
                     Paragraph(_esc(when), styles["cell"]),
                 ]
             )

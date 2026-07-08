@@ -198,7 +198,7 @@ export default function App() {
           <div className="mb-4 rounded border border-breach/30 bg-breach-bg px-4 py-3 text-sm text-breach-text">
             {error}
             <span className="ml-2 text-xs text-muted">
-              — Is the backend running on port 8000?
+              — If the API just woke from sleep, wait ~30s and refresh.
             </span>
           </div>
         )}

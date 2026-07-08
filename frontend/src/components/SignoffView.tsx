@@ -71,7 +71,7 @@ export function SignoffView({
           <button
             onClick={onGenerate}
             disabled={generating || reportGenerating}
-            className="rounded border border-gold bg-gold px-4 py-2 text-sm font-semibold text-canvas transition-colors hover:bg-gold-400 disabled:opacity-50"
+            className="rounded border border-gold/40 bg-transparent px-4 py-2 text-sm font-medium text-gold transition-colors hover:bg-gold/10 disabled:opacity-50"
           >
             {generating ? "Scanning…" : "Generate tasks from current breaches"}
           </button>
