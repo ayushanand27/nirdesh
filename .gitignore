@@ -9,6 +9,9 @@ __pycache__/
 # Local database (regenerate with: python seed_db.py)
 backend/data/nirdesh.db
 
+# Generated report fixtures
+backend/scripts/out/
+
 # Node / frontend
 frontend/node_modules/
 frontend/dist/

@@ -31,6 +31,7 @@ export default function App() {
   const [amendmentApplied, setAmendmentApplied] = useState(false);
   const [amendmentAppliedAt, setAmendmentAppliedAt] = useState<string | null>(null);
   const [generateMsg, setGenerateMsg] = useState<string | null>(null);
+  const [reportGenerating, setReportGenerating] = useState(false);
   const [health, setHealth] = useState<Health | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -151,6 +152,21 @@ export default function App() {
     }
   };
 
+  const handleGenerateReport = async () => {
+    if (reportGenerating) return;
+    setReportGenerating(true);
+    setError(null);
+    try {
+      await api.downloadComplianceReport(asOf, officer);
+      const a = await api.audit();
+      setAudit(a);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Failed to generate report");
+    } finally {
+      setReportGenerating(false);
+    }
+  };
+
   const handlePreviewDelta = async () => {
     setView("delta");
     try {
@@ -247,10 +263,13 @@ export default function App() {
             <SignoffView
               tasks={tasks}
               officer={officer}
+              asOf={asOf}
               onOfficerChange={setOfficer}
               onGenerate={handleGenerateTasks}
               onReview={handleReviewTask}
+              onGenerateReport={handleGenerateReport}
               generating={generating}
+              reportGenerating={reportGenerating}
               generateMessage={generateMsg}
             />
             <AuditPanel entries={audit} health={health} />

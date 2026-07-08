@@ -58,5 +58,26 @@ export const api = {
         toAsOf
       )}`
     ),
+  downloadComplianceReport: async (asOf: string, actor: string) => {
+    const q = new URLSearchParams({
+      as_of: asOf,
+      format: "pdf",
+      actor: actor.trim() || "Compliance Officer",
+    });
+    const res = await fetch(`${BASE}/reports/compliance-summary?${q}`);
+    if (!res.ok) throw new Error(`Report download failed: ${res.status}`);
+    const blob = await res.blob();
+    const filename =
+      res.headers.get("Content-Disposition")?.match(/filename="?([^";]+)"?/)?.[1] ??
+      `nirdesh-compliance-report-${asOf}.pdf`;
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+  },
   audit: () => get<AuditEntry[]>("/audit"),
 };

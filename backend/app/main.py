@@ -10,6 +10,7 @@ import os
 
 from fastapi import Depends, FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import Response
 from sqlalchemy.orm import Session
 
 from pydantic import BaseModel
@@ -21,6 +22,8 @@ from .evaluate import run_evaluation
 from .extraction import extract_rules
 from .llm_client import LLMUnavailable, is_configured
 from .models import AuditLog, Firm, Rule
+from .report import assemble_compliance_summary
+from .report_pdf import render_compliance_pdf
 from .review import generate_review_tasks, list_tasks, mark_reviewed
 from .schemas import ExtractionRequest, ExtractionResponse
 
@@ -212,3 +215,33 @@ def audit(db: Session = Depends(get_session)) -> list[dict]:
         }
         for a in rows
     ]
+
+
+@app.get("/reports/compliance-summary")
+def compliance_summary_report(
+    as_of: str = Query(DEFAULT_AS_OF),
+    format: str = Query("json"),
+    actor: str = Query("system"),
+    db: Session = Depends(get_session),
+):
+    """Assemble a compliance summary from current state (JSON or PDF).
+
+    Each generation writes one audit entry ("Compliance report generated").
+    Repeated downloads are intentional trail events (export accountability),
+    not state mutations — each call is independently recorded.
+    """
+    if format not in ("json", "pdf"):
+        raise HTTPException(status_code=400, detail="format must be json or pdf")
+    report = assemble_compliance_summary(
+        db, as_of=as_of, actor=actor, persist_audit=True
+    )
+    if format == "pdf":
+        # Mark audit meta with format after render path (rewrite last meta lightly)
+        pdf_bytes = render_compliance_pdf(report)
+        filename = f"nirdesh-compliance-report-{as_of}.pdf"
+        return Response(
+            content=pdf_bytes,
+            media_type="application/pdf",
+            headers={"Content-Disposition": f'attachment; filename="{filename}"'},
+        )
+    return report

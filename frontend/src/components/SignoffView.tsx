@@ -5,20 +5,26 @@ import { formatDate, formatTimestamp } from "../lib/status";
 interface Props {
   tasks: ReviewTask[];
   officer: string;
+  asOf: string;
   onOfficerChange: (v: string) => void;
   onGenerate: () => void;
   onReview: (taskId: number) => Promise<void>;
+  onGenerateReport: () => void;
   generating: boolean;
+  reportGenerating?: boolean;
   generateMessage?: string | null;
 }
 
 export function SignoffView({
   tasks,
   officer,
+  asOf,
   onOfficerChange,
   onGenerate,
   onReview,
+  onGenerateReport,
   generating,
+  reportGenerating = false,
   generateMessage,
 }: Props) {
   const pending = tasks.filter((t) => t.status === "pending");
@@ -61,13 +67,23 @@ export function SignoffView({
             <p className="mt-2 max-w-md text-xs text-gold">{generateMessage}</p>
           )}
         </div>
-        <button
-          onClick={onGenerate}
-          disabled={generating}
-          className="rounded border border-gold bg-gold px-4 py-2 text-sm font-semibold text-canvas transition-colors hover:bg-gold-400 disabled:opacity-50"
-        >
-          {generating ? "Scanning…" : "Generate tasks from current breaches"}
-        </button>
+        <div className="flex flex-wrap items-center gap-2">
+          <button
+            onClick={onGenerate}
+            disabled={generating || reportGenerating}
+            className="rounded border border-gold bg-gold px-4 py-2 text-sm font-semibold text-canvas transition-colors hover:bg-gold-400 disabled:opacity-50"
+          >
+            {generating ? "Scanning…" : "Generate tasks from current breaches"}
+          </button>
+          <button
+            onClick={onGenerateReport}
+            disabled={reportGenerating || generating}
+            className="rounded border border-gold bg-gold px-4 py-2 text-sm font-semibold text-canvas transition-colors hover:bg-gold-400 disabled:opacity-50"
+            title={`Download PDF for as-of ${asOf}`}
+          >
+            {reportGenerating ? "Generating report…" : "Generate Report"}
+          </button>
+        </div>
       </div>
 
       {/* Pending queue */}

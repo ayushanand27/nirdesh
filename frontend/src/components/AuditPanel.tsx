@@ -12,7 +12,9 @@ const EVENT_LABELS: Record<string, string> = {
   extraction: "Rule extraction",
   evaluation: "Compliance evaluation",
   amendment: "Regulatory amendment",
+  amendment_reset: "Demo reset",
   review: "Officer review",
+  report: "Compliance report generated",
 };
 
 export function AuditPanel({ entries, health }: Props) {
