@@ -16,6 +16,7 @@ export default function App() {
   const [view, setView] = useState<View>("dashboard");
   const [asOf, setAsOf] = useState(PHASE1);
   const [matrix, setMatrix] = useState<Matrix | null>(null);
+  const [flaggedRules, setFlaggedRules] = useState<Rule[]>([]);
   const [audit, setAudit] = useState<AuditEntry[]>([]);
   const [delta, setDelta] = useState<Delta | null>(null);
   const [tasks, setTasks] = useState<ReviewTask[]>([]);
@@ -36,8 +37,14 @@ export default function App() {
     setLoading(true);
     setError(null);
     try {
-      const [m, a, t] = await Promise.all([api.matrix(date), api.audit(), api.reviewTasks()]);
+      const [m, a, t, rules] = await Promise.all([
+        api.matrix(date),
+        api.audit(),
+        api.reviewTasks(),
+        api.rules(),
+      ]);
       setMatrix(m);
+      setFlaggedRules(rules.filter((r) => r.needs_human_review));
       setAudit(a);
       setTasks(t);
       setRecalcKey((k) => k + 1);
@@ -173,12 +180,17 @@ export default function App() {
               </div>
             ) : matrix ? (
               <div className="mt-4 grid grid-cols-1 gap-4 xl:grid-cols-[1fr_300px]">
-                <MatrixView
-                  matrix={matrix}
-                  recalcKey={recalcKey}
-                  selectedRuleId={selectedRule?.rule_id ?? null}
-                  onSelectRule={setSelectedRule}
-                />
+                <div className="space-y-2">
+                  <MatrixView
+                    matrix={matrix}
+                    recalcKey={recalcKey}
+                    flaggedRules={flaggedRules}
+                    asOf={asOf}
+                    phase2Date={PHASE2}
+                    selectedRuleId={selectedRule?.rule_id ?? null}
+                    onSelectRule={setSelectedRule}
+                  />
+                </div>
                 <AuditPanel entries={audit} health={health} />
               </div>
             ) : null}
@@ -372,9 +384,10 @@ function PlainHeadline() {
 }
 
 function PhaseToggle({ asOf, onChange }: { asOf: string; onChange: (v: string) => void }) {
+  // Dates bound to the circular's real phase effective dates (same constants used by delta).
   const options = [
-    { value: PHASE1, label: "Phase 1 rules" },
-    { value: PHASE2, label: "Phase 2 amendment" },
+    { value: PHASE1, label: `As of ${formatDate(PHASE1)}` },
+    { value: PHASE2, label: `As of ${formatDate(PHASE2)}` },
   ];
   return (
     <div className="flex items-center gap-2">

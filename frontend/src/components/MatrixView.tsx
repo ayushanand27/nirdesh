@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { Cell, CellDetail, CellStatus, Firm, Matrix, Rule } from "../types";
-import { STATUS_META, formatClause, formatEntity } from "../lib/status";
+import { STATUS_META, formatClause, formatDate, formatEntity } from "../lib/status";
 import { SourcePopover } from "./SourcePopover";
 
 type ViewMode = "simple" | "technical";
@@ -8,13 +8,26 @@ type ViewMode = "simple" | "technical";
 interface Props {
   matrix: Matrix;
   recalcKey: number;
+  flaggedRules: Rule[];
+  asOf: string;
+  phase2Date: string;
   selectedRuleId: string | null;
   onSelectRule: (rule: Rule) => void;
 }
 
-export function MatrixView({ matrix, recalcKey, selectedRuleId, onSelectRule }: Props) {
+export function MatrixView({
+  matrix,
+  recalcKey,
+  flaggedRules,
+  asOf,
+  phase2Date,
+  selectedRuleId,
+  onSelectRule,
+}: Props) {
   const { firms, rules, cells } = matrix;
   const [mode, setMode] = useState<ViewMode>("simple");
+  const [showFlags, setShowFlags] = useState(false);
+  const flagRef = useRef<HTMLDivElement>(null);
   const [popover, setPopover] = useState<{ key: string; anchor: HTMLElement } | null>(null);
   const hideTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -49,6 +62,17 @@ export function MatrixView({ matrix, recalcKey, selectedRuleId, onSelectRule }: 
     return () => document.removeEventListener("click", onDocClick);
   }, [closePopover]);
 
+  useEffect(() => {
+    if (!showFlags) return;
+    const onDoc = (e: MouseEvent) => {
+      if (flagRef.current && !flagRef.current.contains(e.target as Node)) {
+        setShowFlags(false);
+      }
+    };
+    document.addEventListener("click", onDoc);
+    return () => document.removeEventListener("click", onDoc);
+  }, [showFlags]);
+
   const activeRule = popover
     ? rules.find((r) => popover.key.endsWith(`:${r.rule_id}`))
     : null;
@@ -58,17 +82,71 @@ export function MatrixView({ matrix, recalcKey, selectedRuleId, onSelectRule }: 
       <div className="flex items-center justify-between border-b border-hair/40 px-5 py-4">
         <div>
           <h2 className="font-serif text-lg text-ink">Compliance Matrix</h2>
-          <p className="text-[11px] text-muted">
-            {mode === "simple"
-              ? "Plain-English posture across funds"
-              : "Machine fields · thresholds · actual vs expected"}
-          </p>
+          <div className="mt-1 flex flex-wrap items-center gap-2">
+            <p className="text-[11px] text-muted">
+              {mode === "simple"
+                ? "Plain-English posture across funds"
+                : "Machine fields · thresholds · actual vs expected"}
+            </p>
+            {flaggedRules.length > 0 && (
+              <div className="relative" ref={flagRef}>
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setShowFlags((v) => !v);
+                  }}
+                  className="inline-flex items-center gap-1 rounded border border-gold-700/40 bg-gold-700/20 px-2 py-0.5 text-[11px] font-medium text-gold transition-colors hover:bg-gold-700/30"
+                >
+                  <span aria-hidden>⚠</span>
+                  {flaggedRules.length} flagged for review
+                </button>
+                {showFlags && (
+                  <div className="absolute left-0 top-full z-20 mt-1.5 w-[340px] overflow-hidden rounded-card border border-gold/25 bg-elevated shadow-drawer">
+                    <div className="border-b border-gold/15 px-3 py-2">
+                      <div className="text-[10px] font-semibold uppercase tracking-[0.1em] text-gold">
+                        Flagged for human review
+                      </div>
+                      <p className="mt-0.5 text-[10px] text-muted">
+                        Extraction stayed honest — these couldn&apos;t be auto-checked.
+                      </p>
+                    </div>
+                    <ul className="divide-y divide-hair/40">
+                      {flaggedRules.map((r) => (
+                        <li key={r.rule_id} className="px-3 py-2.5">
+                          <div className="flex items-center gap-2">
+                            <span className="text-xs font-medium text-ink">
+                              {r.plain_label ?? formatEntity(r.applicable_entity_type)}
+                            </span>
+                            <span className="font-mono text-[9px] text-muted">
+                              {formatClause(r.clause_id)}
+                            </span>
+                          </div>
+                          <p className="mt-1 text-[11px] leading-relaxed text-muted">
+                            {r.review_reason ?? "Requires Compliance Officer verification."}
+                          </p>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
         </div>
         <div className="flex items-center gap-4">
           <Legend />
           <ModeToggle mode={mode} onChange={setMode} />
         </div>
       </div>
+
+      {asOf === phase2Date && (
+        <div className="border-b border-gold/20 bg-gold/5 px-5 py-2">
+          <span className="inline-flex items-center gap-1.5 rounded border border-gold/30 bg-gold-700/20 px-2.5 py-1 text-[11px] font-medium text-gold">
+            Viewing future rules — effective {formatDate(phase2Date)}
+          </span>
+        </div>
+      )}
 
       <div className="overflow-x-auto">
         <table
