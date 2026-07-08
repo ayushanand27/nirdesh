@@ -20,6 +20,8 @@ Built for **Securities Market TechSprint @ GFF 2026** — *Agentic Compliance: F
 
 The hosted backend may take 30–60 seconds to wake from sleep on the free tier. Refresh once if the first load fails.
 
+**Compliance report PDF:** Officer sign-off tab → **Generate Report** (downloads to your browser; also logged in the audit trail).
+
 Interactive API docs: https://nirdesh-backend.onrender.com/docs
 
 ---
@@ -105,6 +107,18 @@ State-changing actions (apply amendment, mark reviewed, etc.) are **idempotent**
 - **Bharat Growth AMC** — breach on Phase 1 (still on T-2 NAV)
 - **Meridian Asset Management** — compliant on Phase 1, **flips to breach** when §4.4 is applied
 - **Sentinel Debt Fund** — not applicable (no ETF schemes)
+
+### Screenshots
+
+| View | Screenshot |
+|---|---|
+| Compliance matrix (simple) | ![Matrix — simple view](docs/assets/screenshots/01-matrix-simple-phase1.png) |
+| Compliance matrix (technical) | ![Matrix — technical view](docs/assets/screenshots/02-matrix-technical-phase1.png) |
+| Regulatory delta (before apply) | ![Delta — preview](docs/assets/screenshots/03-delta-before-apply.png) |
+| Meridian flip after apply | ![Delta — Meridian breach](docs/assets/screenshots/04-delta-meridian-flip.png) |
+| Officer sign-off | ![Officer sign-off](docs/assets/screenshots/05-officer-signoff.png) |
+
+Full gallery: [docs/assets/screenshots/](docs/assets/screenshots/)
 
 ---
 

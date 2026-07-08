@@ -59,6 +59,12 @@ def main() -> None:
             assert "Bharat Growth AMC" in text1 and "Meridian" in text1
         print(f"Wrote {p1} ({len(pdf1)} bytes) breach={r1['summary']['breach']} delta=none")
 
+        # Phase 2 as-of without amendment applied must not include delta in report
+        r2_preview = assemble_compliance_summary(
+            session, "2027-04-01", actor="A. Sharma", persist_audit=False
+        )
+        assert r2_preview["regulatory_delta"] is None
+
         # Apply amendment + tasks for Phase 2
         compute_delta(session, "2026-09-01", "2027-04-01", persist=True)
         generate_review_tasks(session, as_of="2027-04-01")

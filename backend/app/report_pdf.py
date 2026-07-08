@@ -14,7 +14,7 @@ from reportlab.lib.pagesizes import A4, landscape
 from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
 from reportlab.lib.units import mm
 from reportlab.platypus import (
-    KeepTogether,
+    PageBreak,
     Paragraph,
     SimpleDocTemplate,
     Spacer,
@@ -208,6 +208,19 @@ def _clause(clause_id: str | None) -> str:
     return f"Sec. {_esc(clause_id)}"
 
 
+def _clause_sort_key(rule: dict) -> tuple:
+    cid = str(rule.get("clause_id") or "").replace("§", "").strip()
+    nums: list[int] = []
+    for part in cid.split("."):
+        try:
+            nums.append(int(part))
+        except ValueError:
+            nums.append(999)
+    while len(nums) < 4:
+        nums.append(0)
+    return tuple(nums)
+
+
 def _status_para(status: str, styles: dict) -> Paragraph:
     label = {"compliant": "Compliant", "breach": "Breach", "not_applicable": "N/A"}.get(
         status, status
@@ -379,7 +392,7 @@ def render_compliance_pdf(report: dict[str, Any]) -> bytes:
     # Matrix: clauses as rows, firms as columns (readable with 3 firms).
     story.append(Paragraph("Compliance Matrix", styles["h2"]))
     matrix = report.get("matrix") or {}
-    rules = matrix.get("rules") or []
+    rules = sorted(matrix.get("rules") or [], key=_clause_sort_key)
     firms = matrix.get("firms") or []
     rows = matrix.get("rows") or []
     # Map firm_id -> cells_by_rule_id
@@ -432,35 +445,35 @@ def render_compliance_pdf(report: dict[str, Any]) -> bytes:
     story.append(matrix_table)
     story.append(Spacer(1, 5 * mm))
 
-    # Breach citations
+    # Breach citations — page break so matrix status cells do not bleed into copy/paste
     breaches = report.get("breaches") or []
     if breaches:
+        story.append(PageBreak())
         story.append(Paragraph("Breach Detail &amp; Source Citations", styles["h2"]))
         for b in breaches:
-            block = [
+            story.append(
                 Paragraph(
                     f"<b>{_esc(b.get('firm_name'))}</b> - {_clause(b.get('clause_id'))}"
                     f" · {_esc(b.get('plain_label') or '')}",
                     styles["body"],
-                ),
-                Paragraph(_esc(b.get("plain_description") or ""), styles["muted"]),
-            ]
+                )
+            )
+            story.append(Paragraph(_esc(b.get("plain_description") or ""), styles["muted"]))
             if b.get("source_text_span"):
-                block.append(
+                story.append(
                     Paragraph(
                         f'Source: "{_esc(b["source_text_span"])}"',
                         styles["cite"],
                     )
                 )
             if b.get("required_action"):
-                block.append(
+                story.append(
                     Paragraph(
                         f"Recommended action: {_esc(b['required_action'])}",
                         styles["muted"],
                     )
                 )
-            block.append(Spacer(1, 2 * mm))
-            story.append(KeepTogether(block))
+            story.append(Spacer(1, 4 * mm))
 
     # What Changed — only present when report assembler included delta (Phase 2+)
     delta = report.get("regulatory_delta")

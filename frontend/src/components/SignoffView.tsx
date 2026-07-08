@@ -13,6 +13,7 @@ interface Props {
   generating: boolean;
   reportGenerating?: boolean;
   generateMessage?: string | null;
+  reportMessage?: string | null;
 }
 
 export function SignoffView({
@@ -26,6 +27,7 @@ export function SignoffView({
   generating,
   reportGenerating = false,
   generateMessage,
+  reportMessage,
 }: Props) {
   const pending = tasks.filter((t) => t.status === "pending");
   const reviewed = tasks.filter((t) => t.status === "reviewed");
@@ -66,6 +68,9 @@ export function SignoffView({
           {generateMessage && (
             <p className="mt-2 max-w-md text-xs text-gold">{generateMessage}</p>
           )}
+          {reportMessage && (
+            <p className="mt-2 max-w-md text-xs text-compliant-text">{reportMessage}</p>
+          )}
         </div>
         <div className="flex flex-wrap items-center gap-2">
           <button
@@ -79,7 +84,7 @@ export function SignoffView({
             onClick={onGenerateReport}
             disabled={reportGenerating || generating}
             className="rounded border border-gold bg-gold px-4 py-2 text-sm font-semibold text-canvas transition-colors hover:bg-gold-400 disabled:opacity-50"
-            title={`Download PDF for as-of ${asOf}`}
+            title={`Download PDF compliance report for as-of ${asOf}`}
           >
             {reportGenerating ? "Generating report…" : "Generate Report"}
           </button>

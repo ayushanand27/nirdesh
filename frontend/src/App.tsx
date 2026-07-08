@@ -31,6 +31,7 @@ export default function App() {
   const [amendmentApplied, setAmendmentApplied] = useState(false);
   const [amendmentAppliedAt, setAmendmentAppliedAt] = useState<string | null>(null);
   const [generateMsg, setGenerateMsg] = useState<string | null>(null);
+  const [reportMsg, setReportMsg] = useState<string | null>(null);
   const [reportGenerating, setReportGenerating] = useState(false);
   const [health, setHealth] = useState<Health | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -156,10 +157,12 @@ export default function App() {
     if (reportGenerating) return;
     setReportGenerating(true);
     setError(null);
+    setReportMsg(null);
     try {
-      await api.downloadComplianceReport(asOf, officer);
+      const filename = await api.downloadComplianceReport(asOf, officer);
       const a = await api.audit();
       setAudit(a);
+      setReportMsg(`Downloaded ${filename}. Logged in audit trail.`);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Failed to generate report");
     } finally {
@@ -271,6 +274,7 @@ export default function App() {
               generating={generating}
               reportGenerating={reportGenerating}
               generateMessage={generateMsg}
+              reportMessage={reportMsg}
             />
             <AuditPanel entries={audit} health={health} />
           </div>

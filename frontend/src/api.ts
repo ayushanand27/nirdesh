@@ -58,7 +58,7 @@ export const api = {
         toAsOf
       )}`
     ),
-  downloadComplianceReport: async (asOf: string, actor: string) => {
+  downloadComplianceReport: async (asOf: string, actor: string): Promise<string> => {
     const q = new URLSearchParams({
       as_of: asOf,
       format: "pdf",
@@ -67,6 +67,9 @@ export const api = {
     const res = await fetch(`${BASE}/reports/compliance-summary?${q}`);
     if (!res.ok) throw new Error(`Report download failed: ${res.status}`);
     const blob = await res.blob();
+    if (blob.size < 500) {
+      throw new Error("Report download returned an empty or invalid file");
+    }
     const filename =
       res.headers.get("Content-Disposition")?.match(/filename="?([^";]+)"?/)?.[1] ??
       `nirdesh-compliance-report-${asOf}.pdf`;
@@ -78,6 +81,7 @@ export const api = {
     a.click();
     a.remove();
     URL.revokeObjectURL(url);
+    return filename;
   },
   audit: () => get<AuditEntry[]>("/audit"),
 };

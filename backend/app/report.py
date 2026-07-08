@@ -25,6 +25,20 @@ DISCLAIMER = (
 )
 
 
+def _clause_sort_key(rule: dict) -> tuple:
+    """Numeric clause order (4.1 before 4.4 before 5.1.1)."""
+    cid = str(rule.get("clause_id") or "").replace("§", "").strip()
+    nums: list[int] = []
+    for part in cid.split("."):
+        try:
+            nums.append(int(part))
+        except ValueError:
+            nums.append(999)
+    while len(nums) < 4:
+        nums.append(0)
+    return tuple(nums)
+
+
 def assemble_compliance_summary(
     session: Session,
     as_of: str,
@@ -34,7 +48,8 @@ def assemble_compliance_summary(
 ) -> dict:
     """Build a self-contained compliance summary from currently computed state."""
     matrix = run_evaluation(session, as_of=as_of, persist=False)
-    rules_by_id = {r["rule_id"]: r for r in matrix["rules"]}
+    sorted_rules = sorted(matrix["rules"], key=_clause_sort_key)
+    rules_by_id = {r["rule_id"]: r for r in sorted_rules}
     # Breach citations: pull verbatim spans from full rule rows if missing on matrix.
     db_rules = {r.rule_id: r for r in session.query(Rule).all()}
 
@@ -42,7 +57,7 @@ def assemble_compliance_summary(
     matrix_rows: list[dict] = []
     for firm in matrix["firms"]:
         row_cells: dict[str, dict] = {}
-        for rule in matrix["rules"]:
+        for rule in sorted_rules:
             cell = next(
                 (
                     c
@@ -99,7 +114,9 @@ def assemble_compliance_summary(
     )
     amendment_applied = bool(state and state.status == "APPLIED")
     delta_section = None
-    if as_of >= PHASE2:
+    # Delta narrative only when the amendment was formally applied — avoids
+    # "NOT_APPLIED" in PDF while matrix already shows Phase 2 rules.
+    if as_of >= PHASE2 and amendment_applied:
         delta = compute_delta(session, PHASE1, PHASE2, persist=False)
         delta_section = {
             "from_as_of": PHASE1,
@@ -108,9 +125,7 @@ def assemble_compliance_summary(
             "rule_changes": delta.get("rule_changes", []),
             "firm_transitions": delta.get("firm_transitions", []),
             "summary": delta.get("summary"),
-            "included_because": (
-                "amendment_applied" if amendment_applied else "as_of_includes_phase2"
-            ),
+            "included_because": "amendment_applied",
         }
 
     all_tasks = list_tasks(session)
@@ -168,7 +183,7 @@ def assemble_compliance_summary(
             "breach": matrix["counts"].get("breach", 0),
             "not_applicable": matrix["counts"].get("not_applicable", 0),
             "firms": len(matrix["firms"]),
-            "rules": len(matrix["rules"]),
+            "rules": len(sorted_rules),
             "breaches_detail_count": len(breaches),
             "signoff_reviewed": len(reviewed),
             "signoff_pending": len(pending),
@@ -190,7 +205,7 @@ def assemble_compliance_summary(
                         else None
                     ),
                 }
-                for r in matrix["rules"]
+                for r in sorted_rules
             ],
             "rows": matrix_rows,
             "cells": matrix["cells"],
