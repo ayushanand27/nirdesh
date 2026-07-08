@@ -40,6 +40,14 @@ export interface Rule {
   supersedes_id: number | null;
 }
 
+export interface ExtractionResponse {
+  source_circular_id: string;
+  rules: Rule[];
+  used_cache: boolean;
+  model: string;
+  flagged_for_review: number;
+}
+
 export interface FirmProfile {
   base_price_method?: string;
   offers_etf_types?: string[];
@@ -156,4 +164,92 @@ export interface AuditEntry {
   meta: Record<string, unknown> | null;
   actor: string;
   created_at: string | null;
+}
+
+export interface ComplianceReport {
+  report_type: string;
+  generated_at: string;
+  generated_by: string;
+  disclaimer: string;
+  engine: {
+    name: string;
+    ruleset: string;
+    llm_at_evaluation: boolean;
+    note?: string;
+  };
+  circular: {
+    id: string;
+    title: string;
+    issued: string;
+  };
+  as_of: string;
+  summary: {
+    compliant: number;
+    breach: number;
+    not_applicable: number;
+    firms: number;
+    rules: number;
+    breaches_detail_count: number;
+    signoff_reviewed: number;
+    signoff_pending: number;
+    amendment_applied: boolean;
+  };
+  matrix: {
+    firms: Firm[];
+    rules: Pick<Rule, "rule_id" | "clause_id" | "plain_label" | "plain_description" | "effective_from" | "source_text_span">[];
+    rows: Array<{
+      firm_id: number;
+      firm_name: string;
+      legal_type: string;
+      cells: Record<
+        string,
+        {
+          rule_id: string;
+          clause_id: string;
+          plain_label?: string | null;
+          status: CellStatus;
+          detail: CellDetail;
+        }
+      >;
+    }>;
+    cells: Cell[];
+  };
+  breaches: Array<{
+    firm_id: number;
+    firm_name: string;
+    rule_id: string;
+    clause_id: string;
+    plain_label?: string | null;
+    plain_description?: string | null;
+    required_action?: string | null;
+    source_text_span?: string | null;
+    detail: CellDetail;
+  }>;
+  regulatory_delta: {
+    from_as_of: string;
+    to_as_of: string;
+    application?: DeltaApplication;
+    rule_changes: DeltaRuleChange[];
+    firm_transitions: DeltaTransition[];
+    summary: DeltaSummary;
+    included_because: string;
+  } | null;
+  officer_signoff: {
+    as_of: string;
+    reviewed_count: number;
+    pending_count: number;
+    log: Array<{
+      task_id: number;
+      firm_name: string;
+      clause_id: string;
+      rule_id: string;
+      title: string;
+      status: "pending" | "reviewed";
+      recommended_action: string;
+      reviewed_by: string | null;
+      reviewed_at: string | null;
+      created_at: string | null;
+      source_text_span?: string | null;
+    }>;
+  };
 }

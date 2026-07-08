@@ -19,7 +19,11 @@ const EVENT_LABELS: Record<string, string> = {
 
 export function AuditPanel({ entries, health }: Props) {
   const [showEngineInfo, setShowEngineInfo] = useState(false);
+  const [filter, setFilter] = useState<string>("all");
+  const [expanded, setExpanded] = useState<number | null>(null);
   const live = health?.llm_configured === true;
+  const eventTypes = Array.from(new Set(entries.map((e) => e.event_type)));
+  const visible = filter === "all" ? entries : entries.filter((e) => e.event_type === filter);
 
   return (
     <div className="card-muted flex h-full flex-col">
@@ -42,16 +46,30 @@ export function AuditPanel({ entries, health }: Props) {
             Extraction engine: {live ? "Groq · llama-3.3-70b (live)" : "Cached extraction (demo)"}
           </p>
         )}
+        <div className="mt-3 flex flex-wrap gap-1.5">
+          <FilterChip active={filter === "all"} onClick={() => setFilter("all")}>
+            All
+          </FilterChip>
+          {eventTypes.map((type) => (
+            <FilterChip
+              key={type}
+              active={filter === type}
+              onClick={() => setFilter(type)}
+            >
+              {EVENT_LABELS[type] ?? type}
+            </FilterChip>
+          ))}
+        </div>
       </div>
 
       <div className="flex-1 overflow-y-auto px-5 py-3">
-        {entries.length === 0 ? (
+        {visible.length === 0 ? (
           <p className="py-8 text-center text-sm text-muted">No events recorded yet.</p>
         ) : (
           <ol className="relative space-y-0">
-            {entries.map((e, i) => (
+            {visible.map((e, i) => (
               <li key={e.id} className="relative flex gap-3 pb-4">
-                {i < entries.length - 1 && (
+                {i < visible.length - 1 && (
                   <span className="absolute left-[5px] top-3 h-full w-px bg-hair/40" />
                 )}
                 <span className="relative z-10 mt-1.5 h-2.5 w-2.5 shrink-0 rounded-full border-2 border-gold/60 bg-surface" />
@@ -67,7 +85,25 @@ export function AuditPanel({ entries, health }: Props) {
                   <p className="mt-0.5 text-xs leading-relaxed text-ink/80">{e.message}</p>
                   <div className="mt-1 flex items-center gap-2 text-[10px] text-muted/70">
                     <span>{formatActor(e.actor)}</span>
+                    <span>·</span>
+                    <span className="font-mono">{e.entity_ref}</span>
                   </div>
+                  {e.meta && Object.keys(e.meta).length > 0 && (
+                    <div className="mt-2">
+                      <button
+                        type="button"
+                        onClick={() => setExpanded((id) => (id === e.id ? null : e.id))}
+                        className="text-[11px] font-medium text-gold hover:text-gold-400"
+                      >
+                        {expanded === e.id ? "Hide metadata" : "Inspect metadata"}
+                      </button>
+                      {expanded === e.id && (
+                        <pre className="mt-2 overflow-x-auto rounded border border-hair bg-canvas px-3 py-2 text-[10px] leading-relaxed text-muted">
+                          {JSON.stringify(e.meta, null, 2)}
+                        </pre>
+                      )}
+                    </div>
+                  )}
                 </div>
               </li>
             ))}
@@ -75,5 +111,29 @@ export function AuditPanel({ entries, health }: Props) {
         )}
       </div>
     </div>
+  );
+}
+
+function FilterChip({
+  active,
+  onClick,
+  children,
+}: {
+  active: boolean;
+  onClick: () => void;
+  children: React.ReactNode;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={`rounded border px-2 py-1 text-[10px] font-medium transition-colors ${
+        active
+          ? "border-gold bg-gold/15 text-gold"
+          : "border-hair bg-canvas text-muted hover:text-ink"
+      }`}
+    >
+      {children}
+    </button>
   );
 }

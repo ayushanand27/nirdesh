@@ -1,15 +1,19 @@
 import { useState } from "react";
-import type { ReviewTask } from "../types";
+import type { Matrix, ReviewTask, Rule } from "../types";
 import { formatDate, formatTimestamp } from "../lib/status";
+import { SourceCallout } from "./RuleDrawer";
 
 interface Props {
   tasks: ReviewTask[];
+  matrix: Matrix | null;
+  rules: Rule[];
   officer: string;
   asOf: string;
   onOfficerChange: (v: string) => void;
   onGenerate: () => void;
   onReview: (taskId: number) => Promise<void>;
   onGenerateReport: () => void;
+  onOpenRule: (rule: Rule) => void;
   generating: boolean;
   reportGenerating?: boolean;
   generateMessage?: string | null;
@@ -18,19 +22,23 @@ interface Props {
 
 export function SignoffView({
   tasks,
+  matrix,
+  rules,
   officer,
   asOf,
   onOfficerChange,
   onGenerate,
   onReview,
   onGenerateReport,
+  onOpenRule,
   generating,
   reportGenerating = false,
   generateMessage,
   reportMessage,
 }: Props) {
-  const pending = tasks.filter((t) => t.status === "pending");
-  const reviewed = tasks.filter((t) => t.status === "reviewed");
+  const tasksForAsOf = tasks.filter((t) => t.as_of_date === asOf);
+  const pending = tasksForAsOf.filter((t) => t.status === "pending");
+  const reviewed = tasksForAsOf.filter((t) => t.status === "reviewed");
 
   return (
     <div className="space-y-5">
@@ -106,7 +114,14 @@ export function SignoffView({
         ) : (
           <div className="space-y-3">
             {pending.map((t) => (
-              <TaskCard key={t.id} task={t} onReview={onReview} />
+              <TaskCard
+                key={t.id}
+                task={t}
+                matrix={matrix}
+                rules={rules}
+                onReview={onReview}
+                onOpenRule={onOpenRule}
+              />
             ))}
           </div>
         )}
@@ -134,12 +149,21 @@ export function SignoffView({
 
 function TaskCard({
   task,
+  matrix,
+  rules,
   onReview,
+  onOpenRule,
 }: {
   task: ReviewTask;
+  matrix: Matrix | null;
+  rules: Rule[];
   onReview: (taskId: number) => Promise<void>;
+  onOpenRule: (rule: Rule) => void;
 }) {
   const [busy, setBusy] = useState(false);
+  const rule = rules.find((r) => r.rule_id === task.rule_id) ?? null;
+  const cell =
+    matrix?.cells.find((c) => c.firm_id === task.firm_id && c.rule_id === task.rule_id) ?? null;
 
   const handle = async () => {
     setBusy(true);
@@ -164,16 +188,50 @@ function TaskCard({
             </span>
           </div>
           <h4 className="mt-1.5 text-sm font-medium text-ink">{task.title}</h4>
+          {rule && (
+            <div className="mt-2 rounded border border-hair bg-surface px-3 py-2">
+              <div className="label-caps mb-0.5">Underlying obligation</div>
+              <p className="text-sm text-ink">{rule.plain_label ?? rule.plain_description}</p>
+            </div>
+          )}
+          {cell && (
+            <div className="mt-2 rounded border border-hair bg-canvas px-3 py-2">
+              <div className="label-caps mb-0.5">Deterministic breach evidence</div>
+              <p className="text-xs text-ink">
+                Actual: <span className="font-mono">{stringify(cell.detail.actual)}</span>
+                {" · "}
+                Expected: <span className="font-mono">{stringify(cell.detail.expected)}</span>
+              </p>
+              {cell.detail.reason && (
+                <p className="mt-1 text-xs text-muted">{cell.detail.reason}</p>
+              )}
+            </div>
+          )}
           <div className="mt-2 rounded border border-hair bg-canvas px-3 py-2">
             <div className="label-caps mb-0.5">Recommended action</div>
             <p className="text-sm text-ink">{task.recommended_action}</p>
           </div>
+          {rule?.source_text_span && (
+            <div className="mt-2">
+              <SourceCallout text={rule.source_text_span} clause={`§ ${task.clause_id}`} />
+            </div>
+          )}
         </div>
       </div>
       <div className="mt-3 flex items-center justify-between border-t border-hair pt-3">
-        <span className="text-[11px] text-muted">
-          This recommendation is not actioned until signed off.
-        </span>
+        <div className="flex items-center gap-2">
+          <span className="text-[11px] text-muted">
+            This recommendation is not actioned until signed off.
+          </span>
+          {rule && (
+            <button
+              onClick={() => onOpenRule(rule)}
+              className="rounded border border-gold/30 px-2.5 py-1 text-[11px] font-medium text-gold transition-colors hover:bg-gold/10"
+            >
+              View rule
+            </button>
+          )}
+        </div>
         <button
           onClick={handle}
           disabled={busy}
@@ -228,4 +286,14 @@ function CheckIcon() {
       </svg>
     </span>
   );
+}
+
+function stringify(value: unknown): string {
+  if (value == null) return "—";
+  if (typeof value === "string") return value;
+  try {
+    return JSON.stringify(value);
+  } catch {
+    return String(value);
+  }
 }

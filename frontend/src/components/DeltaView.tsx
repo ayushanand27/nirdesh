@@ -107,6 +107,39 @@ export function DeltaView({
 
       {delta && (
         <>
+          <div
+            className={`card px-5 py-4 transition-all duration-500 ease-precise ${
+              revealed ? "opacity-100 translate-y-0" : "opacity-0 translate-y-2"
+            }`}
+          >
+            <h3 className="font-serif text-lg text-ink">Why this changed</h3>
+            <p className="mt-2 text-sm leading-relaxed text-muted">
+              The base-price obligation moves from{" "}
+              <span className="font-medium text-ink">
+                T-1 closing price (last 30-min VWAP)
+              </span>{" "}
+              under clause 4.1 to{" "}
+              <span className="font-medium text-ink">T-1 closing NAV</span> under
+              clause 4.4 from <span className="font-mono text-ink">01 Apr 2027</span>.
+              This tighter rule changes who is compliant, which is why Meridian flips
+              from compliant to breach in Phase 2.
+            </p>
+            {delta.newly_effective.length > 0 && (
+              <div className="mt-3 rounded border border-hair bg-canvas px-4 py-3">
+                <div className="label-caps mb-1">Newly effective obligations</div>
+                <div className="space-y-1.5">
+                  {delta.newly_effective.map((rule) => (
+                    <div key={rule.rule_id} className="text-xs text-muted">
+                      <span className="font-mono text-gold">§ {rule.clause_id}</span>
+                      {" · "}
+                      <span className="text-ink">{rule.value_summary}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+
           {/* Summary strip */}
           <div
             className={`grid grid-cols-3 gap-4 transition-all duration-500 ease-precise ${

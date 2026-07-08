@@ -2,16 +2,27 @@ import { useCallback, useEffect, useState } from "react";
 import { api, type Health } from "./api";
 import { AuditPanel } from "./components/AuditPanel";
 import { DeltaView } from "./components/DeltaView";
+import { IngestView } from "./components/IngestView";
 import { MatrixView } from "./components/MatrixView";
+import { ReportPreview } from "./components/ReportPreview";
 import { RuleDrawer } from "./components/RuleDrawer";
 import { SignoffView } from "./components/SignoffView";
 import { STATUS_META, formatDate } from "./lib/status";
-import type { AuditEntry, CellStatus, Delta, Matrix, ReviewTask, Rule } from "./types";
+import type {
+  AuditEntry,
+  CellStatus,
+  ComplianceReport,
+  Delta,
+  ExtractionResponse,
+  Matrix,
+  ReviewTask,
+  Rule,
+} from "./types";
 
 const PHASE1 = "2026-09-01";
 const PHASE2 = "2027-04-01";
 
-type View = "dashboard" | "delta" | "signoff";
+type View = "ingest" | "dashboard" | "delta" | "signoff" | "report";
 export default function App() {
   const [view, setView] = useState<View>("dashboard");
   const [asOf, setAsOf] = useState(PHASE1);
@@ -33,6 +44,11 @@ export default function App() {
   const [generateMsg, setGenerateMsg] = useState<string | null>(null);
   const [reportMsg, setReportMsg] = useState<string | null>(null);
   const [reportGenerating, setReportGenerating] = useState(false);
+  const [reportPreviewLoading, setReportPreviewLoading] = useState(false);
+  const [reportPreview, setReportPreview] = useState<ComplianceReport | null>(null);
+  const [extraction, setExtraction] = useState<ExtractionResponse | null>(null);
+  const [extracting, setExtracting] = useState(false);
+  const [ingestMessage, setIngestMessage] = useState<string | null>(null);
   const [health, setHealth] = useState<Health | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -67,6 +83,31 @@ export default function App() {
   useEffect(() => {
     api.health().then(setHealth).catch(() => setHealth(null));
   }, []);
+
+  useEffect(() => {
+    setReportPreview(null);
+    setReportMsg(null);
+    setGenerateMsg(null);
+  }, [asOf, officer]);
+
+  const refreshReportPreview = useCallback(
+    async (persistAudit = false) => {
+      setReportPreviewLoading(true);
+      try {
+        const report = await api.complianceReport(asOf, officer, persistAudit);
+        setReportPreview(report);
+        if (persistAudit) {
+          const a = await api.audit();
+          setAudit(a);
+        }
+      } catch (e) {
+        setError(e instanceof Error ? e.message : "Failed to load report preview");
+      } finally {
+        setReportPreviewLoading(false);
+      }
+    },
+    [asOf, officer]
+  );
 
   const handleRecalculate = async () => {
     setEvaluating(true);
@@ -163,10 +204,51 @@ export default function App() {
       const a = await api.audit();
       setAudit(a);
       setReportMsg(`Downloaded ${filename}. Logged in audit trail.`);
+      await refreshReportPreview(false);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Failed to generate report");
     } finally {
       setReportGenerating(false);
+    }
+  };
+
+  const handleExtractText = async (sourceCircularId: string, circularText: string) => {
+    setExtracting(true);
+    setError(null);
+    setIngestMessage(null);
+    try {
+      const result = await api.extractRules(sourceCircularId, circularText, true);
+      setExtraction(result);
+      setSelectedRule(result.rules[0] ?? null);
+      setIngestMessage(
+        `Extracted ${result.rules.length} rule(s); ${result.flagged_for_review} flagged for human review.`
+      );
+      const a = await api.audit();
+      setAudit(a);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Extraction failed");
+    } finally {
+      setExtracting(false);
+    }
+  };
+
+  const handleExtractUpload = async (sourceCircularId: string, file: File) => {
+    setExtracting(true);
+    setError(null);
+    setIngestMessage(null);
+    try {
+      const result = await api.extractRulesFromUpload(sourceCircularId, file, true);
+      setExtraction(result);
+      setSelectedRule(result.rules[0] ?? null);
+      setIngestMessage(
+        `Extracted ${result.rules.length} rule(s) from ${file.name}; ${result.flagged_for_review} flagged for human review.`
+      );
+      const a = await api.audit();
+      setAudit(a);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Upload extraction failed");
+    } finally {
+      setExtracting(false);
     }
   };
 
@@ -184,6 +266,20 @@ export default function App() {
     }
   };
 
+  const openReportView = async () => {
+    setView("report");
+    if (
+      !reportPreview ||
+      reportPreview.as_of !== asOf ||
+      reportPreview.generated_by !== (officer.trim() || "Compliance Officer")
+    ) {
+      await refreshReportPreview(false);
+    }
+  };
+
+  const drawerFirms = matrix?.firms ?? [];
+  const drawerCells = matrix?.cells ?? [];
+
   return (
     <div className="min-h-screen">
       <Header
@@ -191,6 +287,7 @@ export default function App() {
         view={view}
         onViewChange={setView}
         onDeltaClick={handlePreviewDelta}
+        onReportClick={openReportView}
         pendingTasks={pendingTasks}
       />
 
@@ -203,6 +300,20 @@ export default function App() {
             <span className="ml-2 text-xs text-muted">
               — If the API just woke from sleep, wait ~30s and refresh.
             </span>
+          </div>
+        )}
+
+        {view === "ingest" && (
+          <div className="grid grid-cols-1 gap-4 xl:grid-cols-[1fr_300px]">
+            <IngestView
+              extraction={extraction}
+              extracting={extracting}
+              ingestMessage={ingestMessage}
+              onExtractText={handleExtractText}
+              onExtractUpload={handleExtractUpload}
+              onSelectRule={setSelectedRule}
+            />
+            <AuditPanel entries={audit} health={health} />
           </div>
         )}
 
@@ -265,12 +376,15 @@ export default function App() {
           <div className="grid grid-cols-1 gap-4 xl:grid-cols-[1fr_300px]">
             <SignoffView
               tasks={tasks}
+              matrix={matrix}
+              rules={matrix?.rules ?? []}
               officer={officer}
               asOf={asOf}
               onOfficerChange={setOfficer}
               onGenerate={handleGenerateTasks}
               onReview={handleReviewTask}
               onGenerateReport={handleGenerateReport}
+              onOpenRule={setSelectedRule}
               generating={generating}
               reportGenerating={reportGenerating}
               generateMessage={generateMsg}
@@ -279,12 +393,26 @@ export default function App() {
             <AuditPanel entries={audit} health={health} />
           </div>
         )}
+
+        {view === "report" && (
+          <div className="grid grid-cols-1 gap-4 xl:grid-cols-[1fr_300px]">
+            <ReportPreview
+              report={reportPreview}
+              loading={reportPreviewLoading}
+              asOf={asOf}
+              onRefresh={() => refreshReportPreview(false)}
+              onDownload={handleGenerateReport}
+              downloadBusy={reportGenerating}
+            />
+            <AuditPanel entries={audit} health={health} />
+          </div>
+        )}
       </main>
 
       <RuleDrawer
         rule={selectedRule}
-        firms={matrix?.firms ?? []}
-        cells={matrix?.cells ?? []}
+        firms={drawerFirms}
+        cells={drawerCells}
         onClose={() => setSelectedRule(null)}
       />
 
@@ -308,18 +436,22 @@ function Header({
   view,
   onViewChange,
   onDeltaClick,
+  onReportClick,
   pendingTasks,
 }: {
   asOf: string;
   view: View;
   onViewChange: (v: View) => void;
   onDeltaClick: () => void;
+  onReportClick: () => void;
   pendingTasks: number;
 }) {
   const tabs: { id: View; label: string }[] = [
+    { id: "ingest", label: "Circular ingest" },
     { id: "dashboard", label: "Compliance matrix" },
     { id: "delta", label: "Regulatory delta" },
     { id: "signoff", label: "Officer sign-off" },
+    { id: "report", label: "Evidence pack" },
   ];
 
   return (
@@ -342,7 +474,13 @@ function Header({
           {tabs.map((t) => (
             <button
               key={t.id}
-              onClick={() => (t.id === "delta" ? onDeltaClick() : onViewChange(t.id))}
+              onClick={() =>
+                t.id === "delta"
+                  ? onDeltaClick()
+                  : t.id === "report"
+                    ? onReportClick()
+                    : onViewChange(t.id)
+              }
               className={`flex items-center gap-1.5 rounded border-b-2 px-3 py-1.5 text-xs font-medium transition-colors ${
                 view === t.id ? "border-gold text-gold" : "border-transparent text-muted hover:text-ink"
               }`}

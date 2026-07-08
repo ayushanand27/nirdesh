@@ -1,4 +1,13 @@
-import type { AuditEntry, Delta, Firm, Matrix, ReviewTask, Rule } from "./types";
+import type {
+  AuditEntry,
+  ComplianceReport,
+  Delta,
+  ExtractionResponse,
+  Firm,
+  Matrix,
+  ReviewTask,
+  Rule,
+} from "./types";
 
 // In production (Render), set VITE_API_BASE_URL to the deployed backend URL,
 // e.g. https://nirdesh-backend.onrender.com. Locally it defaults to the Vite
@@ -22,6 +31,15 @@ async function post<T>(path: string, body?: unknown): Promise<T> {
   return res.json() as Promise<T>;
 }
 
+async function postForm<T>(path: string, body: FormData): Promise<T> {
+  const res = await fetch(`${BASE}${path}`, {
+    method: "POST",
+    body,
+  });
+  if (!res.ok) throw new Error(`POST ${path} failed: ${res.status}`);
+  return res.json() as Promise<T>;
+}
+
 export interface Health {
   status: string;
   llm_configured: boolean;
@@ -31,6 +49,19 @@ export const api = {
   health: () => get<Health>("/health"),
   firms: () => get<Firm[]>("/firms"),
   rules: () => get<Rule[]>("/rules"),
+  extractRules: (sourceCircularId: string, circularText: string, useCache = true) =>
+    post<ExtractionResponse>("/extract", {
+      source_circular_id: sourceCircularId,
+      circular_text: circularText,
+      use_cache: useCache,
+    }),
+  extractRulesFromUpload: async (sourceCircularId: string, file: File, useCache = true) => {
+    const body = new FormData();
+    body.set("source_circular_id", sourceCircularId);
+    body.set("use_cache", String(useCache));
+    body.set("file", file);
+    return postForm<ExtractionResponse>("/extract-upload", body);
+  },
   matrix: (asOf: string) => get<Matrix>(`/matrix?as_of=${encodeURIComponent(asOf)}`),
   evaluate: (asOf: string) => post<Matrix>(`/evaluate?as_of=${encodeURIComponent(asOf)}`),
   delta: (fromAsOf: string, toAsOf: string, persist = false) =>
@@ -83,5 +114,11 @@ export const api = {
     URL.revokeObjectURL(url);
     return filename;
   },
+  complianceReport: (asOf: string, actor: string, persistAudit = false) =>
+    get<ComplianceReport>(
+      `/reports/compliance-summary?as_of=${encodeURIComponent(asOf)}&format=json&actor=${encodeURIComponent(
+        actor.trim() || "Compliance Officer"
+      )}&persist_audit=${persistAudit}`
+    ),
   audit: () => get<AuditEntry[]>("/audit"),
 };

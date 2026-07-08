@@ -7,10 +7,12 @@ Step 2: firms + deterministic evaluation (/firms, /rules, /evaluate, /matrix, /a
 from __future__ import annotations
 
 import os
+from io import BytesIO
 
-from fastapi import Depends, FastAPI, HTTPException, Query
+from fastapi import Depends, FastAPI, File, Form, HTTPException, Query, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import Response
+from pypdf import PdfReader
 from sqlalchemy.orm import Session
 
 from pydantic import BaseModel
@@ -87,14 +89,113 @@ def health() -> dict:
     return {"status": "ok", "llm_configured": is_configured()}
 
 
-@app.post("/extract", response_model=ExtractionResponse)
-def extract(req: ExtractionRequest) -> ExtractionResponse:
+def _log_extraction(
+    db: Session,
+    *,
+    source_circular_id: str,
+    rules_count: int,
+    flagged_for_review: int,
+    actor: str,
+    used_cache: bool,
+    meta_extra: dict | None = None,
+) -> None:
+    meta = {
+        "source_circular_id": source_circular_id,
+        "rules": rules_count,
+        "flagged_for_review": flagged_for_review,
+        "used_cache": used_cache,
+    }
+    if meta_extra:
+        meta.update(meta_extra)
+    db.add(
+        AuditLog(
+            event_type="extraction",
+            entity_ref=source_circular_id,
+            message=(
+                f"Rule extraction completed for {source_circular_id}: "
+                f"{rules_count} rule(s), {flagged_for_review} flagged for human review."
+            ),
+            meta=meta,
+            actor=actor,
+        )
+    )
+    db.commit()
+
+
+def _extract_pdf_text(file_bytes: bytes) -> tuple[str, int]:
     try:
-        return extract_rules(
+        reader = PdfReader(BytesIO(file_bytes))
+    except Exception as exc:  # pragma: no cover - parser errors vary
+        raise HTTPException(status_code=400, detail=f"Failed to read PDF: {exc}") from exc
+
+    parts: list[str] = []
+    for page in reader.pages:
+        parts.append(page.extract_text() or "")
+    text = "\n\n".join(p.strip() for p in parts if p and p.strip()).strip()
+    if not text:
+        raise HTTPException(
+            status_code=400,
+            detail="PDF text extraction returned no readable text. Try paste-text mode.",
+        )
+    return text, len(reader.pages)
+
+
+@app.post("/extract", response_model=ExtractionResponse)
+def extract(req: ExtractionRequest, db: Session = Depends(get_session)) -> ExtractionResponse:
+    try:
+        result = extract_rules(
             circular_text=req.circular_text,
             source_circular_id=req.source_circular_id,
             use_cache=req.use_cache,
         )
+        _log_extraction(
+            db,
+            source_circular_id=req.source_circular_id,
+            rules_count=len(result.rules),
+            flagged_for_review=result.flagged_for_review,
+            actor="system",
+            used_cache=result.used_cache,
+            meta_extra={"input_mode": "text"},
+        )
+        return result
+    except LLMUnavailable as exc:
+        raise HTTPException(status_code=503, detail=str(exc)) from exc
+
+
+@app.post("/extract-upload", response_model=ExtractionResponse)
+async def extract_upload(
+    source_circular_id: str = Form(...),
+    use_cache: bool = Form(True),
+    file: UploadFile = File(...),
+    db: Session = Depends(get_session),
+) -> ExtractionResponse:
+    if not (file.filename or "").lower().endswith(".pdf"):
+        raise HTTPException(status_code=400, detail="Only PDF uploads are supported")
+    file_bytes = await file.read()
+    if not file_bytes:
+        raise HTTPException(status_code=400, detail="Uploaded file is empty")
+    text, page_count = _extract_pdf_text(file_bytes)
+    try:
+        result = extract_rules(
+            circular_text=text,
+            source_circular_id=source_circular_id,
+            use_cache=use_cache,
+        )
+        _log_extraction(
+            db,
+            source_circular_id=source_circular_id,
+            rules_count=len(result.rules),
+            flagged_for_review=result.flagged_for_review,
+            actor="system",
+            used_cache=result.used_cache,
+            meta_extra={
+                "input_mode": "pdf_upload",
+                "filename": file.filename,
+                "page_count": page_count,
+                "text_chars": len(text),
+            },
+        )
+        return result
     except LLMUnavailable as exc:
         raise HTTPException(status_code=503, detail=str(exc)) from exc
 
@@ -222,6 +323,7 @@ def compliance_summary_report(
     as_of: str = Query(DEFAULT_AS_OF),
     format: str = Query("json"),
     actor: str = Query("system"),
+    persist_audit: bool = Query(True),
     db: Session = Depends(get_session),
 ):
     """Assemble a compliance summary from current state (JSON or PDF).
@@ -233,7 +335,7 @@ def compliance_summary_report(
     if format not in ("json", "pdf"):
         raise HTTPException(status_code=400, detail="format must be json or pdf")
     report = assemble_compliance_summary(
-        db, as_of=as_of, actor=actor, persist_audit=True
+        db, as_of=as_of, actor=actor, persist_audit=persist_audit
     )
     if format == "pdf":
         # Mark audit meta with format after render path (rewrite last meta lightly)
