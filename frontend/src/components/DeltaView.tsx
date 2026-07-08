@@ -24,7 +24,9 @@ export function DeltaView({ delta, applying, applied, onApply }: Props) {
   };
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-4">
+      <DeltaTimeline />
+
       {/* Amendment trigger card */}
       <div className="card px-6 py-5">
         <div className="flex items-start justify-between gap-6">
@@ -151,7 +153,7 @@ function SummaryCard({
   warn?: boolean;
 }) {
   return (
-    <div className="card px-5 py-3.5">
+    <div className="card-muted px-5 py-3.5">
       <div
         className={`font-mono text-2xl font-semibold tnum ${
           warn ? "text-breach" : accent ? "text-accent" : "text-ink"
@@ -287,6 +289,28 @@ function TransitionRow({ transition }: { transition: DeltaTransition }) {
           />
         </svg>
         <StatusBadge status={transition.to_status} />
+      </div>
+    </div>
+  );
+}
+
+function DeltaTimeline() {
+  return (
+    <div className="card-muted flex flex-wrap items-center gap-x-5 gap-y-1 px-4 py-2.5 text-[11px] text-muted">
+      <span className="font-mono text-xs text-ink/80 tnum">
+        HO/47/11/11(1)2026-MRD-POD3/I/13804/2026
+      </span>
+      <span className="hidden md:inline">Norms for ETF base price and price bands</span>
+      <div className="ml-auto flex flex-wrap items-center gap-4">
+        <span>
+          Issued <span className="text-ink/80">{formatDate("2026-06-15")}</span>
+        </span>
+        <span>
+          Phase 1 <span className="text-ink/80">{formatDate("2026-09-01")}</span>
+        </span>
+        <span>
+          Phase 2 <span className="text-ink/80">{formatDate("2027-04-01")}</span>
+        </span>
       </div>
     </div>
   );

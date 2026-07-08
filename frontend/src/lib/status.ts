@@ -53,15 +53,47 @@ export function formatDate(iso: string | null): string {
   });
 }
 
+/** Human-readable relative time — no seconds. */
 export function formatTimestamp(iso: string | null): string {
   if (!iso) return "—";
   const d = new Date(iso);
-  return d.toLocaleString("en-IN", {
-    day: "2-digit",
-    month: "short",
-    hour: "2-digit",
+  const now = new Date();
+  const diffMs = now.getTime() - d.getTime();
+  const diffMin = Math.floor(diffMs / 60_000);
+  const diffHr = Math.floor(diffMs / 3_600_000);
+
+  if (diffMin < 1) return "Just now";
+  if (diffMin < 60) return `${diffMin} min ago`;
+
+  const isToday = d.toDateString() === now.toDateString();
+  const yesterday = new Date(now);
+  yesterday.setDate(yesterday.getDate() - 1);
+  const isYesterday = d.toDateString() === yesterday.toDateString();
+
+  const time = d.toLocaleTimeString("en-IN", {
+    hour: "numeric",
     minute: "2-digit",
-    second: "2-digit",
-    hour12: false,
+    hour12: true,
   });
+
+  if (isToday) return `Today, ${time}`;
+  if (isYesterday) return `Yesterday, ${time}`;
+  if (diffHr < 48) return `${diffHr} hr ago`;
+
+  return d.toLocaleDateString("en-IN", {
+    day: "numeric",
+    month: "short",
+    hour: "numeric",
+    minute: "2-digit",
+    hour12: true,
+  });
+}
+
+const ACTOR_LABELS: Record<string, string> = {
+  system: "System",
+  "compliance-analyst": "Compliance Analyst",
+};
+
+export function formatActor(actor: string): string {
+  return ACTOR_LABELS[actor] ?? actor;
 }

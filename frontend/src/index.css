@@ -43,7 +43,15 @@
   }
   /* Depth via layered surface tone + hairline border, not heavy shadow. */
   .card {
-    @apply bg-surface border border-hair rounded-card shadow-card;
+    @apply bg-surface border border-hair/50 rounded-card shadow-card;
+  }
+  /* Primary content — matrix gets strongest presence on the page. */
+  .card-primary {
+    @apply bg-elevated/40 border border-hair/40 rounded-card shadow-card;
+  }
+  /* Secondary panels — quieter so status cells stay the focal point. */
+  .card-muted {
+    @apply bg-surface/60 border border-hair/30 rounded-card;
   }
   .label-caps {
     @apply text-[11px] uppercase tracking-[0.12em] text-muted font-medium;

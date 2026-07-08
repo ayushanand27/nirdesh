@@ -139,16 +139,13 @@ export default function App() {
         onViewChange={setView}
         onDeltaClick={handlePreviewDelta}
         pendingTasks={pendingTasks}
-        health={health}
         mode={mode}
         onModeChange={setMode}
       />
 
-      <CircularBar />
-
       <Stepper view={view} onSelect={setView} onDeltaClick={handlePreviewDelta} />
 
-      <main className="mx-auto max-w-[1440px] px-6 py-6">
+      <main className="mx-auto max-w-[1440px] px-6 py-4">
         {error && (
           <div className="mb-4 rounded border border-breach/30 bg-breach-bg px-4 py-3 text-sm text-breach-text">
             {error}
@@ -164,8 +161,8 @@ export default function App() {
 
             {matrix && <StatsBar matrix={matrix} />}
 
-            <div className="mt-5 flex items-center justify-between">
-              <DateToggle asOf={asOf} onChange={setAsOf} />
+            <div className="mt-3 flex items-center justify-between">
+              <PhaseToggle asOf={asOf} onChange={setAsOf} />
               <button
                 onClick={handleRecalculate}
                 disabled={evaluating || loading}
@@ -180,7 +177,7 @@ export default function App() {
                 Loading compliance data…
               </div>
             ) : matrix ? (
-              <div className="mt-5 grid grid-cols-1 gap-5 xl:grid-cols-[1fr_340px]">
+              <div className="mt-4 grid grid-cols-1 gap-4 xl:grid-cols-[1fr_300px]">
                 <MatrixView
                   matrix={matrix}
                   recalcKey={recalcKey}
@@ -188,26 +185,26 @@ export default function App() {
                   selectedRuleId={selectedRule?.rule_id ?? null}
                   onSelectRule={setSelectedRule}
                 />
-                <AuditPanel entries={audit} />
+                <AuditPanel entries={audit} health={health} />
               </div>
             ) : null}
           </>
         )}
 
         {view === "delta" && (
-          <div className="mt-2 grid grid-cols-1 gap-5 xl:grid-cols-[1fr_340px]">
+          <div className="grid grid-cols-1 gap-4 xl:grid-cols-[1fr_300px]">
             <DeltaView
               delta={delta}
               applying={applying}
               applied={amendmentApplied}
               onApply={handleApplyAmendment}
             />
-            <AuditPanel entries={audit} />
+            <AuditPanel entries={audit} health={health} />
           </div>
         )}
 
         {view === "signoff" && (
-          <div className="mt-2 grid grid-cols-1 gap-5 xl:grid-cols-[1fr_340px]">
+          <div className="grid grid-cols-1 gap-4 xl:grid-cols-[1fr_300px]">
             <SignoffView
               tasks={tasks}
               officer={officer}
@@ -216,7 +213,7 @@ export default function App() {
               onReview={handleReviewTask}
               generating={generating}
             />
-            <AuditPanel entries={audit} />
+            <AuditPanel entries={audit} health={health} />
           </div>
         )}
       </main>
@@ -229,11 +226,15 @@ export default function App() {
         onClose={() => setSelectedRule(null)}
       />
 
-      <footer className="border-t border-hair bg-surface px-6 py-3">
-        <p className="mx-auto max-w-[1440px] text-center text-[11px] text-muted">
-          Nirdesh is a decision-support system. All compliance determinations are computed
-          deterministically and require Compliance Officer sign-off before any operational
-          action.
+      <footer className="border-t border-hair/30 bg-surface/40 px-6 py-3">
+        <p className="mx-auto max-w-[1440px] text-center text-[11px] text-muted/80">
+          Nirdesh is a decision-support system. All compliance determinations require
+          Compliance Officer sign-off before any operational action.
+          {health && (
+            <span className="mt-1 block text-[10px] text-muted/50">
+              Extraction: {health.llm_configured ? "Groq · llama-3.3-70b" : "Cached (demo)"}
+            </span>
+          )}
         </p>
       </footer>
     </div>
@@ -246,7 +247,6 @@ function Header({
   onViewChange,
   onDeltaClick,
   pendingTasks,
-  health,
   mode,
   onModeChange,
 }: {
@@ -255,7 +255,6 @@ function Header({
   onViewChange: (v: View) => void;
   onDeltaClick: () => void;
   pendingTasks: number;
-  health: Health | null;
   mode: ViewMode;
   onModeChange: (m: ViewMode) => void;
 }) {
@@ -266,8 +265,8 @@ function Header({
   ];
 
   return (
-    <header className="border-b border-hair bg-surface">
-      <div className="mx-auto flex max-w-[1440px] items-center justify-between px-6 py-4">
+    <header className="border-b border-hair/40 bg-surface/80">
+      <div className="mx-auto flex max-w-[1440px] items-center justify-between px-6 py-3.5">
         <div className="flex items-center gap-4">
           <div className="flex h-9 w-9 items-center justify-center rounded bg-navy font-serif text-lg font-semibold text-white">
             N
@@ -275,19 +274,20 @@ function Header({
           <div>
             <h1 className="font-serif text-xl font-medium text-ink">Nirdesh</h1>
             <p className="text-xs text-muted">
-              Regulatory compliance intelligence · SEBI ETF circular
+              SEBI ETF circular · Active as of{" "}
+              <span className="text-ink/80">{formatDate(asOf)}</span>
             </p>
           </div>
         </div>
 
-        <nav className="flex items-center gap-1 rounded border border-hair bg-canvas p-0.5">
+        <nav className="flex items-center gap-1 rounded bg-canvas/80 p-0.5">
           {tabs.map((t) => (
             <button
               key={t.id}
               onClick={() => (t.id === "delta" ? onDeltaClick() : onViewChange(t.id))}
               className={`flex items-center gap-1.5 rounded px-3 py-1.5 text-xs font-medium transition-colors ${
                 view === t.id
-                  ? "bg-elevated text-ink shadow-sm"
+                  ? "bg-elevated/80 text-ink"
                   : "text-muted hover:text-ink"
               }`}
             >
@@ -305,47 +305,9 @@ function Header({
           ))}
         </nav>
 
-        <div className="flex items-center gap-5">
-          <ModeToggle mode={mode} onChange={onModeChange} />
-          <div className="h-8 w-px bg-hair" />
-          <ExtractionStatus health={health} />
-          <div className="h-8 w-px bg-hair" />
-          <div className="text-right">
-            <div className="label-caps">Evaluation date</div>
-            <div className="font-mono text-sm font-medium text-ink tnum">
-              {formatDate(asOf)}
-            </div>
-          </div>
-        </div>
+        <ModeToggle mode={mode} onChange={onModeChange} />
       </div>
     </header>
-  );
-}
-
-function CircularBar() {
-  return (
-    <div className="border-b border-hair bg-navy">
-      <div className="mx-auto flex max-w-[1440px] flex-wrap items-center gap-x-6 gap-y-1 px-6 py-2.5 text-white">
-        <span className="rounded-sm bg-white/10 px-2 py-0.5 text-[10px] font-medium uppercase tracking-[0.12em] text-white/70">
-          Active circular
-        </span>
-        <span className="font-mono text-xs tnum">HO/47/11/11(1)2026-MRD-POD3/I/13804/2026</span>
-        <span className="hidden text-sm text-white/90 md:inline">
-          Norms for ETF base price and price bands
-        </span>
-        <div className="ml-auto flex items-center gap-5 text-[11px] text-white/70">
-          <span>
-            Issued <span className="font-mono text-white tnum">15 Jun 2026</span>
-          </span>
-          <span>
-            Phase 1 <span className="font-mono text-white tnum">01 Sep 2026</span>
-          </span>
-          <span>
-            Phase 2 <span className="font-mono text-white tnum">01 Apr 2027</span>
-          </span>
-        </div>
-      </div>
-    </div>
   );
 }
 
@@ -357,7 +319,7 @@ function ModeToggle({ mode, onChange }: { mode: ViewMode; onChange: (m: ViewMode
   return (
     <div className="text-right">
       <div className="label-caps mb-1 leading-none">View</div>
-      <div className="flex items-center rounded border border-hair bg-canvas p-0.5">
+      <div className="flex items-center rounded bg-canvas/80 p-0.5">
         {options.map((o) => (
           <button
             key={o.id}
@@ -389,8 +351,8 @@ function Stepper({
     { id: "signoff", n: 3, label: "Officer Review" },
   ];
   return (
-    <div className="border-b border-hair bg-surface/60">
-      <div className="mx-auto flex max-w-[1440px] items-center gap-1 px-6 py-2.5">
+    <div className="border-b border-hair/30 bg-surface/40">
+      <div className="mx-auto flex max-w-[1440px] items-center gap-1 px-6 py-2">
         {steps.map((s, i) => {
           const active = view === s.id;
           return (
@@ -439,8 +401,8 @@ function Stepper({
 
 function PlainHeadline() {
   return (
-    <div className="mb-5">
-      <h2 className="max-w-4xl font-serif text-2xl leading-snug text-ink md:text-[28px]">
+    <div className="mb-3">
+      <h2 className="max-w-4xl font-serif text-2xl leading-snug text-ink md:text-[26px]">
         See exactly what SEBI&rsquo;s new ETF pricing rules mean for each fund
         <span className="text-accent"> — checked automatically, the moment the rules change.</span>
       </h2>
@@ -448,53 +410,24 @@ function PlainHeadline() {
   );
 }
 
-function ExtractionStatus({ health }: { health: Health | null }) {
-  const live = health?.llm_configured === true;
-  return (
-    <div className="flex items-center gap-2">
-      <span className="relative flex h-2 w-2">
-        {live && (
-          <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-compliant opacity-60" />
-        )}
-        <span
-          className={`relative inline-flex h-2 w-2 rounded-full ${
-            live ? "bg-compliant" : "bg-na"
-          }`}
-        />
-      </span>
-      <div>
-        <div className="label-caps leading-none">Extraction engine</div>
-        <div className="mt-0.5 font-mono text-[11px] text-ink">
-          {live ? "Groq · llama-3.3-70b" : "Cached extraction"}
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function DateToggle({ asOf, onChange }: { asOf: string; onChange: (v: string) => void }) {
+function PhaseToggle({ asOf, onChange }: { asOf: string; onChange: (v: string) => void }) {
   const options = [
-    { value: PHASE1, label: "Sept 1, 2026", sub: "Phase 1 effective" },
-    { value: PHASE2, label: "Apr 1, 2027", sub: "Phase 2 amendment" },
+    { value: PHASE1, label: "Phase 1 rules" },
+    { value: PHASE2, label: "Phase 2 amendment" },
   ];
   return (
-    <div className="flex items-center gap-3">
+    <div className="flex items-center gap-2">
       {options.map((opt) => (
         <button
           key={opt.value}
           onClick={() => onChange(opt.value)}
-          className={`rounded border px-3 py-1.5 text-left transition-colors ${
+          className={`rounded px-3 py-1.5 text-xs font-medium transition-colors ${
             asOf === opt.value
-              ? "border-accent bg-accent/10 text-ink"
-              : "border-hair bg-surface text-ink hover:bg-elevated"
+              ? "bg-accent/15 text-accent"
+              : "bg-canvas/60 text-muted hover:text-ink"
           }`}
         >
-          <div className="font-mono text-xs font-medium tnum">{opt.label}</div>
-          <div
-            className={`text-[10px] ${asOf === opt.value ? "text-accent" : "text-muted"}`}
-          >
-            {opt.sub}
-          </div>
+          {opt.label}
         </button>
       ))}
     </div>
@@ -504,15 +437,15 @@ function DateToggle({ asOf, onChange }: { asOf: string; onChange: (v: string) =>
 function StatsBar({ matrix }: { matrix: Matrix }) {
   const items: CellStatus[] = ["compliant", "breach", "not_applicable"];
   return (
-    <div className="grid grid-cols-3 gap-4">
+    <div className="mb-3 grid grid-cols-3 gap-3">
       {items.map((s) => (
-        <div key={s} className="card flex items-center gap-4 px-5 py-3.5">
-          <span className={`h-3 w-3 rounded-sm ${STATUS_META[s].dot}`} />
+        <div key={s} className="card-muted flex items-center gap-3 px-4 py-2.5">
+          <span className={`h-2.5 w-2.5 rounded-sm ${STATUS_META[s].dot}`} />
           <div>
-            <div className="font-mono text-2xl font-semibold text-ink tnum">
+            <div className="font-mono text-xl font-semibold text-ink/90 tnum">
               {matrix.counts[s] ?? 0}
             </div>
-            <div className="text-xs text-muted">{STATUS_META[s].label}</div>
+            <div className="text-[11px] text-muted/80">{STATUS_META[s].label}</div>
           </div>
         </div>
       ))}
