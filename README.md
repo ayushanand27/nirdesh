@@ -1,65 +1,87 @@
 # Nirdesh — Agentic Compliance
 
-**From regulatory text to operational action.** Nirdesh converts SEBI regulatory
-circulars into structured, machine-checkable compliance rules, evaluates them
-against firm data with a **deterministic engine (no LLM in the decision path)**,
-and shows a live **regulatory delta** when a circular is amended — old rule vs
-new rule, which obligations changed, and which firms flip from compliant to
-breach.
+**From regulatory text to operational action.** Nirdesh converts a SEBI circular into
+structured, machine-checkable obligations, evaluates them **deterministically**
+(no LLM in the decision path), surfaces a **regulatory delta** when rules change,
+requires **human sign-off**, and exports an auditable **compliance report**.
 
 Built for the Securities Market TechSprint @ GFF 2026 —
 _"Agentic Compliance: From Regulatory Text to Operational Action."_
+
+**Live demo**
+
+| | |
+|---|---|
+| App | https://nirdesh-frontend.onrender.com |
+| API | https://nirdesh-backend.onrender.com |
+| Health | https://nirdesh-backend.onrender.com/health |
+
+> Render free tier sleeps after inactivity — wait ~30–60s on first load after a cold start.
 
 ---
 
 ## The core idea
 
-> **The LLM extracts. It never decides compliance.**
+> **The LLM extracts. The code decides.**
 
-1. **Extract** — an LLM reads a circular and proposes structured rule objects
-   with a strict JSON schema. If a clause cannot be reduced to an objectively
-   checkable condition, the model **flags it for human review** instead of
-   guessing (`needs_human_review: true`).
-2. **Review & normalize** — reviewed obligations are encoded into a shared
-   *control vocabulary* (the canonical rule set).
-3. **Evaluate** — a plain-Python, deterministic engine compares each firm's data
-   against each rule. Same inputs → same outputs, every time. Fully auditable.
-4. **Sign off** — every surfaced obligation is a *recommendation* until a named
-   Compliance Officer explicitly signs off. Nirdesh files nothing autonomously.
-
-This pipeline — _raw AI extraction → human review → deterministic evaluation → human sign-off_ —
-is the whole pitch. The UI makes each stage visible.
+1. **Compile (ingest)** — an LLM proposes structured rule objects from circular text
+   (strict JSON). Clauses that cannot be reduced to an objective check are flagged
+   `needs_human_review` instead of guessed. The demo ships a **human-reviewed canonical
+   ruleset** verified against the official circular PDF.
+2. **Evaluate** — plain Python compares each firm’s structured profile to each active
+   rule as of a given date. Same inputs → same outputs. Fully auditable.
+3. **Delta** — when a later obligation supersedes an earlier one, Nirdesh shows what
+   changed and which firms flip **compliant → breach**.
+4. **Act (human-in-the-loop)** — breaches become review tasks. Nothing is “actioned”
+   until a named Compliance Officer signs off. No autonomous filing.
+5. **Report** — export a branded PDF (matrix, citations, delta, sign-off log) and record
+   the generation in the audit trail.
 
 ---
 
 ## Demo scenario
 
-**SEBI Circular HO/47/11/11(1)2026-MRD-POD3/I/13804/2026** (15 Jun 2026) —
+**SEBI Circular** `HO/47/11/11(1)2026-MRD-POD3/I/13804/2026` (15 Jun 2026) —
 norms for ETF base price and price bands.
 
 | Area | Old | New (eff. 1 Sep 2026) |
 |---|---|---|
-| Base price | T-2 day NAV | T-1 closing price (last 30-min VWAP) |
-| Equity/Debt ETFs | Flat ±20% | Dynamic ±10%, flex +5%, max 2 flexes → ±20% |
-| Overnight ETFs | ±5% | Fixed ±5% (unchanged) |
-| Liquid ETFs | ±20% flat | Fixed ±5% (newly tightened) |
-| Gold/Silver ETFs | Flat ±20% | Dynamic ±6%, flex +3%, trigger 5.90%, uncapped |
+| Base price | T-2 day NAV | T-1 closing price (last 30-min VWAP) — **§4.1** |
+| Equity/Debt ETFs | Flat ±20% | Dynamic ±10%, flex +5%, max 2 → ±20% — **§5.1.1** |
+| Overnight / Liquid | Mixed | Fixed ±5% (liquid newly tightened) — **§5.2.1** |
+| Gold/Silver ETFs | Flat ±20% | Dynamic ±6%, flex +3%, trigger 5.90%, uncapped — **§5.3.1** |
 
-**Phase 2 (clause 4.4, eff. 1 Apr 2027):** base price migrates to T-1 closing
-**NAV** — this is the real second deadline used as the *regulatory delta*.
+**Phase 2 (§4.4, eff. 1 Apr 2027):** base price migrates to **T-1 closing NAV**.
+One circular, two deadlines — that second date is the **regulatory delta** punchline.
 
-**Three fictional AMCs:**
-- **Bharat Growth AMC** — still on T-2 NAV pricing + stale liquid-ETF band → **breach**.
-- **Meridian Asset Management** — compliant on 1 Sep 2026, but on T-1 VWAP, so it
-  **flips to breach** when the Phase-2 T-1-NAV rule activates. (The delta's punchline.)
-- **Sentinel Debt Fund** — offers no ETFs → every ETF rule is **not applicable**.
+**Three fictional AMCs (demo data only):**
+
+| Firm | Phase 1 (1 Sep 2026) | After Phase 2 apply (1 Apr 2027) |
+|---|---|---|
+| **Bharat Growth AMC** | Breach (still on T-2 NAV + stale liquid band) | Still breach (+ §4.4) |
+| **Meridian Asset Management** | Compliant (on T-1 VWAP) | **Flips to breach** on §4.4 |
+| **Sentinel Debt Fund** | N/A (no ETF schemes) | N/A |
 
 ---
 
-## Run it
+## 3-minute demo script
+
+1. **Compliance matrix** — as of **01 Sept 2026**: Bharat red, Meridian green,
+   Sentinel grey. Toggle Simple / Technical; open a rule for source citation.
+2. **Regulatory delta** — **Apply amendment**. §4.1 → §4.4, Meridian flips
+   compliant → breach; button becomes **Applied** (idempotent — no duplicate audit).
+3. **Officer sign-off** — Generate tasks → Mark reviewed (named officer).
+   Double-generate / double-review are safe no-ops.
+4. **Generate Report** — download `nirdesh-compliance-report-<as_of>.pdf`.
+   Footer disclaimer + audit entry: “Compliance report generated.”
+
+---
+
+## Run locally
 
 Your Groq API key goes in `backend/.env` (copy from `backend/.env.example`).
-The demo works **without** a key too — it falls back to a cached extraction.
+The demo works **without** a key — extraction falls back to a cached JSON result.
+The UI uses the **canonical reviewed ruleset** seeded into SQLite.
 
 ### One command
 
@@ -73,7 +95,7 @@ The demo works **without** a key too — it falls back to a cached extraction.
 run.bat
 ```
 
-Then open **http://127.0.0.1:5173**.
+Open **http://127.0.0.1:5173**.
 
 ### Manual (two terminals)
 
@@ -82,7 +104,7 @@ Then open **http://127.0.0.1:5173**.
 cd backend
 python -m venv .venv && source .venv/Scripts/activate   # or .venv/bin/activate
 pip install -r requirements.txt
-python seed_cache.py && python seed_db.py               # clean demo state
+python seed_cache.py && python seed_db.py
 uvicorn app.main:app --port 8000
 ```
 
@@ -93,84 +115,98 @@ npm install
 npm run dev
 ```
 
-**Reset to a pristine demo state anytime:** `cd backend && python seed_db.py`.
+**Reset demo DB:** `cd backend && python seed_db.py`.
 
 ---
 
-## 3-minute demo script
+## Architecture (prototype as shipped)
 
-1. **Compliance matrix** (Sept 1 2026) — 3 AMCs × obligations, color-coded.
-   Bharat Growth is red, Meridian green, Sentinel grey. Click a column → the rule
-   drawer shows the machine-checkable condition, source clause, and confidence.
-2. **Officer sign-off** — "Generate tasks from current breaches" → each breach
-   becomes a review task requiring explicit Compliance Officer sign-off. Nothing
-   is actioned autonomously.
-3. **Regulatory delta** — "Apply amendment". The system recalculates: clause
-   §2.1 → §4.4, ~~T-1 VWAP~~ → **T-1 closing NAV**, and **Meridian flips
-   compliant → breach**, flagged in the audit trail.
+```
+INGEST TIME                         COMPLIANCE-CHECK TIME
+─────────────────                   ─────────────────────
+Circular text / PDF                 Firm profile (structured)
+        │                                    │
+        ▼                                    ▼
+ LLM extract (Groq) ──► human-reviewed       Deterministic Python
+   or cache/canonical ruleset                evaluate.py  (NO LLM)
+        │                                    │
+        ▼                                    ▼
+   SQLite rule ledger                 compliant | breach | N/A
+                                             │
+                              ┌──────────────┼──────────────┐
+                              ▼              ▼              ▼
+                           Delta          Sign-off        PDF report
+                        (supersession)   (HITL)         + audit log
+```
+
+| Layer | Choice in this prototype | Production direction (roadmap) |
+|---|---|---|
+| API | FastAPI | Same |
+| Store | SQLite + SQLAlchemy | Postgres (+ pgvector for multi-circular RAG) |
+| AI | Groq JSON extraction at ingest only | Same boundary; optional RAG at ingest |
+| Eval | Pure Python | Same — never put LLM in the decision path |
+| UI | React + TypeScript + Tailwind | Same |
+| PDF | reportlab | Same / WeasyPrint at scale |
+| Deploy | Render (static + web) | Docker / cloud with persistent volume |
+
+**Not in this prototype (intentionally):** Celery/Redis workers, live SEBI RSS,
+pgvector/Cohere rerank, auth/SSO. Those are roadmap items for sandbox/pilot — not
+false claims about the current demo.
 
 ---
 
-## Architecture
-
-```
-backend/                      Python 3.11+ · FastAPI · SQLAlchemy · SQLite
-  app/
-    schemas.py                Rule-object schema (LLM <-> engine contract)
-    llm_client.py             Groq wrapper, JSON mode, temperature 0
-    extraction.py             Prompt + guardrails (forces needs_human_review)
-    canonical_rules.py        Human-reviewed rule set (control vocabulary)
-    evaluate.py               DETERMINISTIC engine — no LLM, as-of dates, supersession
-    delta.py                  Old->new diff + firm status transitions
-    review.py                 Human sign-off workflow
-    models.py                 Append-only ORM (rules never edited; supersedes_id)
-    main.py                   API endpoints
-  seed_db.py                  Reset + seed clean demo DB
-frontend/                     React · TypeScript · Tailwind · Vite
-  src/
-    App.tsx                   Layout, tabs, data flow
-    components/
-      MatrixView.tsx          Firm x rule matrix
-      RuleDrawer.tsx          Rule drill-down
-      DeltaView.tsx           Regulatory delta (the headline feature)
-      SignoffView.tsx         Compliance Officer sign-off queue
-      AuditPanel.tsx          Append-only event log
-```
-
-### API
+### API surface
 
 | Method | Path | Purpose |
 |---|---|---|
-| `GET` | `/health` | Status + whether Groq is configured (live vs cached) |
-| `POST` | `/extract` | Live LLM extraction from raw circular text |
+| `GET` | `/health` | Status + whether Groq is configured |
+| `POST` | `/extract` | LLM/cached extraction from raw circular text |
 | `GET` | `/firms` · `/rules` | Seeded firms and rules |
-| `GET` | `/matrix?as_of=` | Deterministic compliance matrix (read-only) |
-| `POST` | `/evaluate?as_of=` | Run + record an evaluation (audit event) |
-| `GET` | `/delta?from_as_of=&to_as_of=` | Regulatory delta between two dates |
-| `GET`/`POST` | `/review-tasks*` | Generate / list / sign off review tasks |
+| `GET` | `/matrix?as_of=` | Matrix (read-only, no audit write) |
+| `POST` | `/evaluate?as_of=` | Persist evaluation **only if outcome changed** |
+| `GET` | `/delta?from_as_of=&to_as_of=&persist=` | Preview or apply amendment (idempotent apply) |
+| `POST` | `/delta/reset` | Dev-only reset to Phase 1 |
+| `GET`/`POST` | `/review-tasks*` | List / generate / mark reviewed (idempotent) |
+| `GET` | `/reports/compliance-summary?as_of=&format=json\|pdf&actor=` | Structured report or PDF |
 | `GET` | `/audit` | Append-only audit trail |
 
 ---
 
 ## Design notes
 
-- **Append-only by design.** Rules are never edited or deleted — an amendment
-  inserts a new rule that points at the one it supersedes (`supersedes_id`), and
-  supersession is computed by effective date. Evaluations and the audit log only
-  ever append. History is never overwritten.
-- **Deterministic decisions.** `evaluate.py` contains no model calls. Every
-  compliant/breach/N-A result is a plain comparison of structured firm data
-  against a structured rule condition.
+- **Append-only where it matters.** Evaluations and audit events append; amendments
+  insert new rules linked by `supersedes_id` and as-of filtering — history is preserved.
+- **Idempotent actions.** Re-apply amendment, re-generate open tasks, re-mark reviewed,
+  and identical re-evaluate do not spam the audit trail with duplicate state events.
+  Report downloads intentionally each leave an export accountability entry.
+- **Decision-support only.** Disclaimer on UI and on every PDF page: human verification
+  before any regulatory submission.
 
-### Storage: SQLite (deliberate tradeoff)
+### Storage: SQLite (deliberate)
 
-SQLite + SQLAlchemy keeps the demo zero-setup and instantly resettable. The
-ORM means production ports to **Postgres + pgvector** (for multi-circular
-retrieval / RAG at scale) by changing only the connection string. SQLite locks
-the whole file on write — a non-issue for a single-user demo.
+Zero-setup and resettable for a hackathon demo. ORM ports to Postgres with a URL change.
+Render free disk is **ephemeral** — the backend reseeds the demo DB on cold start when empty.
+
+---
+
+## Repo layout
+
+```
+backend/
+  app/
+    canonical_rules.py   Human-reviewed control vocabulary
+    evaluate.py          Deterministic engine
+    delta.py             Regulatory delta + amendment state
+    review.py            Officer sign-off
+    report.py / report_pdf.py   Compliance summary JSON → PDF
+    main.py              FastAPI routes
+  seed_db.py             Clean demo seed
+frontend/
+  src/                   Matrix · Delta · Sign-off · Audit · Report download
+render.yaml              Render Blueprint
+```
 
 ---
 
 _Nirdesh is a decision-support system. All compliance determinations are computed
-deterministically and require Compliance Officer sign-off before any operational
-action._
+deterministically and require Compliance Officer sign-off before any operational action._
