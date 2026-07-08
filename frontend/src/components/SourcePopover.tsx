@@ -79,16 +79,16 @@ export function SourcePopover({
   return createPortal(
     <div
       ref={popRef}
-      className="fixed z-50 w-[min(300px,calc(100vw-24px))] overflow-hidden rounded-card border border-hair/50 border-l-[3px] border-l-accent bg-elevated shadow-drawer"
+      className="fixed z-50 w-[min(300px,calc(100vw-24px))] overflow-hidden rounded-card border border-gold/20 border-l-[3px] border-l-gold bg-elevated shadow-drawer"
       style={{ top: pos.top, left: pos.left }}
       onMouseLeave={onClose}
       onClick={(e) => e.stopPropagation()}
     >
-      <div className="flex items-center gap-1.5 border-b border-hair/40 px-3 py-1.5">
-        <svg className="h-3 w-3 text-accent" viewBox="0 0 16 16" fill="currentColor">
+      <div className="flex items-center gap-1.5 border-b border-gold/15 px-3 py-1.5">
+        <svg className="h-3 w-3 text-gold-700" viewBox="0 0 16 16" fill="currentColor">
           <path d="M5.5 3C3.6 3 2 4.6 2 6.5c0 1.7 1.2 3.1 2.8 3.4-.1 1.3-.7 2.2-1.8 2.8l.6 1.3c2.1-1 3.4-2.8 3.4-5.6V6.5C7 4.6 5.4 3 5.5 3zm7 0C10.6 3 9 4.6 9 6.5c0 1.7 1.2 3.1 2.8 3.4-.1 1.3-.7 2.2-1.8 2.8l.6 1.3c2.1-1 3.4-2.8 3.4-5.6V6.5C14 4.6 12.4 3 12.5 3z" />
         </svg>
-        <span className="text-[10px] font-semibold uppercase tracking-[0.1em] text-accent">
+        <span className="text-[10px] font-semibold uppercase tracking-[0.1em] text-gold">
           Source
         </span>
         <span className="ml-auto font-mono text-[9px] text-muted tnum">{clause}</span>
@@ -103,7 +103,7 @@ export function SourcePopover({
             onViewFull();
             onClose();
           }}
-          className="mt-2 text-[11px] font-medium text-accent hover:underline"
+          className="mt-2 text-[11px] font-medium text-gold hover:text-gold-400 hover:underline"
         >
           View full source →
         </button>

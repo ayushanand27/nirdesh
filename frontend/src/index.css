@@ -47,7 +47,8 @@
   }
   /* Primary content — matrix gets strongest presence on the page. */
   .card-primary {
-    @apply bg-elevated/40 border border-hair/40 rounded-card shadow-card;
+    @apply bg-elevated/40 border rounded-card shadow-card;
+    border-color: rgb(201 162 39 / 0.18);
   }
   /* Secondary panels — quieter so status cells stay the focal point. */
   .card-muted {

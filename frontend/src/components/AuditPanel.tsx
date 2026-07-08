@@ -27,7 +27,7 @@ export function AuditPanel({ entries, health }: Props) {
           <button
             type="button"
             onClick={() => setShowEngineInfo((v) => !v)}
-            className="flex h-4 w-4 items-center justify-center rounded-full border border-hair/50 text-[10px] text-muted transition-colors hover:border-hair hover:text-ink"
+            className="flex h-4 w-4 items-center justify-center rounded-full border border-gold/30 text-[10px] text-gold transition-colors hover:border-gold/50 hover:text-gold-400"
             aria-label="Extraction engine info"
             title="Extraction engine info"
           >
@@ -52,7 +52,7 @@ export function AuditPanel({ entries, health }: Props) {
                 {i < entries.length - 1 && (
                   <span className="absolute left-[5px] top-3 h-full w-px bg-hair/40" />
                 )}
-                <span className="relative z-10 mt-1.5 h-2.5 w-2.5 shrink-0 rounded-full border-2 border-accent/60 bg-surface" />
+                <span className="relative z-10 mt-1.5 h-2.5 w-2.5 shrink-0 rounded-full border-2 border-gold/60 bg-surface" />
                 <div className="min-w-0 flex-1">
                   <div className="flex items-baseline justify-between gap-2">
                     <span className="text-xs font-medium text-ink/90">

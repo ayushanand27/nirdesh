@@ -8,13 +8,13 @@ type ViewMode = "simple" | "technical";
 interface Props {
   matrix: Matrix;
   recalcKey: number;
-  mode: ViewMode;
   selectedRuleId: string | null;
   onSelectRule: (rule: Rule) => void;
 }
 
-export function MatrixView({ matrix, recalcKey, mode, selectedRuleId, onSelectRule }: Props) {
+export function MatrixView({ matrix, recalcKey, selectedRuleId, onSelectRule }: Props) {
   const { firms, rules, cells } = matrix;
+  const [mode, setMode] = useState<ViewMode>("simple");
   const [popover, setPopover] = useState<{ key: string; anchor: HTMLElement } | null>(null);
   const hideTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -62,45 +62,67 @@ export function MatrixView({ matrix, recalcKey, mode, selectedRuleId, onSelectRu
             Firms evaluated against active obligations
           </p>
         </div>
-        <Legend />
+        <div className="flex items-center gap-4">
+          <Legend />
+          <ModeToggle mode={mode} onChange={setMode} />
+        </div>
       </div>
 
       <div className="overflow-x-auto">
-        <table className="w-full border-collapse">
+        <table
+          className={`w-full border-collapse ${
+            mode === "technical"
+              ? '[font-family:"Courier_New",ui-monospace,monospace]'
+              : "font-sans"
+          }`}
+        >
           <thead>
             <tr>
-              <th className="sticky left-0 z-10 min-w-[220px] border-b border-r border-hair/30 bg-elevated/30 px-5 py-3 text-left">
+              <th
+                className={`sticky left-0 z-10 min-w-[220px] border-b border-r bg-elevated/30 text-left ${
+                  mode === "technical"
+                    ? "border-hair/45 px-4 py-2.5"
+                    : "border-hair/25 px-5 py-4"
+                }`}
+              >
                 <span className="label-caps">Firm</span>
               </th>
               {rules.map((r) => (
                 <th
                   key={r.rule_id}
                   onClick={() => onSelectRule(r)}
-                  className={`min-w-[130px] cursor-pointer border-b border-hair/30 px-3 py-3 text-left align-bottom transition-colors hover:bg-elevated/50 ${
+                  className={`min-w-[130px] cursor-pointer border-b text-left align-bottom transition-colors hover:bg-elevated/50 ${
                     selectedRuleId === r.rule_id ? "bg-elevated/50" : ""
+                  } ${mode === "technical" ? "border-hair/45 px-2.5 py-2.5" : "border-hair/25 px-3 py-4"} ${
+                    mode === "technical"
+                      ? '[font-family:"Courier_New",ui-monospace,monospace]'
+                      : ""
                   }`}
                 >
                   {mode === "simple" ? (
-                    <>
-                      <div className="text-xs font-semibold leading-tight text-ink">
+                    <div className="relative pr-10">
+                      <div className="text-sm font-semibold leading-tight text-ink">
                         {r.plain_label ?? formatEntity(r.applicable_entity_type)}
                       </div>
-                      <div className="mt-1 inline-block rounded bg-canvas/80 px-1.5 py-0.5 font-mono text-[10px] text-muted tnum">
+                      <div className="mt-1 text-[11px] leading-tight text-muted/80">
+                        {formatEntity(r.applicable_entity_type)}
+                      </div>
+                      <div className="absolute right-0 top-0 inline-flex rounded-full bg-gold/12 px-2 py-0.5 font-mono text-[9px] text-gold">
                         {formatClause(r.clause_id)}
                       </div>
-                    </>
+                    </div>
                   ) : (
                     <>
-                      <div className="font-mono text-xs font-semibold text-ink tnum">
+                      <div className='text-xs font-semibold uppercase tracking-[0.08em] text-gold [font-family:"Courier_New",ui-monospace,monospace]'>
                         {formatClause(r.clause_id)}
                       </div>
-                      <div className="mt-0.5 text-[11px] leading-tight text-muted">
+                      <div className='mt-1 text-[10px] uppercase leading-tight text-muted [font-family:"Courier_New",ui-monospace,monospace]'>
                         {formatEntity(r.applicable_entity_type)}
                       </div>
                     </>
                   )}
                   {r.needs_human_review && (
-                    <div className="mt-1 inline-block rounded bg-accent/15 px-1 py-0.5 text-[9px] font-medium uppercase tracking-wide text-accent">
+                    <div className="mt-1 inline-block rounded bg-gold/12 px-1 py-0.5 text-[9px] font-medium uppercase tracking-wide text-gold-700">
                       Review
                     </div>
                   )}
@@ -164,9 +186,19 @@ function FirmRow({
 }) {
   return (
     <tr className="group">
-      <td className="sticky left-0 z-10 border-b border-r border-hair/30 bg-elevated/20 px-5 py-3 group-hover:bg-elevated/40">
+      <td
+        className={`sticky left-0 z-10 border-b border-r bg-elevated/20 group-hover:bg-elevated/40 ${
+          mode === "technical"
+            ? "border-hair/45 px-4 py-2.5"
+            : "border-hair/25 px-5 py-4"
+        }`}
+      >
         <div className="font-medium text-ink">{firm.name}</div>
-        <div className="font-mono text-[11px] text-muted/70">
+        <div
+          className={`text-[11px] text-muted/70 ${
+            mode === "technical" ? '[font-family:"Courier_New",ui-monospace,monospace]' : "font-mono"
+          }`}
+        >
           {firm.profile.base_price_method ?? "—"}
         </div>
       </td>
@@ -182,6 +214,7 @@ function FirmRow({
           <MatrixCell
             key={rule.rule_id}
             status={status}
+            statusKey={status}
             meta={m}
             mode={mode}
             recalcKey={recalcKey}
@@ -214,6 +247,7 @@ function FirmRow({
 }
 
 function MatrixCell({
+  statusKey,
   status,
   meta,
   mode,
@@ -225,6 +259,7 @@ function MatrixCell({
   onHoverEnd,
   onTouchTap,
 }: {
+  statusKey: CellStatus;
   status: CellStatus;
   meta: (typeof STATUS_META)[CellStatus];
   mode: ViewMode;
@@ -239,7 +274,11 @@ function MatrixCell({
   const ref = useRef<HTMLDivElement>(null);
 
   return (
-    <td className="border-b border-hair/30 p-1.5 align-middle">
+    <td
+      className={`border-b align-middle ${
+        mode === "technical" ? "border-hair/45 p-1" : "border-hair/25 p-1.5"
+      }`}
+    >
       <div
         ref={ref}
         onClick={(e) => {
@@ -254,21 +293,66 @@ function MatrixCell({
           if (ref.current) onHover(ref.current);
         }}
         onMouseLeave={onHoverEnd}
-        className={`cell-recalc flex h-14 cursor-pointer flex-col items-center justify-center rounded px-1 text-center transition-colors ${meta.cell} ${
-          isPopoverOpen ? "ring-1 ring-accent/40" : ""
-        } ${hasSource ? "hover:brightness-110" : ""}`}
+        className={`cell-recalc flex cursor-pointer flex-col items-center justify-center rounded text-center transition-colors ${meta.cell} ${
+          isPopoverOpen ? "ring-1 ring-gold/40" : ""
+        } ${hasSource ? "hover:brightness-110" : ""} ${
+          mode === "technical" ? "h-12 px-1" : "h-16 px-2"
+        }`}
         key={`${status}-${recalcKey}`}
       >
-        <span
-          className={`font-semibold tracking-wide ${
-            mode === "simple" ? "text-[11px]" : "font-mono text-xs"
-          }`}
-        >
-          {mode === "simple" ? meta.label : meta.short}
-        </span>
+        {mode === "simple" ? (
+          <div className="flex items-center gap-1.5 text-[11px] font-semibold">
+            <StatusIcon status={statusKey} />
+            <span>{meta.label}</span>
+          </div>
+        ) : (
+          <span className='text-xs font-semibold uppercase tracking-[0.08em] [font-family:"Courier_New",ui-monospace,monospace]'>
+            {meta.short}
+          </span>
+        )}
       </div>
     </td>
   );
+}
+
+function ModeToggle({ mode, onChange }: { mode: ViewMode; onChange: (mode: ViewMode) => void }) {
+  return (
+    <div className="flex items-center rounded border border-gold/20 bg-canvas/80 p-0.5">
+      {(["simple", "technical"] as const).map((option) => (
+        <button
+          key={option}
+          onClick={() => onChange(option)}
+          className={`rounded px-2.5 py-1 text-xs font-medium transition-colors ${
+            mode === option
+              ? "bg-gold text-canvas hover:bg-gold-400"
+              : "text-muted hover:text-ink"
+          }`}
+        >
+          {option === "simple" ? "Simple" : "Technical"}
+        </button>
+      ))}
+    </div>
+  );
+}
+
+function StatusIcon({ status }: { status: CellStatus }) {
+  if (status === "compliant") {
+    return (
+      <svg className="h-3.5 w-3.5" viewBox="0 0 16 16" fill="none">
+        <path d="M3 8.5l3 3 7-7" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+      </svg>
+    );
+  }
+  if (status === "breach") {
+    return (
+      <svg className="h-3.5 w-3.5" viewBox="0 0 16 16" fill="none">
+        <path d="M8 2.5L14 13H2L8 2.5z" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round" />
+        <path d="M8 6v3.2" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
+        <circle cx="8" cy="11.4" r="0.8" fill="currentColor" />
+      </svg>
+    );
+  }
+  return <span className="text-sm leading-none">-</span>;
 }
 
 function Legend() {

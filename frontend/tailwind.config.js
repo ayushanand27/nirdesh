@@ -35,10 +35,16 @@ export default {
           bg: "#2A3348",
           text: "#C3CADA",
         },
-        // Single accent: brightened ink-blue, electric against dark surfaces.
+        // Premium black+gold accent. `accent` aliases to gold so every
+        // existing blue call site flips without leaving stale blue islands.
+        gold: {
+          DEFAULT: "#C9A227",
+          400: "#E0BC4A",
+          700: "#8A6D1F",
+        },
         accent: {
-          DEFAULT: "#4C8DFF",
-          600: "#3B7DF0",
+          DEFAULT: "#C9A227",
+          600: "#E0BC4A",
         },
       },
       fontFamily: {

@@ -28,13 +28,13 @@ export function DeltaView({ delta, applying, applied, onApply }: Props) {
       <DeltaTimeline />
 
       {/* Amendment trigger card */}
-      <div className="card px-6 py-5">
+      <div className="card-primary px-6 py-5">
         <div className="flex items-start justify-between gap-6">
           <div>
             <div className="flex items-center gap-2">
               <span className="label-caps">Regulatory amendment detected</span>
               {applied && (
-                <span className="rounded bg-accent/15 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-accent">
+                <span className="rounded bg-gold/15 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-gold">
                   Applied
                 </span>
               )}
@@ -56,8 +56,8 @@ export function DeltaView({ delta, applying, applied, onApply }: Props) {
             disabled={applying}
             className={`shrink-0 rounded border px-5 py-2.5 text-sm font-medium transition-all duration-300 ease-precise ${
             applied
-              ? "border-accent bg-accent/10 text-accent hover:bg-accent/20"
-              : "border-accent bg-accent text-canvas hover:bg-accent-600"
+              ? "border-gold bg-gold/10 text-gold hover:bg-gold/20"
+              : "border-gold bg-gold text-canvas hover:bg-gold-400"
           } disabled:opacity-50`}
           >
             {applying ? "Recalculating…" : applied ? "Re-apply amendment" : "Apply amendment"}
@@ -132,7 +132,7 @@ export function DeltaView({ delta, applying, applied, onApply }: Props) {
       {!delta && !applying && (
         <div className="card px-5 py-12 text-center">
           <p className="text-sm text-muted">
-            Click <strong className="text-accent">Apply amendment</strong> to compute the
+            Click <strong className="text-gold">Apply amendment</strong> to compute the
             regulatory delta and see which obligations and firms are affected.
           </p>
         </div>
@@ -156,7 +156,7 @@ function SummaryCard({
     <div className="card-muted px-5 py-3.5">
       <div
         className={`font-mono text-2xl font-semibold tnum ${
-          warn ? "text-breach" : accent ? "text-accent" : "text-ink"
+          warn ? "text-breach" : accent ? "text-gold" : "text-ink"
         }`}
       >
         {value}
@@ -183,7 +183,7 @@ function RuleChangeCard({
       style={{ transitionDelay: revealed ? `${delay}ms` : "0ms" }}
     >
       <div className="flex items-center gap-3 border-b border-hair bg-canvas px-5 py-3">
-        <span className="rounded border border-accent/40 bg-accent/10 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-accent">
+        <span className="rounded border border-gold/40 bg-gold/10 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-gold">
           Obligation superseded
         </span>
         <span className="font-mono text-xs text-muted">
@@ -211,7 +211,7 @@ function RuleChangeCard({
         {/* Arrow */}
         <div className="flex items-center justify-center px-4 py-3 md:py-0">
           <svg
-            className={`h-5 w-5 text-accent transition-all duration-500 ease-precise ${
+            className={`h-5 w-5 text-gold transition-all duration-500 ease-precise ${
               revealed ? "opacity-100 scale-100" : "opacity-0 scale-75"
             }`}
             style={{ transitionDelay: revealed ? "200ms" : "0ms" }}
@@ -230,11 +230,11 @@ function RuleChangeCard({
 
         {/* New value */}
         <div className="px-5 py-4">
-          <div className="label-caps mb-2 text-accent">New obligation</div>
+          <div className="label-caps mb-2 text-gold">New obligation</div>
           <p className="text-sm text-ink">{change.new.plain_description}</p>
           <div
             className={`mt-3 font-mono text-base font-semibold transition-all duration-700 ease-precise ${
-              revealed ? "text-accent opacity-100" : "text-ink opacity-40"
+              revealed ? "text-gold opacity-100" : "text-ink opacity-40"
             }`}
             style={{ transitionDelay: revealed ? "300ms" : "0ms" }}
           >

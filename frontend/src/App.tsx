@@ -12,11 +12,8 @@ const PHASE1 = "2026-09-01";
 const PHASE2 = "2027-04-01";
 
 type View = "dashboard" | "delta" | "signoff";
-type ViewMode = "simple" | "technical";
-
 export default function App() {
   const [view, setView] = useState<View>("dashboard");
-  const [mode, setMode] = useState<ViewMode>("simple");
   const [asOf, setAsOf] = useState(PHASE1);
   const [matrix, setMatrix] = useState<Matrix | null>(null);
   const [audit, setAudit] = useState<AuditEntry[]>([]);
@@ -139,8 +136,6 @@ export default function App() {
         onViewChange={setView}
         onDeltaClick={handlePreviewDelta}
         pendingTasks={pendingTasks}
-        mode={mode}
-        onModeChange={setMode}
       />
 
       <Stepper view={view} onSelect={setView} onDeltaClick={handlePreviewDelta} />
@@ -166,7 +161,7 @@ export default function App() {
               <button
                 onClick={handleRecalculate}
                 disabled={evaluating || loading}
-                className="rounded border border-accent bg-accent px-4 py-2 text-sm font-semibold text-canvas transition-colors hover:bg-accent-600 disabled:opacity-50"
+                className="rounded border border-gold bg-gold px-4 py-2 text-sm font-semibold text-canvas transition-colors hover:bg-gold-400 disabled:opacity-50"
               >
                 {evaluating ? "Recalculating…" : "Record evaluation"}
               </button>
@@ -181,7 +176,6 @@ export default function App() {
                 <MatrixView
                   matrix={matrix}
                   recalcKey={recalcKey}
-                  mode={mode}
                   selectedRuleId={selectedRule?.rule_id ?? null}
                   onSelectRule={setSelectedRule}
                 />
@@ -222,7 +216,6 @@ export default function App() {
         rule={selectedRule}
         firms={matrix?.firms ?? []}
         cells={matrix?.cells ?? []}
-        mode={mode}
         onClose={() => setSelectedRule(null)}
       />
 
@@ -247,16 +240,12 @@ function Header({
   onViewChange,
   onDeltaClick,
   pendingTasks,
-  mode,
-  onModeChange,
 }: {
   asOf: string;
   view: View;
   onViewChange: (v: View) => void;
   onDeltaClick: () => void;
   pendingTasks: number;
-  mode: ViewMode;
-  onModeChange: (m: ViewMode) => void;
 }) {
   const tabs: { id: View; label: string }[] = [
     { id: "dashboard", label: "Compliance matrix" },
@@ -268,7 +257,7 @@ function Header({
     <header className="border-b border-hair/40 bg-surface/80">
       <div className="mx-auto flex max-w-[1440px] items-center justify-between px-6 py-3.5">
         <div className="flex items-center gap-4">
-          <div className="flex h-9 w-9 items-center justify-center rounded bg-navy font-serif text-lg font-semibold text-white">
+          <div className="flex h-9 w-9 items-center justify-center rounded bg-gold font-serif text-lg font-semibold text-canvas">
             N
           </div>
           <div>
@@ -285,17 +274,15 @@ function Header({
             <button
               key={t.id}
               onClick={() => (t.id === "delta" ? onDeltaClick() : onViewChange(t.id))}
-              className={`flex items-center gap-1.5 rounded px-3 py-1.5 text-xs font-medium transition-colors ${
-                view === t.id
-                  ? "bg-elevated/80 text-ink"
-                  : "text-muted hover:text-ink"
+              className={`flex items-center gap-1.5 rounded border-b-2 px-3 py-1.5 text-xs font-medium transition-colors ${
+                view === t.id ? "border-gold text-gold" : "border-transparent text-muted hover:text-ink"
               }`}
             >
               {t.label}
               {t.id === "signoff" && pendingTasks > 0 && (
                 <span
                   className={`rounded-full px-1.5 py-0.5 font-mono text-[10px] tnum ${
-                    view === t.id ? "bg-accent/20 text-accent" : "bg-breach/20 text-breach"
+                    view === t.id ? "bg-gold/15 text-gold" : "bg-breach/20 text-breach"
                   }`}
                 >
                   {pendingTasks}
@@ -305,34 +292,8 @@ function Header({
           ))}
         </nav>
 
-        <ModeToggle mode={mode} onChange={onModeChange} />
       </div>
     </header>
-  );
-}
-
-function ModeToggle({ mode, onChange }: { mode: ViewMode; onChange: (m: ViewMode) => void }) {
-  const options: { id: ViewMode; label: string }[] = [
-    { id: "simple", label: "Simple" },
-    { id: "technical", label: "Technical" },
-  ];
-  return (
-    <div className="text-right">
-      <div className="label-caps mb-1 leading-none">View</div>
-      <div className="flex items-center rounded bg-canvas/80 p-0.5">
-        {options.map((o) => (
-          <button
-            key={o.id}
-            onClick={() => onChange(o.id)}
-            className={`rounded px-2.5 py-1 text-xs font-medium transition-colors ${
-              mode === o.id ? "bg-elevated text-ink shadow-sm" : "text-muted hover:text-ink"
-            }`}
-          >
-            {o.label}
-          </button>
-        ))}
-      </div>
-    </div>
   );
 }
 
@@ -366,7 +327,7 @@ function Stepper({
                 <span
                   className={`flex h-5 w-5 items-center justify-center rounded-full font-mono text-[11px] font-semibold tnum transition-colors ${
                     active
-                      ? "bg-accent text-canvas"
+                      ? "bg-gold text-canvas"
                       : "border border-hair bg-canvas text-muted group-hover:text-ink"
                   }`}
                 >
@@ -374,7 +335,7 @@ function Stepper({
                 </span>
                 <span
                   className={`text-xs font-medium transition-colors ${
-                    active ? "text-ink" : "text-muted group-hover:text-ink"
+                    active ? "text-gold" : "text-muted group-hover:text-ink"
                   }`}
                 >
                   {s.label}
@@ -404,7 +365,7 @@ function PlainHeadline() {
     <div className="mb-3">
       <h2 className="max-w-4xl font-serif text-2xl leading-snug text-ink md:text-[26px]">
         See exactly what SEBI&rsquo;s new ETF pricing rules mean for each fund
-        <span className="text-accent"> — checked automatically, the moment the rules change.</span>
+        <span className="text-gold"> — checked automatically, the moment the rules change.</span>
       </h2>
     </div>
   );
@@ -423,7 +384,7 @@ function PhaseToggle({ asOf, onChange }: { asOf: string; onChange: (v: string) =
           onClick={() => onChange(opt.value)}
           className={`rounded px-3 py-1.5 text-xs font-medium transition-colors ${
             asOf === opt.value
-              ? "bg-accent/15 text-accent"
+              ? "bg-gold/15 text-gold"
               : "bg-canvas/60 text-muted hover:text-ink"
           }`}
         >
