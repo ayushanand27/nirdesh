@@ -39,6 +39,38 @@ Interactive API docs: https://nirdesh-backend.onrender.com/docs
 
 ---
 
+## Architecture
+
+```mermaid
+flowchart TB
+    subgraph INGEST["Ingest time"]
+        PDF["SEBI circular PDF"]
+        LLM["Groq extraction"]
+        CANON["Canonical rules"]
+        PDF --> LLM & CANON --> LEDGER[("Rule ledger")]
+    end
+
+    subgraph CHECK["Compliance-check time — no LLM"]
+        EVAL["Deterministic evaluator"]
+        DELTA["Regulatory delta"]
+        REVIEW["Officer sign-off"]
+        PDFOUT["Compliance PDF"]
+        LEDGER --> EVAL
+        EVAL --> DELTA & REVIEW & PDFOUT
+    end
+
+    UI["React dashboard"] --> API["FastAPI"]
+    API --> EVAL
+```
+
+**Full diagrams** (sequence flow, supersession chain, deployment): see **[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)**
+
+**Why 2026 / 2027 dates, firms, and source PDF:** see **[docs/DEMO_CORPUS.md](docs/DEMO_CORPUS.md)**
+
+**Official SEBI circular (PDF in repo):** [backend/data/circular_MRD-POD3-2026_ORIGINAL.pdf](backend/data/circular_MRD-POD3-2026_ORIGINAL.pdf)
+
+---
+
 ## How it works
 
 ```
@@ -130,10 +162,18 @@ Full reference: `/docs` on the running backend.
 ## Project structure
 
 ```
-backend/app/     API, evaluation engine, delta, sign-off, report PDF
-frontend/src/    Matrix, regulatory delta, officer sign-off, audit panel
-render.yaml      Render deployment blueprint
+backend/
+  app/              API, evaluation engine, delta, sign-off, report
+  data/
+    circular_MRD-POD3-2026_ORIGINAL.pdf   Official SEBI source PDF
+    circular_MRD-POD3-2026_VERIFIED.txt   Verified text extract
+    cache/                                LLM extraction cache
+frontend/src/     Matrix, delta, sign-off, audit, report download
+docs/             Architecture diagrams, demo corpus, submission notes
+render.yaml       Render deployment blueprint
 ```
+
+**Documentation index:** [docs/README.md](docs/README.md)
 
 ---
 
