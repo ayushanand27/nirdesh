@@ -7,16 +7,18 @@ import {
   formatFieldLabel,
   formatOperator,
 } from "../lib/displayValue";
+import { isDuplicateText } from "../lib/textSimilarity";
 import { formatClause, formatDate, formatEntity } from "../lib/status";
 
 interface Props {
   rule: Rule | null;
   firms: Firm[];
   cells: Cell[];
+  focusFirmId?: number | null;
   onClose: () => void;
 }
 
-export function RuleDrawer({ rule, firms, cells, onClose }: Props) {
+export function RuleDrawer({ rule, firms, cells, focusFirmId, onClose }: Props) {
   const open = rule !== null;
 
   useEffect(() => {
@@ -37,12 +39,18 @@ export function RuleDrawer({ rule, firms, cells, onClose }: Props) {
         }`}
       />
       <aside
-        className={`fixed right-0 top-0 z-40 flex h-full w-full max-w-[480px] flex-col bg-surface shadow-drawer transition-transform duration-300 ease-precise ${
+        className={`fixed right-0 top-0 z-40 flex h-full w-full max-w-[440px] flex-col bg-surface shadow-drawer transition-transform duration-300 ease-precise ${
           open ? "translate-x-0" : "translate-x-full"
         }`}
       >
         {rule && (
-          <RuleDetail rule={rule} firms={firms} cells={cells} onClose={onClose} />
+          <RuleDetail
+            rule={rule}
+            firms={firms}
+            cells={cells}
+            focusFirmId={focusFirmId}
+            onClose={onClose}
+          />
         )}
       </aside>
     </>
@@ -53,16 +61,29 @@ function RuleDetail({
   rule,
   firms,
   cells,
+  focusFirmId,
   onClose,
 }: {
   rule: Rule;
   firms: Firm[];
   cells: Cell[];
+  focusFirmId?: number | null;
   onClose: () => void;
 }) {
   const firmById = new Map(firms.map((f) => [f.id, f]));
   const related = cells.filter((c) => c.rule_id === rule.rule_id);
   const title = formatEntity(rule.applicable_entity_type);
+  const summary = rule.plain_label ?? rule.plain_description;
+  const showSummary =
+    summary && !isDuplicateText(summary, rule.source_text_span) && !isDuplicateText(summary, rule.required_action);
+  const showRemediation =
+    rule.required_action &&
+    !isDuplicateText(rule.required_action, rule.plain_description) &&
+    !isDuplicateText(rule.required_action, rule.source_text_span);
+
+  const firmRows = focusFirmId
+    ? related.filter((c) => c.firm_id === focusFirmId)
+    : related;
 
   return (
     <>
@@ -78,9 +99,8 @@ function RuleDetail({
               </span>
             )}
           </div>
-          <h2 className="mt-1 font-serif text-xl leading-snug text-ink">
-            {title}
-          </h2>
+          <h2 className="mt-1 font-serif text-xl leading-snug text-ink">{title}</h2>
+          {showSummary && <p className="mt-1.5 text-xs leading-relaxed text-muted">{summary}</p>}
         </div>
         <button
           onClick={onClose}
@@ -94,82 +114,74 @@ function RuleDetail({
       </header>
 
       <div className="flex-1 overflow-y-auto px-6 py-5">
-        <Section label="Obligation">
-          <p className="text-sm text-ink">{rule.plain_description}</p>
-        </Section>
-
-        <Section label="Condition">
-          {rule.condition ? (
-            <dl className="space-y-1.5 rounded border border-hair bg-canvas px-3 py-2.5">
-              <div className="grid grid-cols-[minmax(6rem,auto)_1fr] gap-x-3 text-xs">
-                <dt className="text-muted">Field</dt>
-                <dd className="text-ink">{formatFieldLabel(rule.condition.field)}</dd>
-              </div>
-              <div className="grid grid-cols-[minmax(6rem,auto)_1fr] gap-x-3 text-xs">
-                <dt className="text-muted">Check</dt>
-                <dd className="text-ink">{formatOperator(rule.condition.operator)}</dd>
-              </div>
-              <div className="grid grid-cols-[minmax(6rem,auto)_1fr] gap-x-3 text-xs">
-                <dt className="text-muted">Required</dt>
-                <dd className="font-medium text-ink">{formatConditionValue(rule.condition.value)}</dd>
-              </div>
-            </dl>
-          ) : (
-            <div className="rounded border border-gold/30 bg-gold/10 px-3 py-2.5 text-xs text-ink">
-              Not machine-checkable
-            </div>
-          )}
-        </Section>
-
-        {rule.threshold && <ThresholdBlock threshold={rule.threshold} />}
-
         {rule.source_text_span && (
           <SourceCallout
             text={rule.source_text_span}
             clause={formatClause(rule.clause_id)}
             circular={rule.source_circular_id}
+            compact
           />
         )}
 
-        <div className="grid grid-cols-2 gap-4">
-          <Section label="Confidence">
+        <div className="mb-5 grid grid-cols-2 gap-4">
+          <MetaItem label="Effective from" value={formatDate(rule.effective_from)} />
+          <div>
+            <div className="label-caps mb-1.5">Confidence</div>
             <ConfidenceBar value={rule.confidence} />
-          </Section>
-          <Section label="Effective from">
-            <span className="font-mono text-sm text-ink tnum">
-              {formatDate(rule.effective_from)}
-            </span>
-          </Section>
+          </div>
         </div>
+
+        {(rule.condition || rule.threshold) && (
+          <Section label="Machine check">
+            {rule.condition && (
+              <dl className="space-y-1.5 rounded border border-hair bg-canvas px-3 py-2.5 text-xs">
+                <Row label="Field" value={formatFieldLabel(rule.condition.field)} />
+                <Row label="Check" value={formatOperator(rule.condition.operator)} />
+                <Row label="Required" value={formatConditionValue(rule.condition.value)} strong />
+              </dl>
+            )}
+            {rule.threshold && <ThresholdGrid threshold={rule.threshold} nested={Boolean(rule.condition)} />}
+          </Section>
+        )}
+
+        {!rule.condition && !rule.threshold && (
+          <div className="mb-5 rounded border border-gold/30 bg-gold/10 px-3 py-2.5 text-xs text-ink">
+            Not machine-checkable — officer verification required.
+          </div>
+        )}
+
+        {showRemediation && (
+          <Section label="Remediation">
+            <p className="text-sm text-ink">{rule.required_action}</p>
+          </Section>
+        )}
 
         {rule.needs_human_review && (
           <div className="mb-5 rounded border border-gold/30 bg-gold/10 px-3 py-2.5">
-            <div className="label-caps mb-1 text-gold">Review required</div>
+            <div className="label-caps mb-1 text-gold">Extraction review</div>
             <p className="text-xs text-ink">{rule.review_reason ?? "Officer verification required."}</p>
           </div>
         )}
 
-        <Section label="Required action">
-          <p className="text-sm text-ink">{rule.required_action}</p>
-        </Section>
-
-        <Section label={`Firms (${related.length})`}>
-          <div className="space-y-1.5">
-            {related.map((c) => {
-              const firm = firmById.get(c.firm_id);
-              if (!firm) return null;
-              return (
-                <div
-                  key={c.firm_id}
-                  className="flex items-center justify-between rounded border border-hair bg-canvas px-3 py-2"
-                >
-                  <span className="text-sm text-ink">{firm.name}</span>
-                  <StatusBadge status={c.status} />
-                </div>
-              );
-            })}
-          </div>
-        </Section>
+        {firmRows.length > 0 && (
+          <Section label={focusFirmId ? "Firm status" : `Applicability (${firmRows.length})`}>
+            <div className="space-y-1.5">
+              {firmRows.map((c) => {
+                const firm = firmById.get(c.firm_id);
+                if (!firm) return null;
+                return (
+                  <div
+                    key={c.firm_id}
+                    className="flex items-center justify-between rounded border border-hair bg-canvas px-3 py-2"
+                  >
+                    <span className="text-sm text-ink">{firm.name}</span>
+                    <StatusBadge status={c.status} />
+                  </div>
+                );
+              })}
+            </div>
+          </Section>
+        )}
       </div>
     </>
   );
@@ -179,41 +191,47 @@ export function SourceCallout({
   text,
   clause,
   circular,
+  compact = false,
 }: {
   text: string;
   clause: string;
   circular?: string;
+  compact?: boolean;
 }) {
   return (
-    <div className="mb-5 overflow-hidden rounded-card border border-gold/20 border-l-[3px] border-l-gold bg-gold/[0.06]">
+    <div
+      className={`mb-5 overflow-hidden rounded-card border border-gold/20 border-l-[3px] border-l-gold bg-gold/[0.06] ${
+        compact ? "" : ""
+      }`}
+    >
       <div className="flex items-center gap-2 border-b border-gold/15 px-4 py-2">
-        <svg className="h-3.5 w-3.5 text-gold-700" viewBox="0 0 16 16" fill="currentColor">
-          <path d="M5.5 3C3.6 3 2 4.6 2 6.5c0 1.7 1.2 3.1 2.8 3.4-.1 1.3-.7 2.2-1.8 2.8l.6 1.3c2.1-1 3.4-2.8 3.4-5.6V6.5C7 4.6 5.4 3 5.5 3zm7 0C10.6 3 9 4.6 9 6.5c0 1.7 1.2 3.1 2.8 3.4-.1 1.3-.7 2.2-1.8 2.8l.6 1.3c2.1-1 3.4-2.8 3.4-5.6V6.5C14 4.6 12.4 3 12.5 3z" />
-        </svg>
         <span className="text-[11px] font-semibold uppercase tracking-[0.12em] text-gold">
-          Source citation
+          Regulatory text
         </span>
+        <span className="ml-auto font-mono text-[10px] text-muted tnum">{clause}</span>
       </div>
       <div className="px-4 py-3">
-        <blockquote className="font-mono text-[12.5px] leading-relaxed text-ink">
-          {text}
-        </blockquote>
-        <div className="mt-2 flex items-center gap-2 font-mono text-[10px] text-muted">
-          <span className="rounded bg-canvas px-1.5 py-0.5 tnum">{clause}</span>
-          {circular && <span className="truncate tnum">{circular}</span>}
-        </div>
+        <blockquote className="text-[13px] leading-relaxed text-ink">{text}</blockquote>
+        {circular && !compact && (
+          <div className="mt-2 truncate font-mono text-[10px] text-muted tnum">{circular}</div>
+        )}
       </div>
     </div>
   );
 }
 
-function ThresholdBlock({ threshold }: { threshold: NonNullable<Rule["threshold"]> }) {
+function ThresholdGrid({
+  threshold,
+  nested,
+}: {
+  threshold: NonNullable<Rule["threshold"]>;
+  nested?: boolean;
+}) {
   const rows: [string, string][] = [];
   if (threshold.static_band_pct != null) rows.push(["Fixed band", `±${threshold.static_band_pct}%`]);
   if (threshold.dynamic_band_pct != null) rows.push(["Dynamic band", `±${threshold.dynamic_band_pct}%`]);
   if (threshold.flex_pct != null) rows.push(["Flex", `+${threshold.flex_pct}%`]);
   if (threshold.max_flexes != null) rows.push(["Max flexes", String(threshold.max_flexes)]);
-  if (threshold.trigger_pct != null) rows.push(["Trigger", `${threshold.trigger_pct}%`]);
   if (threshold.cooling_off_trigger_pct != null)
     rows.push(["Cooling-off trigger", `${threshold.cooling_off_trigger_pct}%`]);
   if (threshold.cooling_off_minutes != null)
@@ -223,19 +241,41 @@ function ThresholdBlock({ threshold }: { threshold: NonNullable<Rule["threshold"
   if (threshold.dpl_pct != null) rows.push(["DPL limit", `±${threshold.dpl_pct}%`]);
   if (threshold.dpl_relaxation_step_pct != null)
     rows.push(["DPL relaxation step", `+${threshold.dpl_relaxation_step_pct}%`]);
-  rows.push(["Uncapped", threshold.uncapped ? "Yes" : "No"]);
+  if (threshold.uncapped) rows.push(["Uncapped", "Yes"]);
+
+  if (rows.length === 0) return null;
 
   return (
-    <Section label="Thresholds">
-      <div className="grid grid-cols-2 gap-x-6 gap-y-1.5 rounded border border-hair bg-canvas px-3 py-2.5">
-        {rows.map(([k, v]) => (
-          <div key={k} className="flex items-center justify-between">
-            <span className="text-xs text-muted">{k}</span>
-            <span className="font-mono text-xs font-medium text-ink tnum">{v}</span>
-          </div>
-        ))}
-      </div>
-    </Section>
+    <div
+      className={`grid grid-cols-2 gap-x-6 gap-y-1.5 rounded border border-hair bg-canvas px-3 py-2.5 ${
+        nested ? "mt-2" : ""
+      }`}
+    >
+      {rows.map(([k, v]) => (
+        <div key={k} className="flex items-center justify-between gap-2">
+          <span className="text-xs text-muted">{k}</span>
+          <span className="font-mono text-xs font-medium text-ink tnum">{v}</span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function Row({ label, value, strong }: { label: string; value: string; strong?: boolean }) {
+  return (
+    <div className="grid grid-cols-[minmax(5rem,auto)_1fr] gap-x-3">
+      <dt className="text-muted">{label}</dt>
+      <dd className={strong ? "font-medium text-ink" : "text-ink"}>{value}</dd>
+    </div>
+  );
+}
+
+function MetaItem({ label, value }: { label: string; value: string }) {
+  return (
+    <div>
+      <div className="label-caps mb-1">{label}</div>
+      <span className="font-mono text-sm text-ink tnum">{value}</span>
+    </div>
   );
 }
 

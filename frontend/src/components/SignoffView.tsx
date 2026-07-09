@@ -13,7 +13,7 @@ interface Props {
   onGenerate: () => void;
   onReview: (taskId: number) => Promise<void>;
   onGenerateReport: () => void;
-  onOpenRule: (rule: Rule) => void;
+  onOpenRule: (rule: Rule, firmId?: number) => void;
   generating: boolean;
   reportGenerating?: boolean;
   generateMessage?: string | null;
@@ -136,7 +136,7 @@ function TaskCard({
   matrix: Matrix | null;
   rules: Rule[];
   onReview: (taskId: number) => Promise<void>;
-  onOpenRule: (rule: Rule) => void;
+  onOpenRule: (rule: Rule, firmId?: number) => void;
 }) {
   const [busy, setBusy] = useState(false);
   const rule = rules.find((r) => r.rule_id === task.rule_id) ?? null;
@@ -170,18 +170,20 @@ function TaskCard({
         <div className="flex shrink-0 items-center gap-2">
           {rule && (
             <button
-              onClick={() => onOpenRule(rule)}
+              type="button"
+              onClick={() => onOpenRule(rule, task.firm_id)}
               className="rounded border border-hair px-2 py-1 text-[10px] text-muted hover:text-ink"
             >
-              Rule
+              View obligation
             </button>
           )}
           <button
+            type="button"
             onClick={handle}
             disabled={busy}
             className="rounded border border-compliant bg-compliant px-3 py-1.5 text-xs font-semibold text-canvas disabled:opacity-50"
           >
-            {busy ? "…" : "Review"}
+            {busy ? "…" : "Sign off"}
           </button>
         </div>
       </div>
@@ -202,7 +204,7 @@ function ReviewedRow({ task }: { task: ReviewTask }) {
         </div>
       </div>
       <span className="rounded-full border border-compliant/30 bg-compliant-bg px-2 py-0.5 text-[11px] font-medium text-compliant-text">
-        Reviewed
+        Signed off
       </span>
     </div>
   );

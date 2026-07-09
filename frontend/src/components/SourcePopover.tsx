@@ -105,7 +105,7 @@ export function SourcePopover({
           }}
           className="mt-2 text-[11px] font-medium text-gold hover:text-gold-400 hover:underline"
         >
-          View full source →
+          View citation →
         </button>
       </div>
     </div>,

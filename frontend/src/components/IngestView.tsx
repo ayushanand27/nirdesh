@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import type { ExtractionResponse, Rule } from "../types";
 import { ConfidenceBar } from "./ConfidenceBar";
-import { SourceCallout } from "./RuleDrawer";
 import { formatClause, formatEntity } from "../lib/status";
 
 type ReviewDecision = "pending" | "approved" | "rejected";
@@ -417,16 +416,6 @@ function RuleCard({
       {rule.review_reason && (
         <div className="mt-3 rounded border border-gold/20 bg-gold/[0.05] px-3 py-2 text-xs text-ink">
           <span className="font-medium text-gold">Review reason:</span> {rule.review_reason}
-        </div>
-      )}
-
-      {rule.source_text_span && (
-        <div className="mt-3">
-          <SourceCallout
-            text={rule.source_text_span}
-            clause={formatClause(rule.clause_id)}
-            circular={rule.source_circular_id}
-          />
         </div>
       )}
     </div>

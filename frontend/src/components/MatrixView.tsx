@@ -17,6 +17,7 @@ interface Props {
   selectedFirmId: number | null;
   onSelectRule: (rule: Rule) => void;
   onSelectFirm: (firm: Firm) => void;
+  onViewSource: (source: { text: string; clause: string; circular?: string }) => void;
 }
 
 export function MatrixView({
@@ -29,6 +30,7 @@ export function MatrixView({
   selectedFirmId,
   onSelectRule,
   onSelectFirm,
+  onViewSource,
 }: Props) {
   const { firms, rules, cells } = matrix;
   const [mode, setMode] = useState<ViewMode>("simple");
@@ -235,7 +237,14 @@ export function MatrixView({
           text={activeRule.source_text_span}
           clause={formatClause(activeRule.clause_id)}
           onClose={closePopover}
-          onViewFull={() => onSelectRule(activeRule)}
+          onViewFull={() => {
+            if (!activeRule?.source_text_span) return;
+            onViewSource({
+              text: activeRule.source_text_span,
+              clause: formatClause(activeRule.clause_id),
+              circular: activeRule.source_circular_id,
+            });
+          }}
         />
       )}
     </div>

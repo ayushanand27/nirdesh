@@ -7,6 +7,7 @@ import { MatrixView } from "./components/MatrixView";
 import { ReportPreview } from "./components/ReportPreview";
 import { FirmCaseDrawer } from "./components/FirmCaseDrawer";
 import { RuleDrawer } from "./components/RuleDrawer";
+import { SourceDrawer, type SourcePanel } from "./components/SourceDrawer";
 import { SignoffView } from "./components/SignoffView";
 import { STATUS_META, formatAuditTime, formatDate } from "./lib/status";
 import type {
@@ -36,6 +37,8 @@ export default function App() {
   const [officer, setOfficer] = useState("A. Sharma");
   const [generating, setGenerating] = useState(false);
   const [selectedRule, setSelectedRule] = useState<Rule | null>(null);
+  const [ruleFocusFirmId, setRuleFocusFirmId] = useState<number | null>(null);
+  const [sourcePanel, setSourcePanel] = useState<SourcePanel | null>(null);
   const [selectedFirm, setSelectedFirm] = useState<Firm | null>(null);
   const [recalcKey, setRecalcKey] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -368,8 +371,12 @@ export default function App() {
                     phase2Date={PHASE2}
                     selectedRuleId={selectedRule?.rule_id ?? null}
                     selectedFirmId={selectedFirm?.id ?? null}
-                    onSelectRule={setSelectedRule}
+                    onSelectRule={(rule) => {
+                      setRuleFocusFirmId(null);
+                      setSelectedRule(rule);
+                    }}
                     onSelectFirm={setSelectedFirm}
+                    onViewSource={setSourcePanel}
                   />
                 </div>
                 <AuditPanel entries={audit} health={health} />
@@ -405,7 +412,10 @@ export default function App() {
               onGenerate={handleGenerateTasks}
               onReview={handleReviewTask}
               onGenerateReport={handleGenerateReport}
-              onOpenRule={setSelectedRule}
+              onOpenRule={(rule, firmId) => {
+                setRuleFocusFirmId(firmId ?? null);
+                setSelectedRule(rule);
+              }}
               generating={generating}
               reportGenerating={reportGenerating}
               generateMessage={generateMsg}
@@ -434,8 +444,14 @@ export default function App() {
         rule={selectedRule}
         firms={drawerFirms}
         cells={drawerCells}
-        onClose={() => setSelectedRule(null)}
+        focusFirmId={ruleFocusFirmId}
+        onClose={() => {
+          setSelectedRule(null);
+          setRuleFocusFirmId(null);
+        }}
       />
+
+      <SourceDrawer source={sourcePanel} onClose={() => setSourcePanel(null)} />
 
       <FirmCaseDrawer
         firm={selectedFirm}
@@ -445,6 +461,7 @@ export default function App() {
         onClose={() => setSelectedFirm(null)}
         onOpenRule={(rule) => {
           setSelectedFirm(null);
+          setRuleFocusFirmId(null);
           setSelectedRule(rule);
         }}
       />
