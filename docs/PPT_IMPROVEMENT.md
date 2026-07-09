@@ -1,54 +1,63 @@
-# PPT improvement guide — slide-by-slide (Jul 2026)
+# PPT improvement guide — slide-by-slide (Jul 2026, UI refresh)
 
 Match the **live prototype**: https://nirdesh-frontend.onrender.com
 
-**Global fix:** Remove the repeated footer `Decision-support only — not a regulatory filing` from **every** slide. Use it **once** on the title slide (small) and **once** on the Technology or Ask slide. Judges read it the first time.
+**UI refresh (Jul 2026):** Institutional formatting — human-readable audit details, firm profiles, rule conditions, breach summaries. **No raw JSON** in the UI. Recreate screenshots before updating slides.
+
+**Screenshot capture list:** [docs/assets/screenshots/SCREENSHOT_CHECKLIST.md](../assets/screenshots/SCREENSHOT_CHECKLIST.md)
+
+**Global fix:** Remove the repeated footer `Decision-support only — not a regulatory filing` from **every** slide. Use it **once** on the title slide (small) and **once** on the Technology or Ask slide.
 
 ---
 
-## Screenshot inventory
+## Screenshot inventory (replace all old images)
 
-### Already in repo (`docs/assets/screenshots/`)
+### Required — 12 files in `docs/assets/screenshots/`
 
-| File | Use on slide |
-|------|----------------|
-| `01-matrix-simple-phase1.png` | Live Demo — Matrix (Phase 1) |
-| `02-matrix-technical-phase1.png` | Optional backup / appendix |
-| `03-delta-before-apply.png` | Optional — if you show before/after |
-| `04-delta-meridian-flip.png` | Regulatory Delta / Live Demo Delta |
-| `05-officer-signoff.png` | Optional — Officer sign-off |
+| File | Use on slide | Must show |
+|------|--------------|-----------|
+| `01-matrix-simple-phase1.png` | Live Demo — Matrix | 01 Sep 2026 · Simple · 2 breach · Bharat/Meridian/Sentinel |
+| `02-matrix-technical-phase1.png` | Optional appendix | Technical toggle · plain breach lines |
+| `03-matrix-phase2.png` | Demo Scenario or Matrix | 01 Apr 2027 · Meridian **Breach** |
+| `04-firm-casefile-bharat.png` | Live Demo — Matrix | Bharat drawer · labeled profile · breach detail |
+| `05-rule-drawer.png` | Solution / deep-dive | Field / Check / Required · source citation |
+| `06-ingest-extracted.png` | Circular Ingest | PDF extracted · **Draft — not persisted** |
+| `07-delta-before-apply.png` | Regulatory Delta | Before Apply · §4.1 → §4.4 |
+| `08-delta-after-apply.png` | Regulatory Delta | After Apply · Meridian flip |
+| `09-officer-signoff-pending.png` | Sign-off | Pending queue |
+| `10-officer-signoff-reviewed.png` | Sign-off + Evidence | Reviewed by A. Sharma |
+| `11-evidence-pack.png` | Evidence Pack | Preview metrics · Download PDF |
+| `12-audit-trail-details.png` | Technology / Governance | Eval **Details** — As of / Outcome rows |
 
-### Capture and add (for a complete deck)
+### Deprecated (delete from PPT if still embedded)
 
-| File to save | Tab | What must be visible |
-|--------------|-----|----------------------|
-| `06-ingest.png` | Circular ingest | PDF uploaded, rules count, **Review status** + **Preview only** |
-| `07-firm-casefile.png` | Matrix | **Bharat Growth AMC** case file drawer open |
-| `08-matrix-phase2.png` | Matrix | **01 Apr 2027**, Meridian **Breach** |
-| `09-evidence-pack.png` | Evidence pack | Preview + **Download PDF** |
-| `10-signoff-reviewed.png` | Officer sign-off | Task **Mark reviewed** by A. Sharma |
+| Old file | Reason |
+|----------|--------|
+| `03-delta-before-apply.png` (old numbering) | Renamed → `07-delta-before-apply.png` |
+| `04-delta-meridian-flip.png` | Renamed → `08-delta-after-apply.png` |
+| `05-officer-signoff.png` | Split → `09` + `10` |
+| Any screenshot showing JSON audit block | UI no longer shows this |
 
-Compress images before inserting (target **&lt;400 KB** each for PPT): export width ~1400px, PNG or high-quality JPEG.
+Compress before insert: **&lt;400 KB** each, ~1400px wide.
 
 ---
 
-## Recommended deck structure (11 slides)
+## Recommended deck structure (12 slides)
 
-| # | Slide | Screenshot? |
-|---|--------|-------------|
-| 1 | Title | No |
-| 2 | Problem | No |
-| 3 | Real Stakes | No |
-| 4 | Solution (5 steps) | No |
-| 5 | Demo Scenario | No (table) |
-| 6 | **Circular Ingest** | `06-ingest.png` |
-| 7 | **Compliance Matrix** | `01-matrix-simple-phase1.png` or `07-firm-casefile.png` |
-| 8 | **Regulatory Delta** | `04-delta-meridian-flip.png` |
-| 9 | **Officer Sign-off + Evidence** | `09-evidence-pack.png` or split 10 + 09 |
-| 10 | Why Not a Chatbot | No |
-| 11 | Technology + Business + Ask | No (dense — OK for hackathon) |
-
-You can keep **Business Model** and **The Ask** as separate slides (13 total) if your template has room.
+| # | Slide | Screenshot |
+|---|--------|------------|
+| 1 | Title | — |
+| 2 | Problem | — |
+| 3 | Real Stakes | — |
+| 4 | Solution (5 steps) | — |
+| 5 | Demo Scenario | — (table) |
+| 6 | **Circular Ingest** | `06-ingest-extracted.png` |
+| 7 | **Compliance Matrix** | `01-matrix-simple-phase1.png` + inset `04-firm-casefile-bharat.png` |
+| 8 | **Regulatory Delta** | `07-delta-before-apply.png` + `08-delta-after-apply.png` |
+| 9 | **Officer Sign-off** | `09-officer-signoff-pending.png` → `10-officer-signoff-reviewed.png` |
+| 10 | **Evidence + Audit** | `11-evidence-pack.png` + small `12-audit-trail-details.png` |
+| 11 | Why Not a Chatbot | — |
+| 12 | Technology + Business + Ask | — |
 
 ---
 
@@ -64,266 +73,165 @@ You can keep **Business Model** and **The Ask** as separate slides (13 total) if
 - nirdesh-frontend.onrender.com
 
 **Change:**
-- Subtitle line: `LIVE PROTOTYPE · DECISION-SUPPORT ONLY` (one line only)
-- **Remove** second duplicate disclaimer block on this slide
+- Subtitle: `LIVE PROTOTYPE · DECISION-SUPPORT ONLY` (one line)
+- **Remove** duplicate disclaimer blocks
 
-**Optional add (small):**
-- github.com/ayushanand27/nirdesh
+**Optional:** github.com/ayushanand27/nirdesh
 
 ---
 
 ## Slide 2 — The Problem
 
-**Keep** — copy is strong.
-
-**Trim:** Remove footer disclaimer.
-
-**Optional one-line add at bottom:**
-- *CTR and HYTR rows grow with every circular amendment.*
+**Keep** — copy is strong. **Remove** footer disclaimer.
 
 ---
 
 ## Slide 3 — Real Stakes
 
-**Keep** — 88 trading days story is your best hook.
-
-**Fix:** Ensure "30-stock limit" reads as *example enforcement* not ETF demo (ETF demo is separate circular).
-
-**Remove** footer disclaimer.
+**Keep** — 88 trading days story. **Remove** footer disclaimer.
 
 ---
 
 ## Slide 4 — Solution
 
-**REPLACE title:**
+**Title:**
 ```
 Solution: Ingest → Evaluate → Act → Report
 ```
 
-**REPLACE body (5 steps):**
+**Body (5 steps):**
 
 ```
-Nirdesh turns regulatory text into a living obligation ledger.
-
-0 Ingest
-Upload SEBI circular PDF → LLM extracts rule objects
-Flag non-checkable clauses · officer QA preview
-(Demo matrix uses human-reviewed canonical ruleset)
-
-1 Compile
-Structured rules: clause · condition · threshold · deadline
-needs_human_review when not objectively checkable
-
-2 Evaluate
-Deterministic Python · firm profile → compliant / breach / N/A
-No LLM at check time · firm case files · CSV export
-
-3 Act
-Breach → officer review tasks
-Named CCO sign-off before obligation is actioned
-
-4 Report
-Evidence pack: in-app preview + auditable PDF
-Append-only audit log
+0 Ingest     PDF → LLM rule extraction · review flags · officer QA preview
+1 Compile    Clause · condition · threshold · deadline (never guessed)
+2 Evaluate   Deterministic Python · compliant / breach / N/A · firm case files
+3 Act        Breach → review tasks · named CCO sign-off
+4 Report     Evidence pack preview + PDF · append-only audit trail
 ```
 
-**Remove:** old "Compile → Evaluate → Act + Report" without Ingest.
-
-**Remove** footer disclaimer (or single line: *Decision-support only · no autonomous filing*).
+**Optional small image:** `05-rule-drawer.png` (shows structured condition, not code dump)
 
 ---
 
 ## Slide 5 — Demo Scenario
 
-**Keep table** — it's accurate.
-
-**ADD below table (bold):**
+**Keep table.** Add:
 
 ```
-Phase 1 deadline: 01 Sep 2026 (§4.1 · T-1 VWAP)
-Phase 2 deadline: 01 Apr 2027 (§4.4 · T-1 NAV — supersedes §4.1)
+Phase 1: 01 Sep 2026 (§4.1 · T-1 VWAP)
+Phase 2: 01 Apr 2027 (§4.4 · T-1 NAV — supersedes §4.1)
 ```
 
-**Fix mock evaluation line:**
-
-```
-BREACH · Bharat Growth AMC — T-2 NAV after 01 Sep 2026
-COMPLIANT · Meridian Asset Management — T-1 VWAP (Phase 1)
-FLIPS TO BREACH · Meridian — when §4.4 applied (01 Apr 2027)
-N/A · Sentinel Debt Fund — no ETF schemes
-```
-
-**Remove** footer disclaimer.
+**Screenshot (small corner):** `03-matrix-phase2.png`
 
 ---
 
-## Slide 6 — NEW: Circular Ingest
+## Slide 6 — Circular Ingest
 
-**Title:**
-```
-Live Demo — Circular Ingest
-```
+**Title:** `Live Demo — Circular Ingest`
 
-**Subtitle:**
-```
-PDF → structured obligations · human review flags · QA preview
-```
+**Screenshot:** `06-ingest-extracted.png` (large)
 
-**Screenshot:** `06-ingest.png` (large, centre or right)
-
-**Bullets (left if screenshot on right):**
+**Bullets:**
 - Upload `circular_MRD-POD3-2026_ORIGINAL.pdf`
-- ~8 rules extracted · 2 flagged for review
-- Preview only — matrix uses seeded canonical ruleset
+- Rules extracted · flagged for review
+- **Draft — not persisted** — matrix uses human-reviewed canonical ruleset
 
 ---
 
-## Slide 7 — Live Demo — Compliance Matrix
+## Slide 7 — Compliance Matrix
 
-**Title:** keep
+**Title:** `Live Demo — Compliance Matrix`
 
-**Subtitle REPLACE:**
+**Screenshot:** `01-matrix-simple-phase1.png` (main) + `04-firm-casefile-bharat.png` (inset or second panel)
+
+**Caption:**
 ```
-As of 01 Sep 2026 · click firm for case file · Export CSV
-```
-
-**Screenshot:** `01-matrix-simple-phase1.png` OR `07-firm-casefile.png` (case file is stronger for judges)
-
-**Caption under image:**
-```
-Bharat Growth AMC — breach on §4.1 · Meridian compliant · Sentinel N/A
+01 Sep 2026 · Bharat breach · Meridian compliant · Sentinel N/A
+Click firm → case file with profile + breach evidence
 ```
 
-**Delete** if you have a separate slide only for technical view — one matrix screenshot is enough.
+**Mention:** Export CSV · Simple/Technical · Compact density
 
 ---
 
 ## Slide 8 — Regulatory Delta
 
-**Merge** your two delta slides into **one** if time-constrained.
+**Screenshots:** `07-delta-before-apply.png` and `08-delta-after-apply.png` (side by side)
 
-**Keep:**
-- OLD §4.1 / NEW §4.4 comparison
-- Meridian Compliant → Breach · NEWLY FLAGGED
-
-**Subtitle REPLACE:**
+**Subtitle:**
 ```
 One circular · two deadlines · Meridian flips when §4.4 supersedes §4.1
 ```
 
-**Screenshot:** `04-delta-meridian-flip.png` or live delta tab after Apply
-
-**Optional small callout:**
-```
-Also available: Phase 2 matrix view (01 Apr 2027) — screenshot 08
-```
-
 ---
 
-## Slide 9 — Officer Sign-off & Evidence Pack
+## Slide 9 — Officer Sign-off
 
-**Option A — one slide, two screenshots side by side:**
-- Left: `10-signoff-reviewed.png`
-- Right: `09-evidence-pack.png`
-
-**Title:**
-```
-Human Sign-off → Evidence Pack
-```
+**Screenshots:** `09-officer-signoff-pending.png` → `10-officer-signoff-reviewed.png`
 
 **Bullets:**
-- Generate tasks from breaches · Mark reviewed (A. Sharma)
-- Evidence pack preview · Download PDF for audit file
-- Every export logged in append-only audit trail
+- Generate tasks from breaches
+- Mark reviewed (A. Sharma)
+- Idempotent — no duplicate audit noise
 
 ---
 
-## Slide 10 — Why Not a Chatbot
+## Slide 10 — Evidence Pack + Audit
 
-**Keep table** — strong.
+**Screenshots:**
+- Main: `11-evidence-pack.png`
+- Inset: `12-audit-trail-details.png`
 
-**Add one row (optional):**
-
-| Capability | Generic RAG Chatbot | Nirdesh |
-|------------|---------------------|---------|
-| Circular ingest | Paste & pray | PDF upload + structured extraction + review flags |
-
-**Remove** footer disclaimer.
-
----
-
-## Slide 11 — Technology
-
-**CRITICAL FIX — Shipped section REPLACE:**
-
-```
-SHIPPED
-Backend          Python · FastAPI · SQLAlchemy · SQLite
-AI (ingest only) Groq llama-3.3-70b · JSON extraction
-Evaluation       Deterministic Python — no LLM at check time
-Frontend         React · TypeScript · Tailwind
-                 5 tabs: Ingest · Matrix · Delta · Sign-off · Evidence
-Features         PDF upload · firm case files · matrix CSV export
-Export           reportlab PDF + evidence pack preview
-Deploy           Render · GitHub public repo
-```
-
-**CRITICAL FIX — Roadmap REPLACE (remove PDF upload):**
-
-```
-ROADMAP (not built today)
-PostgreSQL + pgvector · multi-circular retrieval
-Celery/Redis · async ingestion jobs
-Live SEBI RSS feed
-Persistent ingest QA → active ruleset promotion
-Multi-user auth · deployment hardening
-```
-
-**Architecture lines — keep but fix:**
-
-```
-INGEST:     Circular PDF → LLM extract → review flags → [canonical ruleset → DB]
-CHECK:      Firm profiles → Deterministic evaluator → Matrix / Delta / Tasks / PDF
-```
-
-**Remove:** `Live SEBI RSS + PDF uploads` from roadmap.
+**Bullets:**
+- In-app preview + Download PDF
+- Audit trail: human-readable event details (As of, Outcome, Officer)
+- Governance: decision-support only
 
 ---
 
-## Slide 12 — Business Model
+## Slide 11 — Why Not a Chatbot
 
-**Keep** — fine for hackathon.
+**Keep table.** Optional row:
 
-**Remove** footer disclaimer.
-
----
-
-## Slide 13 — The Ask
-
-**Keep** Sandbox / Mentorship / Pilot — good.
-
-**Ensure links:**
-- nirdesh-frontend.onrender.com
-- github.com/ayushanand27/nirdesh
-
-**Add if video ready:**
-- Demo video: [Loom URL]
-
-**Single closing line:**
-```
-Decision-support only — no autonomous filing to SEBI
-```
+| Capability | Generic RAG | Nirdesh |
+|------------|-------------|---------|
+| Audit / evidence | Chat log | Append-only trail + exportable PDF |
 
 ---
 
-## Quick wins (30 min in PowerPoint)
+## Slide 12 — Technology + Ask
 
-1. Delete duplicate disclaimer from slides 2–12
-2. Fix Technology slide (PDF upload → shipped)
-3. Add Ingest + Evidence screenshots (slides 6 & 9)
-4. Add Phase 2 date on Demo Scenario slide
-5. Compress all screenshots (&lt;400 KB each)
-6. Renumber solution to 5 steps including Ingest
+**SHIPPED (update from old deck):**
+
+```
+Backend     Python · FastAPI · SQLAlchemy · SQLite
+AI (ingest) Groq llama-3.3-70b — extraction only
+Evaluation  Deterministic Python — no LLM at check time
+Frontend    React · TypeScript · Tailwind
+              5 tabs: Ingest · Matrix · Delta · Sign-off · Evidence
+              Institutional UI: labeled profiles, audit details, breach summaries
+Export      reportlab PDF + matrix CSV
+Deploy      Render · GitHub public repo
+```
+
+**ROADMAP:** PostgreSQL + pgvector · Celery/Redis · SEBI RSS · ingest→ledger promotion · auth/SSO
+
+**Ask:** Sandbox · Mentorship · Pilot AMC
+
+**Links:** nirdesh-frontend.onrender.com · github.com/ayushanand27/nirdesh · [Loom URL]
+
+**Closing line (once):** Decision-support only — no autonomous filing to SEBI
+
+---
+
+## Quick wins (30 min)
+
+1. Replace **all** screenshots with the 12 new files
+2. Delete duplicate disclaimers
+3. Fix ingest badge text: **Draft — not persisted** (not "Preview only")
+4. Add audit Details screenshot on governance slide
+5. Compress images &lt;400 KB
 
 ---
 

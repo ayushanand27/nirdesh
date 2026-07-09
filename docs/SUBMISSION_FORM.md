@@ -56,7 +56,7 @@ How it works (live prototype at https://nirdesh-frontend.onrender.com):
 2. Evaluate — Deterministic Python compares firm profiles to active rules as-of a date → compliant / breach / not applicable. Firm case files, matrix CSV export, simple/technical views.
 3. Regulatory delta — On amendment (demo: §4.1 → §4.4), show superseded obligation and firms that flip compliant → breach.
 4. Act — Generate review tasks for the Compliance Officer; named human sign-off required before an obligation is considered actioned. Idempotent state changes → clean audit trail.
-5. Report — Evidence pack: in-app preview + compliance summary PDF (matrix, source citations, delta, sign-off log). Decision-support disclaimer on every page.
+5. Report — Evidence pack: in-app preview + compliance summary PDF (matrix, source citations, delta, sign-off log). Decision-support disclaimer in UI.
 
 Demo scenario: Bharat Growth AMC still on T-2 NAV → breach after 1 Sep 2026. Meridian compliant on Phase 1, flips to breach on Phase 2. Sentinel N/A. One circular, two compliance clocks.
 
@@ -76,7 +76,7 @@ SHIPPED (working prototype):
 • Backend: Python 3.11+, FastAPI, SQLAlchemy, SQLite (obligation ledger + append-only audit log)
 • AI: Groq llama-3.3-70b — JSON-mode extraction at ingest time only; demo matrix uses human-reviewed canonical ruleset verified against official circular PDF
 • Evaluation: Deterministic Python rule engine — breach logic is code, not LLM output
-• Frontend: React + TypeScript + Tailwind — circular ingest (PDF upload), compliance matrix (simple/technical, firm case files, CSV export), regulatory delta, officer sign-off, evidence pack preview, audit trail
+• Frontend: React + TypeScript + Tailwind — circular ingest (PDF upload), compliance matrix (simple/technical, firm case files, CSV export), regulatory delta, officer sign-off, evidence pack preview, human-readable audit trail (no raw JSON in UI)
 • Export: reportlab PDF compliance summary + matrix CSV
 • Deploy: Render (static frontend + FastAPI); GitHub: https://github.com/ayushanand27/nirdesh
 
@@ -139,8 +139,19 @@ https://github.com/ayushanand27/nirdesh
 
 ## Before you click Save
 
+- [ ] **12 new screenshots** captured per [SCREENSHOT_CHECKLIST.md](assets/screenshots/SCREENSHOT_CHECKLIST.md) (old repo images are outdated)
+- [ ] PPT recreated with new screenshots (see [PPT_IMPROVEMENT.md](../PPT_IMPROVEMENT.md)) and re-uploaded if slides changed
 - [ ] Demo video URL filled (Loom, unlisted or public, under 3 min)
 - [ ] PPT uses Meridian / Sentinel / Bharat (not Alpha / Pinnacle)
-- [ ] PPT shows ingest + evidence pack screenshots if added
 - [ ] Live app opens after cold start (~30s refresh)
 - [ ] Run demo once end-to-end on production URL
+
+### Form text — Jul 2026 UI refresh
+
+**No major form changes needed.** Features are unchanged; only presentation improved (human-readable audit details, firm profiles, rule conditions, breach lines).
+
+Optional micro-edits already reflected above:
+- "Decision-support disclaimer **in UI**" (footer removed from every view)
+- Frontend bullet mentions **human-readable audit trail**
+
+Re-save the form only after you add the **Loom URL** and optionally re-upload the updated PPT.

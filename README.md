@@ -44,7 +44,7 @@ Interactive API docs: https://nirdesh-backend.onrender.com/docs
 | **Regulatory delta** | When a rule supersedes another, see old vs new and which firms flip **compliant → breach**. |
 | **Officer sign-off** | Breaches become review tasks with evidence. A named Compliance Officer must sign off before an obligation is considered actioned. |
 | **Evidence pack** | In-app report preview + PDF export with matrix, source citations, delta (if applied), and sign-off log. |
-| **Audit trail** | Append-only log of extractions, evaluations, amendments, reviews, and report exports. |
+| **Audit trail** | Append-only log with human-readable event details (no raw engine JSON). |
 
 **Governance:** decision-support only. No autonomous filing to SEBI.
 
@@ -117,20 +117,36 @@ State-changing actions (apply amendment, generate tasks, mark reviewed) are **id
 - **Meridian Asset Management** — compliant on Phase 1, **flips to breach** when §4.4 is applied
 - **Sentinel Debt Fund** — not applicable (no ETF schemes)
 
-### Screenshots
+### Screenshots (current UI — Jul 2026 refresh)
+
+> **Replace all images below** after you capture the new set. Full capture instructions: **[docs/assets/screenshots/SCREENSHOT_CHECKLIST.md](docs/assets/screenshots/SCREENSHOT_CHECKLIST.md)**
+
+Send **12 required screenshots** (filenames below). Old repo images are outdated (raw JSON audit, code-style profiles).
+
+| # | View | File | PPT slide |
+|---|------|------|-----------|
+| 1 | Matrix — Simple, Phase 1 | `01-matrix-simple-phase1.png` | Live Demo — Matrix |
+| 2 | Matrix — Technical, Phase 1 | `02-matrix-technical-phase1.png` | Optional / appendix |
+| 3 | Matrix — Phase 2 (Meridian breach) | `03-matrix-phase2.png` | Demo Scenario / Matrix |
+| 4 | Firm case file — Bharat | `04-firm-casefile-bharat.png` | Live Demo — Matrix |
+| 5 | Rule drawer — condition | `05-rule-drawer.png` | Solution / Architecture |
+| 6 | Circular ingest — extracted | `06-ingest-extracted.png` | Live Demo — Ingest |
+| 7 | Regulatory delta — before apply | `07-delta-before-apply.png` | Regulatory Delta |
+| 8 | Regulatory delta — after apply | `08-delta-after-apply.png` | Regulatory Delta |
+| 9 | Officer sign-off — pending | `09-officer-signoff-pending.png` | Sign-off |
+| 10 | Officer sign-off — reviewed | `10-officer-signoff-reviewed.png` | Sign-off + Evidence |
+| 11 | Evidence pack preview | `11-evidence-pack.png` | Evidence Pack |
+| 12 | Audit trail — Details expanded | `12-audit-trail-details.png` | Technology / Governance |
+
+**Preview (update when new files land):**
 
 | View | Screenshot | Status |
 |------|------------|--------|
-| Compliance matrix (simple, Phase 1) | ![Matrix — simple](docs/assets/screenshots/01-matrix-simple-phase1.png) | In repo |
-| Compliance matrix (technical) | ![Matrix — technical](docs/assets/screenshots/02-matrix-technical-phase1.png) | In repo |
-| Regulatory delta (before apply) | ![Delta — preview](docs/assets/screenshots/03-delta-before-apply.png) | In repo |
-| Meridian flip after apply | ![Delta — Meridian](docs/assets/screenshots/04-delta-meridian-flip.png) | In repo |
-| Officer sign-off | ![Sign-off](docs/assets/screenshots/05-officer-signoff.png) | In repo |
-| Circular ingest | `06-ingest.png` | **Capture for PPT** |
-| Firm case file | `07-firm-casefile.png` | **Capture for PPT** |
-| Matrix Phase 2 | `08-matrix-phase2.png` | **Capture for PPT** |
-| Evidence pack | `09-evidence-pack.png` | **Capture for PPT** |
-| Sign-off reviewed | `10-signoff-reviewed.png` | **Capture for PPT** |
+| Compliance matrix (simple, Phase 1) | ![Matrix — simple](docs/assets/screenshots/01-matrix-simple-phase1.png) | **Replace** |
+| Compliance matrix (technical) | ![Matrix — technical](docs/assets/screenshots/02-matrix-technical-phase1.png) | **Replace** |
+| Regulatory delta (before apply) | ![Delta — preview](docs/assets/screenshots/03-delta-before-apply.png) | **Replace** |
+| Meridian flip after apply | ![Delta — Meridian](docs/assets/screenshots/04-delta-meridian-flip.png) | **Replace** |
+| Officer sign-off | ![Sign-off](docs/assets/screenshots/05-officer-signoff.png) | **Replace** |
 
 PPT slide-by-slide guide: [docs/PPT_IMPROVEMENT.md](docs/PPT_IMPROVEMENT.md)
 
