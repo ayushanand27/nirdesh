@@ -80,9 +80,6 @@ export function IngestView({
       <div className="card flex items-start justify-between gap-4 px-5 py-3.5">
         <div>
           <h2 className="font-serif text-lg text-ink">Circular ingest</h2>
-          <p className="mt-0.5 text-xs text-muted">
-            Extraction preview · matrix uses seeded ruleset
-          </p>
         </div>
           {extraction && (
             <div className="shrink-0 rounded border border-hair bg-canvas px-4 py-3 text-right">

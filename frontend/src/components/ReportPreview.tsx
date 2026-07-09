@@ -1,6 +1,5 @@
 import type { ComplianceReport } from "../types";
-import { formatClause, formatDate, formatTimestamp } from "../lib/status";
-import { SourceCallout } from "./RuleDrawer";
+import { formatClause, formatDate } from "../lib/status";
 import { StatusBadge } from "./StatusBadge";
 
 interface Props {
@@ -53,18 +52,15 @@ export function ReportPreview({
             <Metric label="Breach" value={report.summary.breach} tone="warn" />
             <Metric label="N/A" value={report.summary.not_applicable} />
             <Metric label="Signed off" value={report.summary.signoff_reviewed} />
-            <Metric label="Pending review" value={report.summary.signoff_pending} />
+            <Metric label="Pending" value={report.summary.signoff_pending} />
           </div>
 
-          <div className="card px-5 py-4">
-            <div className="flex flex-wrap items-center justify-between gap-3 text-xs text-muted">
+          <div className="card px-5 py-3">
+            <div className="flex flex-wrap items-center justify-between gap-2 font-mono text-[10px] text-muted tnum">
               <span>
-                As of {formatDate(report.as_of)} · {report.generated_by} ·{" "}
-                {formatTimestamp(report.generated_at)}
+                {formatDate(report.as_of)} · {report.generated_by}
               </span>
-              <span className="font-mono text-ink">
-                {report.engine.name} · {report.engine.ruleset}
-              </span>
+              <span>{report.engine.ruleset}</span>
             </div>
           </div>
 
@@ -113,28 +109,9 @@ export function ReportPreview({
                           {formatClause(breach.clause_id)}
                         </span>
                       </div>
-                      <p className="mt-2 text-sm text-ink">
-                        {breach.plain_label ?? breach.plain_description}
-                      </p>
                       {breach.detail?.actual !== undefined && (
-                        <div className="mt-2 text-xs text-muted">
-                          Actual: <span className="font-mono text-ink">{stringify(breach.detail.actual)}</span>
-                          {" · "}
-                          Expected: <span className="font-mono text-ink">{stringify(breach.detail.expected)}</span>
-                        </div>
-                      )}
-                      {breach.required_action && (
-                        <div className="mt-2 rounded border border-hair bg-surface px-3 py-2 text-xs text-ink">
-                          Recommended action: {breach.required_action}
-                        </div>
-                      )}
-                      {breach.source_text_span && (
-                        <div className="mt-3">
-                          <SourceCallout
-                            text={breach.source_text_span}
-                            clause={formatClause(breach.clause_id)}
-                            circular={report.circular.id}
-                          />
+                        <div className="mt-1 font-mono text-[11px] text-muted">
+                          {stringify(breach.detail.actual)} → {stringify(breach.detail.expected)}
                         </div>
                       )}
                     </div>
@@ -164,17 +141,10 @@ export function ReportPreview({
                             status={item.status === "reviewed" ? "compliant" : "breach"}
                           />
                         </div>
-                        <div className="mt-1 text-xs text-muted">
-                          {item.firm_name} · {formatClause(item.clause_id)}
+                        <div className="mt-1 text-[11px] text-muted">
+                          {item.reviewed_by && `${item.reviewed_by} · `}
+                          {item.firm_name}
                         </div>
-                        <div className="mt-2 text-xs text-ink">
-                          Recommended action: {item.recommended_action}
-                        </div>
-                        {item.reviewed_by && (
-                          <div className="mt-2 text-[11px] text-muted">
-                            Signed off by {item.reviewed_by} · {formatTimestamp(item.reviewed_at)}
-                          </div>
-                        )}
                       </div>
                     ))
                   )}

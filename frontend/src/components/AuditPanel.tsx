@@ -1,7 +1,7 @@
 import { useState } from "react";
 import type { Health } from "../api";
 import type { AuditEntry } from "../types";
-import { formatActor, formatAuditTime } from "../lib/status";
+import { formatAuditTime } from "../lib/status";
 
 interface Props {
   entries: AuditEntry[];
@@ -9,12 +9,12 @@ interface Props {
 }
 
 const EVENT_LABELS: Record<string, string> = {
-  extraction: "Rule extraction",
-  evaluation: "Compliance evaluation",
-  amendment: "Regulatory amendment",
-  amendment_reset: "Demo reset",
-  review: "Officer review",
-  report: "Compliance report generated",
+  extraction: "Extract",
+  evaluation: "Eval",
+  amendment: "Amendment",
+  amendment_reset: "Reset",
+  review: "Review",
+  report: "Report",
 };
 
 export function AuditPanel({ entries, health: _health }: Props) {
@@ -63,23 +63,18 @@ export function AuditPanel({ entries, health: _health }: Props) {
                       {formatAuditTime(e.created_at)}
                     </time>
                   </div>
-                  <p className="mt-0.5 text-xs leading-relaxed text-ink/80">{e.message}</p>
-                  <div className="mt-1 flex items-center gap-2 text-[10px] text-muted/70">
-                    <span>{formatActor(e.actor)}</span>
-                    <span>·</span>
-                    <span className="font-mono">{e.entity_ref}</span>
-                  </div>
+                  <p className="mt-0.5 font-mono text-[10px] text-muted tnum">{e.message}</p>
                   {e.meta && Object.keys(e.meta).length > 0 && (
-                    <div className="mt-2">
+                    <div className="mt-1">
                       <button
                         type="button"
                         onClick={() => setExpanded((id) => (id === e.id ? null : e.id))}
-                        className="text-[11px] font-medium text-gold hover:text-gold-400"
+                        className="text-[10px] font-medium text-gold hover:text-gold-400"
                       >
-                        {expanded === e.id ? "Hide metadata" : "Inspect metadata"}
+                        {expanded === e.id ? "Hide" : "Details"}
                       </button>
                       {expanded === e.id && (
-                        <pre className="mt-2 overflow-x-auto rounded border border-hair bg-canvas px-3 py-2 text-[10px] leading-relaxed text-muted">
+                        <pre className="mt-1.5 overflow-x-auto rounded border border-hair bg-canvas px-2 py-1.5 text-[10px] leading-relaxed text-muted">
                           {JSON.stringify(e.meta, null, 2)}
                         </pre>
                       )}

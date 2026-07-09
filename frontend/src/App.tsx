@@ -200,7 +200,7 @@ export default function App() {
     setGenerateMsg(null);
     try {
       const result = await api.generateReviewTasks(asOf);
-      setGenerateMsg(result.message);
+      setGenerateMsg(result.created ? `${result.created} task(s)` : "No new tasks");
       const [t, a] = await Promise.all([api.reviewTasks(), api.audit()]);
       setTasks(t);
       setAudit(a);
@@ -231,7 +231,7 @@ export default function App() {
       const filename = await api.downloadComplianceReport(asOf, officer);
       const a = await api.audit();
       setAudit(a);
-      setReportMsg(`Downloaded ${filename}. Logged in audit trail.`);
+      setReportMsg(`Downloaded ${filename}`);
       await refreshReportPreview(false);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Failed to generate report");
@@ -248,9 +248,7 @@ export default function App() {
       const result = await api.extractRules(sourceCircularId, circularText, true);
       setExtraction(result);
       setSelectedRule(result.rules[0] ?? null);
-      setIngestMessage(
-        `Extracted ${result.rules.length} rule(s); ${result.flagged_for_review} flagged for human review.`
-      );
+      setIngestMessage(`${result.rules.length} rules · ${result.flagged_for_review} review`);
       const a = await api.audit();
       setAudit(a);
     } catch (e) {
@@ -268,9 +266,7 @@ export default function App() {
       const result = await api.extractRulesFromUpload(sourceCircularId, file, true);
       setExtraction(result);
       setSelectedRule(result.rules[0] ?? null);
-      setIngestMessage(
-        `Extracted ${result.rules.length} rule(s) from ${file.name}; ${result.flagged_for_review} flagged for human review.`
-      );
+      setIngestMessage(`${result.rules.length} rules · ${result.flagged_for_review} review`);
       const a = await api.audit();
       setAudit(a);
     } catch (e) {
@@ -453,11 +449,6 @@ export default function App() {
         }}
       />
 
-      <footer className="border-t border-hair/30 bg-surface/40 px-6 py-2">
-        <p className="mx-auto max-w-[1440px] text-center text-[10px] text-muted/60">
-          Decision-support only · Officer sign-off required
-        </p>
-      </footer>
     </div>
   );
 }
@@ -495,8 +486,7 @@ function Header({
           <div>
             <h1 className="font-serif text-xl font-medium text-ink">Nirdesh</h1>
             <p className="text-xs text-muted">
-              SEBI ETF circular · Active as of{" "}
-              <span className="text-ink/80">{formatDate(asOf)}</span>
+              SEBI ETF · {formatDate(asOf)}
             </p>
           </div>
         </div>

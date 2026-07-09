@@ -70,8 +70,8 @@ def seed_rules(session) -> None:
             event_type="extraction",
             entity_ref=CIRCULAR_ID,
             message=(
-                f"Loaded {len(CANONICAL_RULES)} compliance rules from the verified circular "
-                f"({evaluable_count} evaluable, {review_count} flagged for human review)."
+                f"Loaded {len(CANONICAL_RULES)} rules "
+                f"({evaluable_count} evaluable · {review_count} review)"
             ),
             meta={
                 "source": "canonical_reviewed",

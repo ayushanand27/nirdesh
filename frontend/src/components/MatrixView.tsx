@@ -285,14 +285,11 @@ function FirmRow({
           className="text-left transition-colors hover:text-gold"
         >
           <div className="font-medium text-ink">{firm.name}</div>
-        {mode === "simple" ? (
-          <div className="mt-0.5 text-[11px] text-muted">{friendlyFirmType(firm)}</div>
-        ) : (
-          <div className="mt-1 space-y-0.5 font-mono text-[10px] text-muted">
-            <div>base={firm.profile.base_price_method ?? "—"}</div>
-            <div>type={firm.legal_type}</div>
-          </div>
-        )}
+          {mode === "technical" && (
+            <div className="mt-1 font-mono text-[10px] text-muted">
+              {firm.profile.base_price_method ?? "—"}
+            </div>
+          )}
         </button>
       </td>
       {rules.map((rule) => {
@@ -502,12 +499,6 @@ function Legend() {
       ))}
     </div>
   );
-}
-
-function friendlyFirmType(firm: Firm): string {
-  const types = firm.profile.offers_etf_types ?? [];
-  if (types.length === 0) return "No ETF offerings";
-  return types.map((t) => formatEntity(t)).join(", ");
 }
 
 function technicalField(rule: Rule): string {

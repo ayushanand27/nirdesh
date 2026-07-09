@@ -112,8 +112,7 @@ def _log_extraction(
             event_type="extraction",
             entity_ref=source_circular_id,
             message=(
-                f"Rule extraction completed for {source_circular_id}: "
-                f"{rules_count} rule(s), {flagged_for_review} flagged for human review."
+                f"Extracted {rules_count} rules · {flagged_for_review} for review"
             ),
             meta=meta,
             actor=actor,

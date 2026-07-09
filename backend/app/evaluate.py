@@ -227,10 +227,8 @@ def run_evaluation(
                     event_type="evaluation",
                     entity_ref=f"as_of={as_of}",
                     message=(
-                        f"Compliance evaluation as of {as_of}: "
-                        f"{len(firms)} firms × {len(rules)} active rules "
-                        f"({counts[BREACH]} breach, {counts[COMPLIANT]} compliant, "
-                        f"{counts[NOT_APPLICABLE]} N/A)."
+                        f"Eval {as_of}: {counts[BREACH]} breach · "
+                        f"{counts[COMPLIANT]} OK · {counts[NOT_APPLICABLE]} N/A"
                     ),
                     meta={
                         "as_of": as_of,

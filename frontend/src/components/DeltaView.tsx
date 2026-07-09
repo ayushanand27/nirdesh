@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import type { Delta, DeltaRuleChange, DeltaTransition } from "../types";
 import { StatusBadge } from "./StatusBadge";
-import { SourceCallout } from "./RuleDrawer";
 import { formatDate, formatTimestamp } from "../lib/status";
 
 interface Props {
@@ -261,19 +260,6 @@ function RuleChangeCard({
           >
             {change.new.value_summary}
           </div>
-          {change.new.source_text_span && (
-            <div
-              className={`mt-3 transition-all duration-700 ease-precise ${
-                revealed ? "opacity-100 translate-y-0" : "opacity-0 translate-y-1"
-              }`}
-              style={{ transitionDelay: revealed ? "450ms" : "0ms" }}
-            >
-              <SourceCallout
-                text={change.new.source_text_span}
-                clause={`§ ${change.new.clause_id}`}
-              />
-            </div>
-          )}
         </div>
       </div>
     </div>
@@ -291,8 +277,8 @@ function TransitionRow({ transition }: { transition: DeltaTransition }) {
         <div className="flex items-center gap-2">
           <span className="font-medium text-ink">{transition.firm_name}</span>
           {transition.newly_flagged && (
-            <span className="rounded bg-breach/15 px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-breach">
-              Newly flagged
+            <span className="rounded bg-breach/15 px-1.5 py-0.5 text-[9px] font-semibold uppercase text-breach">
+              New
             </span>
           )}
         </div>
@@ -317,22 +303,10 @@ function TransitionRow({ transition }: { transition: DeltaTransition }) {
 
 function DeltaTimeline() {
   return (
-    <div className="card-muted flex flex-wrap items-center gap-x-5 gap-y-1 px-4 py-2.5 text-[11px] text-muted">
-      <span className="font-mono text-xs text-ink/80 tnum">
-        HO/47/11/11(1)2026-MRD-POD3/I/13804/2026
-      </span>
-      <span className="hidden md:inline">Norms for ETF base price and price bands</span>
-      <div className="ml-auto flex flex-wrap items-center gap-4">
-        <span>
-          Issued <span className="text-ink/80">{formatDate("2026-06-15")}</span>
-        </span>
-        <span>
-          Phase 1 <span className="text-ink/80">{formatDate("2026-09-01")}</span>
-        </span>
-        <span>
-          Phase 2 <span className="text-ink/80">{formatDate("2027-04-01")}</span>
-        </span>
-      </div>
+    <div className="card-muted flex flex-wrap items-center gap-4 px-4 py-2 text-[11px] text-muted">
+      <span className="font-mono text-ink/80">MRD-POD3/2026</span>
+      <span>Ph1 {formatDate("2026-09-01")}</span>
+      <span>Ph2 {formatDate("2027-04-01")}</span>
     </div>
   );
 }

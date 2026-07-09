@@ -85,12 +85,9 @@ def generate_review_tasks(session: Session, as_of: str, actor: str = "system") -
                 continue
 
     if created:
-        message = (
-            f"{created} new review task(s) created for Compliance Officer sign-off. "
-            f"No automated action taken."
-        )
+        message = f"{created} task(s) created"
         if already_pending:
-            message += f" ({already_pending} already pending/signed off — not duplicated.)"
+            message += f" · {already_pending} existing"
         session.add(
             AuditLog(
                 event_type="review",
@@ -108,12 +105,9 @@ def generate_review_tasks(session: Session, as_of: str, actor: str = "system") -
         session.commit()
     elif already_pending:
         # Idempotent no-op: clear response, no second audit write.
-        message = (
-            f"No new tasks — {already_pending} already pending or signed off "
-            f"for current breaches as of {as_of}."
-        )
+        message = f"No new tasks · {already_pending} open"
     else:
-        message = f"No open breaches as of {as_of}; no review tasks to generate."
+        message = f"No breaches as of {as_of}"
 
     return {
         "as_of": as_of,
@@ -153,10 +147,7 @@ def mark_reviewed(session: Session, task_id: int, reviewed_by: str) -> dict:
         AuditLog(
             event_type="review",
             entity_ref=f"task={task_id}",
-            message=(
-                f"Task '{task.title}' marked reviewed by {officer}. "
-                f"Sign-off recorded; action authorised by human."
-            ),
+            message=f"Reviewed §{task.clause_id} · {task.firm_name}",
             meta={"task_id": task_id, "clause_id": task.clause_id, "firm": task.firm_name},
             actor=officer,
         )
