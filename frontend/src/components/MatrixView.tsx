@@ -12,7 +12,9 @@ interface Props {
   asOf: string;
   phase2Date: string;
   selectedRuleId: string | null;
+  selectedFirmId: number | null;
   onSelectRule: (rule: Rule) => void;
+  onSelectFirm: (firm: Firm) => void;
 }
 
 export function MatrixView({
@@ -22,7 +24,9 @@ export function MatrixView({
   asOf,
   phase2Date,
   selectedRuleId,
+  selectedFirmId,
   onSelectRule,
+  onSelectFirm,
 }: Props) {
   const { firms, rules, cells } = matrix;
   const [mode, setMode] = useState<ViewMode>("simple");
@@ -85,8 +89,8 @@ export function MatrixView({
           <div className="mt-1 flex flex-wrap items-center gap-2">
             <p className="text-[11px] text-muted">
               {mode === "simple"
-                ? "Plain-English posture across funds"
-                : "Machine fields · thresholds · actual vs expected"}
+                ? "Plain-English posture across funds · click a firm for its case file"
+                : "Machine fields · thresholds · actual vs expected · click a firm for case file"}
             </p>
             {flaggedRules.length > 0 && (
               <div className="relative" ref={flagRef}>
@@ -221,7 +225,9 @@ export function MatrixView({
                 recalcKey={recalcKey}
                 mode={mode}
                 popoverKey={popover?.key ?? null}
+                selected={selectedFirmId === firm.id}
                 onSelectRule={onSelectRule}
+                onSelectFirm={onSelectFirm}
                 onShowPopover={showPopover}
                 onScheduleHide={scheduleHide}
               />
@@ -251,7 +257,9 @@ function FirmRow({
   recalcKey,
   mode,
   popoverKey,
+  selected,
   onSelectRule,
+  onSelectFirm,
   onShowPopover,
   onScheduleHide,
 }: {
@@ -261,18 +269,25 @@ function FirmRow({
   recalcKey: number;
   mode: ViewMode;
   popoverKey: string | null;
+  selected: boolean;
   onSelectRule: (rule: Rule) => void;
+  onSelectFirm: (firm: Firm) => void;
   onShowPopover: (key: string, anchor: HTMLElement) => void;
   onScheduleHide: () => void;
 }) {
   return (
     <tr className="group">
       <td
-        className={`sticky left-0 z-10 border-b border-r bg-elevated/20 group-hover:bg-elevated/40 ${
-          mode === "technical" ? "border-hair/60 px-3 py-2" : "border-hair/30 px-5 py-4"
-        }`}
+        className={`sticky left-0 z-10 border-b border-r group-hover:bg-elevated/40 ${
+          selected ? "bg-gold/10" : "bg-elevated/20"
+        } ${mode === "technical" ? "border-hair/60 px-3 py-2" : "border-hair/30 px-5 py-4"}`}
       >
-        <div className="font-medium text-ink">{firm.name}</div>
+        <button
+          type="button"
+          onClick={() => onSelectFirm(firm)}
+          className="text-left transition-colors hover:text-gold"
+        >
+          <div className="font-medium text-ink">{firm.name}</div>
         {mode === "simple" ? (
           <div className="mt-0.5 text-[11px] text-muted">{friendlyFirmType(firm)}</div>
         ) : (
@@ -281,6 +296,7 @@ function FirmRow({
             <div>type={firm.legal_type}</div>
           </div>
         )}
+        </button>
       </td>
       {rules.map((rule) => {
         const cellKey = `${firm.id}:${rule.rule_id}`;

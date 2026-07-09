@@ -1,8 +1,10 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type { ExtractionResponse, Rule } from "../types";
 import { ConfidenceBar } from "./ConfidenceBar";
 import { SourceCallout } from "./RuleDrawer";
 import { formatClause, formatEntity } from "../lib/status";
+
+type ReviewDecision = "pending" | "approved" | "rejected";
 
 interface Props {
   extraction: ExtractionResponse | null;
@@ -27,6 +29,32 @@ export function IngestView({
   const [circularText, setCircularText] = useState("");
   const [file, setFile] = useState<File | null>(null);
   const [mode, setMode] = useState<"upload" | "paste">("upload");
+  const [reviewDecisions, setReviewDecisions] = useState<Record<string, ReviewDecision>>({});
+
+  useEffect(() => {
+    if (!extraction) {
+      setReviewDecisions({});
+      return;
+    }
+    const next: Record<string, ReviewDecision> = {};
+    for (const rule of extraction.rules) {
+      next[rule.rule_id] = rule.needs_human_review ? "pending" : "approved";
+    }
+    setReviewDecisions(next);
+  }, [extraction]);
+
+  const reviewStats = useMemo(() => {
+    const values = Object.values(reviewDecisions);
+    return {
+      approved: values.filter((v) => v === "approved").length,
+      rejected: values.filter((v) => v === "rejected").length,
+      pending: values.filter((v) => v === "pending").length,
+    };
+  }, [reviewDecisions]);
+
+  const setDecision = (ruleId: string, decision: ReviewDecision) => {
+    setReviewDecisions((prev) => ({ ...prev, [ruleId]: decision }));
+  };
 
   const { flagged, machineCheckable } = useMemo(() => {
     const rules = extraction?.rules ?? [];
@@ -82,6 +110,17 @@ export function IngestView({
               <div className="text-[11px] text-muted">rules extracted</div>
               <div className="mt-1 text-[11px] text-gold">
                 {extraction.flagged_for_review} flagged for review
+              </div>
+              <div className="mt-2 space-y-0.5 border-t border-hair pt-2 text-[10px] text-muted">
+                <div>
+                  <span className="text-compliant-text">{reviewStats.approved}</span> approved
+                </div>
+                <div>
+                  <span className="text-breach">{reviewStats.rejected}</span> rejected
+                </div>
+                <div>
+                  <span className="text-gold">{reviewStats.pending}</span> pending QA
+                </div>
               </div>
             </div>
           )}
@@ -168,6 +207,32 @@ export function IngestView({
 
       {extraction && (
         <>
+          <div className="card px-5 py-4">
+            <div className="label-caps mb-3">Extraction QA workflow</div>
+            <div className="flex flex-wrap items-center gap-2">
+              <WorkflowStep n={1} label="Draft extracted" active />
+              <Arrow />
+              <WorkflowStep
+                n={2}
+                label="Officer review"
+                active={reviewStats.pending > 0}
+                done={reviewStats.pending === 0 && extraction.flagged_for_review > 0}
+              />
+              <Arrow />
+              <WorkflowStep
+                n={3}
+                label="Active ruleset"
+                active={reviewStats.pending === 0}
+                done={reviewStats.rejected === 0 && reviewStats.pending === 0}
+              />
+            </div>
+            <p className="mt-3 text-xs text-muted">
+              Approve or reject each flagged clause before promoting to the canonical ruleset.
+              In this demo build, QA decisions are shown in the UI only — the matrix still uses
+              the seeded human-reviewed ruleset.
+            </p>
+          </div>
+
           <div className="grid gap-4 lg:grid-cols-2">
             <RulesSection
               title="Machine-checkable obligations"
@@ -196,7 +261,13 @@ export function IngestView({
             </div>
             <div className="space-y-3">
               {extraction.rules.map((rule) => (
-                <RuleCard key={rule.rule_id} rule={rule} onSelectRule={onSelectRule} />
+                <RuleCard
+                  key={rule.rule_id}
+                  rule={rule}
+                  decision={reviewDecisions[rule.rule_id] ?? "pending"}
+                  onDecisionChange={setDecision}
+                  onSelectRule={onSelectRule}
+                />
               ))}
             </div>
           </div>
@@ -285,13 +356,25 @@ function RulesSection({
 
 function RuleCard({
   rule,
+  decision,
+  onDecisionChange,
   onSelectRule,
 }: {
   rule: Rule;
+  decision: ReviewDecision;
+  onDecisionChange: (ruleId: string, decision: ReviewDecision) => void;
   onSelectRule: (rule: Rule) => void;
 }) {
   return (
-    <div className="rounded-card border border-hair bg-canvas px-4 py-4">
+    <div
+      className={`rounded-card border bg-canvas px-4 py-4 ${
+        decision === "approved"
+          ? "border-compliant/30"
+          : decision === "rejected"
+            ? "border-breach/30 opacity-80"
+            : "border-hair"
+      }`}
+    >
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="min-w-0">
           <div className="flex flex-wrap items-center gap-2">
@@ -304,6 +387,16 @@ function RuleCard({
             {rule.needs_human_review && (
               <span className="rounded bg-gold/15 px-1.5 py-0.5 text-[10px] font-medium text-gold">
                 Human review required
+              </span>
+            )}
+            {decision === "approved" && (
+              <span className="rounded bg-compliant-bg px-1.5 py-0.5 text-[10px] font-medium text-compliant-text">
+                Approved
+              </span>
+            )}
+            {decision === "rejected" && (
+              <span className="rounded bg-breach-bg px-1.5 py-0.5 text-[10px] font-medium text-breach-text">
+                Rejected
               </span>
             )}
           </div>
@@ -319,6 +412,39 @@ function RuleCard({
           View rule detail
         </button>
       </div>
+
+      {rule.needs_human_review && (
+        <div className="mt-3 flex flex-wrap gap-2">
+          <button
+            onClick={() => onDecisionChange(rule.rule_id, "approved")}
+            className={`rounded border px-2.5 py-1 text-[11px] font-medium transition-colors ${
+              decision === "approved"
+                ? "border-compliant bg-compliant-bg text-compliant-text"
+                : "border-hair text-muted hover:border-compliant/40 hover:text-compliant-text"
+            }`}
+          >
+            Approve for ruleset
+          </button>
+          <button
+            onClick={() => onDecisionChange(rule.rule_id, "rejected")}
+            className={`rounded border px-2.5 py-1 text-[11px] font-medium transition-colors ${
+              decision === "rejected"
+                ? "border-breach bg-breach-bg text-breach-text"
+                : "border-hair text-muted hover:border-breach/40 hover:text-breach"
+            }`}
+          >
+            Reject / needs edit
+          </button>
+          {decision !== "pending" && (
+            <button
+              onClick={() => onDecisionChange(rule.rule_id, "pending")}
+              className="rounded border border-hair px-2.5 py-1 text-[11px] text-muted hover:text-ink"
+            >
+              Reset
+            </button>
+          )}
+        </div>
+      )}
 
       <div className="mt-3 grid gap-3 lg:grid-cols-[140px_1fr]">
         <div>
@@ -347,5 +473,46 @@ function RuleCard({
         </div>
       )}
     </div>
+  );
+}
+
+function WorkflowStep({
+  n,
+  label,
+  active,
+  done,
+}: {
+  n: number;
+  label: string;
+  active?: boolean;
+  done?: boolean;
+}) {
+  return (
+    <div
+      className={`flex items-center gap-2 rounded border px-3 py-2 ${
+        done
+          ? "border-compliant/30 bg-compliant-bg/40"
+          : active
+            ? "border-gold/30 bg-gold/10"
+            : "border-hair bg-canvas"
+      }`}
+    >
+      <span
+        className={`flex h-5 w-5 items-center justify-center rounded-full font-mono text-[10px] font-semibold ${
+          done ? "bg-compliant text-canvas" : active ? "bg-gold text-canvas" : "bg-surface text-muted"
+        }`}
+      >
+        {n}
+      </span>
+      <span className="text-xs font-medium text-ink">{label}</span>
+    </div>
+  );
+}
+
+function Arrow() {
+  return (
+    <svg className="h-3.5 w-3.5 text-muted/50" viewBox="0 0 16 16" fill="none">
+      <path d="M6 3l5 5-5 5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+    </svg>
   );
 }

@@ -5,6 +5,7 @@ import { DeltaView } from "./components/DeltaView";
 import { IngestView } from "./components/IngestView";
 import { MatrixView } from "./components/MatrixView";
 import { ReportPreview } from "./components/ReportPreview";
+import { FirmCaseDrawer } from "./components/FirmCaseDrawer";
 import { RuleDrawer } from "./components/RuleDrawer";
 import { SignoffView } from "./components/SignoffView";
 import { STATUS_META, formatDate } from "./lib/status";
@@ -15,6 +16,7 @@ import type {
   Delta,
   ExtractionResponse,
   Matrix,
+  Firm,
   ReviewTask,
   Rule,
 } from "./types";
@@ -34,6 +36,7 @@ export default function App() {
   const [officer, setOfficer] = useState("A. Sharma");
   const [generating, setGenerating] = useState(false);
   const [selectedRule, setSelectedRule] = useState<Rule | null>(null);
+  const [selectedFirm, setSelectedFirm] = useState<Firm | null>(null);
   const [recalcKey, setRecalcKey] = useState(0);
   const [loading, setLoading] = useState(true);
   const [evaluating, setEvaluating] = useState(false);
@@ -375,7 +378,9 @@ export default function App() {
                     asOf={asOf}
                     phase2Date={PHASE2}
                     selectedRuleId={selectedRule?.rule_id ?? null}
+                    selectedFirmId={selectedFirm?.id ?? null}
                     onSelectRule={setSelectedRule}
+                    onSelectFirm={setSelectedFirm}
                   />
                 </div>
                 <AuditPanel entries={audit} health={health} />
@@ -441,6 +446,18 @@ export default function App() {
         firms={drawerFirms}
         cells={drawerCells}
         onClose={() => setSelectedRule(null)}
+      />
+
+      <FirmCaseDrawer
+        firm={selectedFirm}
+        matrix={matrix}
+        tasks={tasks}
+        asOf={asOf}
+        onClose={() => setSelectedFirm(null)}
+        onOpenRule={(rule) => {
+          setSelectedFirm(null);
+          setSelectedRule(rule);
+        }}
       />
 
       <footer className="border-t border-hair/30 bg-surface/40 px-6 py-3">
