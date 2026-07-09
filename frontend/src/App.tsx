@@ -8,7 +8,7 @@ import { ReportPreview } from "./components/ReportPreview";
 import { FirmCaseDrawer } from "./components/FirmCaseDrawer";
 import { RuleDrawer } from "./components/RuleDrawer";
 import { SignoffView } from "./components/SignoffView";
-import { STATUS_META, formatDate } from "./lib/status";
+import { STATUS_META, formatAuditTime, formatDate } from "./lib/status";
 import type {
   AuditEntry,
   CellStatus,
@@ -58,6 +58,9 @@ export default function App() {
   const pendingTasks = tasks.filter(
     (t) => t.status === "pending" && t.as_of_date === asOf
   ).length;
+
+  const lastEvaluationAt =
+    audit.find((e) => e.event_type === "evaluation")?.created_at ?? null;
 
   const load = useCallback(async (date: string) => {
     setLoading(true);
@@ -316,20 +319,10 @@ export default function App() {
         pendingTasks={pendingTasks}
       />
 
-      <Stepper
-        view={view}
-        onSelect={setView}
-        onDeltaClick={handlePreviewDelta}
-        onReportClick={openReportView}
-      />
-
       <main className="mx-auto max-w-[1440px] px-6 py-4">
         {error && (
           <div className="mb-4 rounded border border-breach/30 bg-breach-bg px-4 py-3 text-sm text-breach-text">
             {error}
-            <span className="ml-2 text-xs text-muted">
-              — If the API just woke from sleep, wait ~30s and refresh.
-            </span>
           </div>
         )}
 
@@ -349,6 +342,10 @@ export default function App() {
 
         {view === "dashboard" && (
           <>
+            {matrix && (
+              <ContextBar matrix={matrix} lastEvaluationAt={lastEvaluationAt} />
+            )}
+
             {matrix && <StatsBar matrix={matrix} />}
 
             <div className="mt-3 flex items-center justify-between">
@@ -363,9 +360,7 @@ export default function App() {
             </div>
 
             {loading && !matrix ? (
-              <div className="mt-12 text-center text-sm text-muted">
-                Loading compliance data…
-              </div>
+              <MatrixSkeleton />
             ) : matrix ? (
               <div className="mt-4 grid grid-cols-1 gap-4 xl:grid-cols-[1fr_300px]">
                 <div className="space-y-2">
@@ -540,75 +535,31 @@ function Header({
   );
 }
 
-function Stepper({
-  view,
-  onSelect,
-  onDeltaClick,
-  onReportClick,
+function ContextBar({
+  matrix,
+  lastEvaluationAt,
 }: {
-  view: View;
-  onSelect: (v: View) => void;
-  onDeltaClick: () => void;
-  onReportClick: () => void;
+  matrix: Matrix;
+  lastEvaluationAt: string | null;
 }) {
-  const steps: { id: View; n: number; label: string }[] = [
-    { id: "ingest", n: 1, label: "Ingest" },
-    { id: "dashboard", n: 2, label: "Matrix" },
-    { id: "delta", n: 3, label: "What Changed" },
-    { id: "signoff", n: 4, label: "Officer Review" },
-    { id: "report", n: 5, label: "Evidence Pack" },
-  ];
   return (
-    <div className="border-b border-hair/30 bg-surface/40">
-      <div className="mx-auto flex max-w-[1440px] items-center gap-1 overflow-x-auto px-6 py-2">
-        {steps.map((s, i) => {
-          const active = view === s.id;
-          return (
-            <div key={s.id} className="flex shrink-0 items-center">
-              <button
-                onClick={() =>
-                  s.id === "delta"
-                    ? onDeltaClick()
-                    : s.id === "report"
-                      ? onReportClick()
-                      : onSelect(s.id)
-                }
-                className={`group flex items-center gap-2 rounded px-2.5 py-1 transition-colors ${
-                  active ? "" : "hover:bg-elevated"
-                }`}
-              >
-                <span
-                  className={`flex h-5 w-5 items-center justify-center rounded-full font-mono text-[11px] font-semibold tnum transition-colors ${
-                    active
-                      ? "bg-gold text-canvas"
-                      : "border border-hair bg-canvas text-muted group-hover:text-ink"
-                  }`}
-                >
-                  {s.n}
-                </span>
-                <span
-                  className={`text-xs font-medium transition-colors ${
-                    active ? "text-gold" : "text-muted group-hover:text-ink"
-                  }`}
-                >
-                  {s.label}
-                </span>
-              </button>
-              {i < steps.length - 1 && (
-                <svg className="mx-1 h-3.5 w-3.5 text-muted/50" viewBox="0 0 16 16" fill="none">
-                  <path
-                    d="M6 3l5 5-5 5"
-                    stroke="currentColor"
-                    strokeWidth="1.5"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                </svg>
-              )}
-            </div>
-          );
-        })}
-      </div>
+    <div className="mb-3 flex flex-wrap items-center justify-between gap-2 font-mono text-[11px] text-muted">
+      <span className="tnum">
+        MRD-POD3/2026 · {matrix.firms.length} firms × {matrix.rules.length} rules · as of{" "}
+        {formatDate(matrix.as_of)}
+      </span>
+      {lastEvaluationAt && (
+        <span className="tnum">Last evaluation {formatAuditTime(lastEvaluationAt)}</span>
+      )}
+    </div>
+  );
+}
+
+function MatrixSkeleton() {
+  return (
+    <div className="mt-4 animate-pulse space-y-3">
+      <div className="h-10 rounded border border-hair bg-surface" />
+      <div className="h-64 rounded border border-hair bg-surface" />
     </div>
   );
 }

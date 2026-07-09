@@ -42,15 +42,6 @@ export function SignoffView({
 
   return (
     <div className="space-y-5">
-      {/* Decision-support banner — unmissable */}
-      <div className="rounded-card border border-hair border-l-4 border-l-gold bg-gold/[0.04] px-5 py-3">
-        <p className="text-sm text-muted">
-          <span className="font-medium text-ink">Decision-support only</span> — officer
-          sign-off required before action.
-        </p>
-      </div>
-
-      {/* Officer identity + generate */}
       <div className="card flex flex-wrap items-end justify-between gap-4 px-5 py-4">
         <div>
           <label className="label-caps mb-1.5 block">Compliance officer</label>
@@ -177,13 +168,13 @@ function TaskCard({
           <h4 className="mt-1.5 text-sm font-medium text-ink">{task.title}</h4>
           {rule && (
             <div className="mt-2 rounded border border-hair bg-surface px-3 py-2">
-              <div className="label-caps mb-0.5">Underlying obligation</div>
+              <div className="label-caps mb-0.5">Obligation</div>
               <p className="text-sm text-ink">{rule.plain_label ?? rule.plain_description}</p>
             </div>
           )}
           {cell && (
             <div className="mt-2 rounded border border-hair bg-canvas px-3 py-2">
-              <div className="label-caps mb-0.5">Deterministic breach evidence</div>
+              <div className="label-caps mb-0.5">Evidence</div>
               <p className="text-xs text-ink">
                 Actual: <span className="font-mono">{stringify(cell.detail.actual)}</span>
                 {" · "}
@@ -195,7 +186,7 @@ function TaskCard({
             </div>
           )}
           <div className="mt-2 rounded border border-hair bg-canvas px-3 py-2">
-            <div className="label-caps mb-0.5">Recommended action</div>
+            <div className="label-caps mb-0.5">Required action</div>
             <p className="text-sm text-ink">{task.recommended_action}</p>
           </div>
           {rule?.source_text_span && (

@@ -1,7 +1,7 @@
 import { useState } from "react";
 import type { Health } from "../api";
 import type { AuditEntry } from "../types";
-import { formatActor, formatTimestamp } from "../lib/status";
+import { formatActor, formatAuditTime } from "../lib/status";
 
 interface Props {
   entries: AuditEntry[];
@@ -59,8 +59,8 @@ export function AuditPanel({ entries, health: _health }: Props) {
                     <span className="text-xs font-medium text-ink/90">
                       {EVENT_LABELS[e.event_type] ?? e.event_type}
                     </span>
-                    <time className="shrink-0 text-[10px] text-muted">
-                      {formatTimestamp(e.created_at)}
+                    <time className="shrink-0 font-mono text-[10px] text-muted tnum">
+                      {formatAuditTime(e.created_at)}
                     </time>
                   </div>
                   <p className="mt-0.5 text-xs leading-relaxed text-ink/80">{e.message}</p>

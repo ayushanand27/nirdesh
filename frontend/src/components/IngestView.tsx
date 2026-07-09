@@ -81,7 +81,7 @@ export function IngestView({
         <div>
           <h2 className="font-serif text-lg text-ink">Circular ingest</h2>
           <p className="mt-0.5 text-xs text-muted">
-            PDF or text → structured rules · matrix uses seeded canonical ruleset
+            Extraction preview · matrix uses seeded ruleset
           </p>
         </div>
           {extraction && (
@@ -177,20 +177,25 @@ export function IngestView({
       {extraction && (
         <>
           <div className="card px-5 py-4">
-            <div className="label-caps mb-3">Extraction QA workflow</div>
+            <div className="mb-3 flex items-center gap-2">
+              <div className="label-caps">Review status</div>
+              <span className="rounded bg-canvas px-1.5 py-0.5 text-[9px] text-muted">
+                Preview only
+              </span>
+            </div>
             <div className="flex flex-wrap items-center gap-2">
-              <WorkflowStep n={1} label="Draft extracted" active />
+              <WorkflowStep n={1} label="Extracted" active />
               <Arrow />
               <WorkflowStep
                 n={2}
-                label="Officer review"
+                label="Review"
                 active={reviewStats.pending > 0}
                 done={reviewStats.pending === 0 && extraction.flagged_for_review > 0}
               />
               <Arrow />
               <WorkflowStep
                 n={3}
-                label="Active ruleset"
+                label="Active"
                 active={reviewStats.pending === 0}
                 done={reviewStats.rejected === 0 && reviewStats.pending === 0}
               />
@@ -342,7 +347,7 @@ function RuleCard({
             </span>
             {rule.needs_human_review && (
               <span className="rounded bg-gold/15 px-1.5 py-0.5 text-[10px] font-medium text-gold">
-                Human review required
+                Human review
               </span>
             )}
             {decision === "approved" && (

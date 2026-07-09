@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import type { Cell, Firm, Rule } from "../types";
 import { ConfidenceBar } from "./ConfidenceBar";
 import { StatusBadge } from "./StatusBadge";
@@ -12,6 +13,15 @@ interface Props {
 
 export function RuleDrawer({ rule, firms, cells, onClose }: Props) {
   const open = rule !== null;
+
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [open, onClose]);
 
   return (
     <>
@@ -79,11 +89,11 @@ function RuleDetail({
       </header>
 
       <div className="flex-1 overflow-y-auto px-6 py-5">
-        <Section label="Plain-language obligation">
-          <p className="text-sm leading-relaxed text-ink">{rule.plain_description}</p>
+        <Section label="Obligation">
+          <p className="text-sm text-ink">{rule.plain_description}</p>
         </Section>
 
-        <Section label="Extracted condition — machine-checkable">
+        <Section label="Condition">
           {rule.condition ? (
             <div className="rounded border border-hair bg-canvas px-3 py-2.5 font-mono text-xs text-ink">
               <span className="text-muted">{rule.condition.field}</span>{" "}
@@ -94,7 +104,7 @@ function RuleDetail({
             </div>
           ) : (
             <div className="rounded border border-gold/30 bg-gold/10 px-3 py-2.5 text-xs text-ink">
-              No objectively checkable condition — routed to human review.
+              Not machine-checkable
             </div>
           )}
         </Section>
@@ -122,16 +132,16 @@ function RuleDetail({
 
         {rule.needs_human_review && (
           <div className="mb-5 rounded border border-gold/30 bg-gold/10 px-3 py-2.5">
-            <div className="label-caps mb-1 text-gold">Flagged for human review</div>
-            <p className="text-xs text-ink">{rule.review_reason ?? "Requires officer verification."}</p>
+            <div className="label-caps mb-1 text-gold">Review required</div>
+            <p className="text-xs text-ink">{rule.review_reason ?? "Officer verification required."}</p>
           </div>
         )}
 
         <Section label="Required action">
-          <p className="text-sm leading-relaxed text-ink">{rule.required_action}</p>
+          <p className="text-sm text-ink">{rule.required_action}</p>
         </Section>
 
-        <Section label={`Affected firms (${related.length})`}>
+        <Section label={`Firms (${related.length})`}>
           <div className="space-y-1.5">
             {related.map((c) => {
               const firm = firmById.get(c.firm_id);
@@ -149,13 +159,6 @@ function RuleDetail({
           </div>
         </Section>
       </div>
-
-      <footer className="border-t border-hair px-6 py-3">
-        <p className="text-[11px] leading-relaxed text-muted">
-          Decision-support only. All determinations are computed deterministically and
-          require Compliance Officer sign-off before any action.
-        </p>
-      </footer>
     </>
   );
 }
@@ -176,7 +179,7 @@ export function SourceCallout({
           <path d="M5.5 3C3.6 3 2 4.6 2 6.5c0 1.7 1.2 3.1 2.8 3.4-.1 1.3-.7 2.2-1.8 2.8l.6 1.3c2.1-1 3.4-2.8 3.4-5.6V6.5C7 4.6 5.4 3 5.5 3zm7 0C10.6 3 9 4.6 9 6.5c0 1.7 1.2 3.1 2.8 3.4-.1 1.3-.7 2.2-1.8 2.8l.6 1.3c2.1-1 3.4-2.8 3.4-5.6V6.5C14 4.6 12.4 3 12.5 3z" />
         </svg>
         <span className="text-[11px] font-semibold uppercase tracking-[0.12em] text-gold">
-          Source — verbatim from circular
+          Source citation
         </span>
       </div>
       <div className="px-4 py-3">

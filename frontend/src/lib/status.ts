@@ -53,6 +53,20 @@ export function formatDate(iso: string | null): string {
   });
 }
 
+/** Absolute timestamp for audit / compliance logs. */
+export function formatAuditTime(iso: string | null): string {
+  if (!iso) return "—";
+  const d = new Date(iso.length <= 10 ? `${iso}T00:00:00` : iso);
+  return d.toLocaleString("en-IN", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+    hour12: true,
+  });
+}
+
 /** Human-readable relative time — no seconds. */
 export function formatTimestamp(iso: string | null): string {
   if (!iso) return "—";

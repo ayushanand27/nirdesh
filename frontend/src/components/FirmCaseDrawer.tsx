@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import type { Firm, Matrix, ReviewTask, Rule } from "../types";
 import { formatClause, formatDate, formatEntity } from "../lib/status";
 import { SourceCallout } from "./RuleDrawer";
@@ -14,6 +15,15 @@ interface Props {
 
 export function FirmCaseDrawer({ firm, matrix, tasks, asOf, onClose, onOpenRule }: Props) {
   const open = firm !== null && matrix !== null;
+
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [open, onClose]);
 
   return (
     <>
@@ -69,7 +79,7 @@ function FirmCaseDetail({
     <>
       <header className="flex items-start justify-between border-b border-hair px-6 py-5">
         <div>
-          <div className="label-caps">Firm case file</div>
+          <div className="label-caps">Firm</div>
           <h2 className="mt-1 font-serif text-xl text-ink">{firm.name}</h2>
           <p className="mt-1 text-xs text-muted">
             {formatEntity(firm.profile.offers_etf_types ?? []) || "No ETF offerings"} ·{" "}
@@ -88,7 +98,7 @@ function FirmCaseDetail({
       </header>
 
       <div className="flex-1 overflow-y-auto px-6 py-5">
-        <Section label="Firm profile (deterministic inputs)">
+        <Section label="Profile">
           <div className="rounded border border-hair bg-canvas px-3 py-2.5 font-mono text-xs text-ink">
             <div>base_price_method = {firm.profile.base_price_method ?? "—"}</div>
             <div className="mt-1">

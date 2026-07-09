@@ -220,8 +220,7 @@ function RuleChangeCard({
       <div className="grid grid-cols-1 gap-0 md:grid-cols-[1fr_auto_1fr]">
         {/* Old value */}
         <div className="border-b border-hair px-5 py-4 md:border-b-0 md:border-r">
-          <div className="label-caps mb-2">Previous obligation</div>
-          <p className="text-sm text-muted">{change.old.plain_description}</p>
+          <div className="label-caps mb-2">Previous</div>
           <div
             className={`mt-3 font-mono text-base font-medium text-muted transition-all duration-700 ease-precise ${
               revealed ? "line-through opacity-60" : ""
@@ -253,8 +252,7 @@ function RuleChangeCard({
 
         {/* New value */}
         <div className="px-5 py-4">
-          <div className="label-caps mb-2 text-gold">New obligation</div>
-          <p className="text-sm text-ink">{change.new.plain_description}</p>
+          <div className="label-caps mb-2 text-gold">New</div>
           <div
             className={`mt-3 font-mono text-base font-semibold transition-all duration-700 ease-precise ${
               revealed ? "text-gold opacity-100" : "text-ink opacity-40"
