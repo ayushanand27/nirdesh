@@ -176,8 +176,8 @@ export function IngestView({
           <div className="card px-5 py-4">
             <div className="mb-3 flex items-center gap-2">
               <div className="label-caps">Review status</div>
-              <span className="rounded bg-canvas px-1.5 py-0.5 text-[9px] text-muted">
-                Preview only
+              <span className="rounded border border-hair bg-canvas px-1.5 py-0.5 text-[9px] text-muted">
+                Draft — not persisted
               </span>
             </div>
             <div className="flex flex-wrap items-center gap-2">

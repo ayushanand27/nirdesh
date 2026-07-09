@@ -1,4 +1,5 @@
 import type { ComplianceReport } from "../types";
+import { formatComparison } from "../lib/displayValue";
 import { formatClause, formatDate } from "../lib/status";
 import { StatusBadge } from "./StatusBadge";
 
@@ -110,8 +111,8 @@ export function ReportPreview({
                         </span>
                       </div>
                       {breach.detail?.actual !== undefined && (
-                        <div className="mt-1 font-mono text-[11px] text-muted">
-                          {stringify(breach.detail.actual)} → {stringify(breach.detail.expected)}
+                        <div className="mt-1 text-xs text-muted">
+                          {formatComparison(breach.detail.actual, breach.detail.expected)}
                         </div>
                       )}
                     </div>
@@ -190,12 +191,3 @@ function Metric({
   );
 }
 
-function stringify(value: unknown): string {
-  if (value == null) return "—";
-  if (typeof value === "string") return value;
-  try {
-    return JSON.stringify(value);
-  } catch {
-    return String(value);
-  }
-}

@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { Cell, CellDetail, CellStatus, Firm, Matrix, Rule } from "../types";
+import { formatComparison, formatDisplayValue } from "../lib/displayValue";
 import { STATUS_META, formatClause, formatDate, formatEntity } from "../lib/status";
 import { exportMatrixCsv } from "../lib/exportMatrix";
 import { SourcePopover } from "./SourcePopover";
@@ -521,25 +522,15 @@ function thresholdSummary(rule: Rule): string {
 }
 
 function technicalCellLine(detail: CellDetail | undefined, status: CellStatus): string {
-  if (status === "not_applicable") return "out of scope";
+  if (status === "not_applicable") return "Out of scope";
   if (!detail) return "—";
   if (detail.actual != null && detail.expected != null) {
-    const a = stringify(detail.actual);
-    const e = stringify(detail.expected);
-    if (a === e) return `actual=${a}`;
-    return `${a} ≠ ${e}`;
+    const a = formatDisplayValue(detail.actual);
+    const e = formatDisplayValue(detail.expected);
+    if (a === e) return a;
+    return formatComparison(detail.actual, detail.expected);
   }
-  if (detail.actual != null) return `actual=${stringify(detail.actual)}`;
-  if (detail.reason) return detail.reason.slice(0, 28);
-  return "checked";
-}
-
-function stringify(v: unknown): string {
-  if (typeof v === "string") return v.length > 22 ? `${v.slice(0, 20)}…` : v;
-  try {
-    const s = JSON.stringify(v);
-    return s.length > 22 ? `${s.slice(0, 20)}…` : s;
-  } catch {
-    return String(v);
-  }
+  if (detail.actual != null) return formatDisplayValue(detail.actual);
+  if (detail.reason) return detail.reason.slice(0, 32);
+  return "Checked";
 }

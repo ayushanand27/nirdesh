@@ -1,5 +1,6 @@
 import { useState } from "react";
 import type { Matrix, ReviewTask, Rule } from "../types";
+import { formatComparison } from "../lib/displayValue";
 import { formatTimestamp } from "../lib/status";
 
 interface Props {
@@ -161,8 +162,8 @@ function TaskCard({
           </div>
           <h4 className="mt-1 text-sm font-medium text-ink">{task.title}</h4>
           {cell && (
-            <p className="mt-1.5 font-mono text-[11px] text-muted">
-              {stringify(cell.detail.actual)} → {stringify(cell.detail.expected)}
+            <p className="mt-1.5 text-xs text-muted">
+              {formatComparison(cell.detail.actual, cell.detail.expected)}
             </p>
           )}
         </div>
@@ -217,12 +218,3 @@ function CheckIcon() {
   );
 }
 
-function stringify(value: unknown): string {
-  if (value == null) return "—";
-  if (typeof value === "string") return value;
-  try {
-    return JSON.stringify(value);
-  } catch {
-    return String(value);
-  }
-}

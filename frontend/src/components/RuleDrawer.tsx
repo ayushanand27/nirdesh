@@ -2,6 +2,11 @@ import { useEffect } from "react";
 import type { Cell, Firm, Rule } from "../types";
 import { ConfidenceBar } from "./ConfidenceBar";
 import { StatusBadge } from "./StatusBadge";
+import {
+  formatConditionValue,
+  formatFieldLabel,
+  formatOperator,
+} from "../lib/displayValue";
 import { formatClause, formatDate, formatEntity } from "../lib/status";
 
 interface Props {
@@ -95,13 +100,20 @@ function RuleDetail({
 
         <Section label="Condition">
           {rule.condition ? (
-            <div className="rounded border border-hair bg-canvas px-3 py-2.5 font-mono text-xs text-ink">
-              <span className="text-muted">{rule.condition.field}</span>{" "}
-              <span className="text-gold">{rule.condition.operator}</span>{" "}
-              <span className="text-compliant-text">
-                {JSON.stringify(rule.condition.value)}
-              </span>
-            </div>
+            <dl className="space-y-1.5 rounded border border-hair bg-canvas px-3 py-2.5">
+              <div className="grid grid-cols-[minmax(6rem,auto)_1fr] gap-x-3 text-xs">
+                <dt className="text-muted">Field</dt>
+                <dd className="text-ink">{formatFieldLabel(rule.condition.field)}</dd>
+              </div>
+              <div className="grid grid-cols-[minmax(6rem,auto)_1fr] gap-x-3 text-xs">
+                <dt className="text-muted">Check</dt>
+                <dd className="text-ink">{formatOperator(rule.condition.operator)}</dd>
+              </div>
+              <div className="grid grid-cols-[minmax(6rem,auto)_1fr] gap-x-3 text-xs">
+                <dt className="text-muted">Required</dt>
+                <dd className="font-medium text-ink">{formatConditionValue(rule.condition.value)}</dd>
+              </div>
+            </dl>
           ) : (
             <div className="rounded border border-gold/30 bg-gold/10 px-3 py-2.5 text-xs text-ink">
               Not machine-checkable

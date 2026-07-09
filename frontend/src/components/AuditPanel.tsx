@@ -1,7 +1,8 @@
 import { useState } from "react";
 import type { Health } from "../api";
 import type { AuditEntry } from "../types";
-import { formatAuditTime } from "../lib/status";
+import { auditMetaRows } from "../lib/auditMeta";
+import { formatActor, formatAuditTime } from "../lib/status";
 
 interface Props {
   entries: AuditEntry[];
@@ -48,46 +49,72 @@ export function AuditPanel({ entries, health: _health }: Props) {
           <p className="py-8 text-center text-sm text-muted">No events recorded yet.</p>
         ) : (
           <ol className="relative space-y-0">
-            {visible.map((e, i) => (
-              <li key={e.id} className="relative flex gap-3 pb-4">
-                {i < visible.length - 1 && (
-                  <span className="absolute left-[5px] top-3 h-full w-px bg-hair/40" />
-                )}
-                <span className="relative z-10 mt-1.5 h-2.5 w-2.5 shrink-0 rounded-full border-2 border-gold/60 bg-surface" />
-                <div className="min-w-0 flex-1">
-                  <div className="flex items-baseline justify-between gap-2">
-                    <span className="text-xs font-medium text-ink/90">
-                      {EVENT_LABELS[e.event_type] ?? e.event_type}
-                    </span>
-                    <time className="shrink-0 font-mono text-[10px] text-muted tnum">
-                      {formatAuditTime(e.created_at)}
-                    </time>
-                  </div>
-                  <p className="mt-0.5 font-mono text-[10px] text-muted tnum">{e.message}</p>
-                  {e.meta && Object.keys(e.meta).length > 0 && (
-                    <div className="mt-1">
-                      <button
-                        type="button"
-                        onClick={() => setExpanded((id) => (id === e.id ? null : e.id))}
-                        className="text-[10px] font-medium text-gold hover:text-gold-400"
-                      >
-                        {expanded === e.id ? "Hide" : "Details"}
-                      </button>
-                      {expanded === e.id && (
-                        <pre className="mt-1.5 overflow-x-auto rounded border border-hair bg-canvas px-2 py-1.5 text-[10px] leading-relaxed text-muted">
-                          {JSON.stringify(e.meta, null, 2)}
-                        </pre>
-                      )}
-                    </div>
+            {visible.map((e, i) => {
+              const detailRows = auditMetaRows(e.event_type, e.meta);
+              const hasDetails = detailRows.length > 0;
+
+              return (
+                <li key={e.id} className="relative flex gap-3 pb-4">
+                  {i < visible.length - 1 && (
+                    <span className="absolute left-[5px] top-3 h-full w-px bg-hair/40" />
                   )}
-                </div>
-              </li>
-            ))}
+                  <span className="relative z-10 mt-1.5 h-2.5 w-2.5 shrink-0 rounded-full border-2 border-gold/60 bg-surface" />
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-baseline justify-between gap-2">
+                      <span className="text-xs font-medium text-ink/90">
+                        {EVENT_LABELS[e.event_type] ?? e.event_type}
+                      </span>
+                      <time className="shrink-0 font-mono text-[10px] text-muted tnum">
+                        {formatAuditTime(e.created_at)}
+                      </time>
+                    </div>
+                    <p className="mt-0.5 text-xs leading-snug text-ink/80">{e.message}</p>
+                    {e.actor && (
+                      <p className="mt-0.5 text-[10px] text-muted">
+                        By {formatActor(e.actor)}
+                        {e.entity_ref ? ` · ${formatEntityRef(e.entity_ref)}` : null}
+                      </p>
+                    )}
+                    {hasDetails && (
+                      <div className="mt-1.5">
+                        <button
+                          type="button"
+                          onClick={() => setExpanded((id) => (id === e.id ? null : e.id))}
+                          className="text-[10px] font-medium text-gold hover:text-gold-400"
+                        >
+                          {expanded === e.id ? "Close" : "Details"}
+                        </button>
+                        {expanded === e.id && (
+                          <dl className="mt-1.5 space-y-1 rounded border border-hair/60 bg-canvas/80 px-2.5 py-2">
+                            {detailRows.map((row) => (
+                              <div
+                                key={`${row.label}-${row.value}`}
+                                className="grid grid-cols-[minmax(5rem,auto)_1fr] gap-x-3 gap-y-0.5 text-[10px]"
+                              >
+                                <dt className="text-muted">{row.label}</dt>
+                                <dd className="text-ink/85 tnum">{row.value}</dd>
+                              </div>
+                            ))}
+                          </dl>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                </li>
+              );
+            })}
           </ol>
         )}
       </div>
     </div>
   );
+}
+
+function formatEntityRef(ref: string): string {
+  return ref
+    .replace(/^as_of=/, "as of ")
+    .replace(/^task=/, "task ")
+    .replace(/ -> /g, " → ");
 }
 
 function FilterChip({

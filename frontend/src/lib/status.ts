@@ -106,6 +106,8 @@ export function formatTimestamp(iso: string | null): string {
 const ACTOR_LABELS: Record<string, string> = {
   system: "System",
   "compliance-analyst": "Compliance Analyst",
+  "delta-engine": "Regulatory Delta Engine",
+  "demo-reset": "Demo Reset",
 };
 
 export function formatActor(actor: string): string {

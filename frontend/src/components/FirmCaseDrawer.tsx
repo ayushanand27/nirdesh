@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 import type { Firm, Matrix, ReviewTask, Rule } from "../types";
+import { formatComparison, firmProfileRows } from "../lib/displayValue";
 import { formatClause, formatDate, formatEntity } from "../lib/status";
 import { SourceCallout } from "./RuleDrawer";
 import { StatusBadge } from "./StatusBadge";
@@ -99,17 +100,17 @@ function FirmCaseDetail({
 
       <div className="flex-1 overflow-y-auto px-6 py-5">
         <Section label="Profile">
-          <div className="rounded border border-hair bg-canvas px-3 py-2.5 font-mono text-xs text-ink">
-            <div>base_price_method = {firm.profile.base_price_method ?? "—"}</div>
-            <div className="mt-1">
-              offers_etf_types = {JSON.stringify(firm.profile.offers_etf_types ?? [])}
-            </div>
-            {firm.profile.band_config && (
-              <div className="mt-1">
-                band_config = {JSON.stringify(firm.profile.band_config)}
+          <dl className="space-y-1.5 rounded border border-hair bg-canvas px-3 py-2.5">
+            {firmProfileRows(firm.profile).map((row) => (
+              <div
+                key={row.label}
+                className="grid grid-cols-[minmax(7rem,auto)_1fr] gap-x-3 text-xs"
+              >
+                <dt className="text-muted">{row.label}</dt>
+                <dd className="text-ink">{row.value}</dd>
               </div>
-            )}
-          </div>
+            ))}
+          </dl>
         </Section>
 
         <div className="mb-5 grid grid-cols-3 gap-2">
@@ -150,10 +151,7 @@ function FirmCaseDetail({
                     </div>
                     {cell.detail?.actual != null && (
                       <p className="mt-2 text-xs text-muted">
-                        Actual <span className="font-mono text-ink">{stringify(cell.detail.actual)}</span>
-                        {" · "}
-                        Expected{" "}
-                        <span className="font-mono text-ink">{stringify(cell.detail.expected)}</span>
+                        {formatComparison(cell.detail.actual, cell.detail.expected)}
                       </p>
                     )}
                     {rule.required_action && (
@@ -254,12 +252,3 @@ function StatPill({
   );
 }
 
-function stringify(value: unknown): string {
-  if (value == null) return "—";
-  if (typeof value === "string") return value;
-  try {
-    return JSON.stringify(value);
-  } catch {
-    return String(value);
-  }
-}
