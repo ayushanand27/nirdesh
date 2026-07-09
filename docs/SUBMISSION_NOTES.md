@@ -28,7 +28,7 @@
 ## Safe claims for judges
 
 - LLM extracts; code decides; human signs off; no autonomous filing.
-- PDF upload + paste-text ingest UI is shipped (preview path).
+- Firm case files (click firm in matrix), matrix CSV export, extraction QA preview (UI-only in demo build)
 - Idempotent apply / generate-tasks / mark-reviewed; audit is a trail of state changes.
 - Verbatim source citations on breaches and in the PDF.
 - Live URLs in README (Render may cold-start).
