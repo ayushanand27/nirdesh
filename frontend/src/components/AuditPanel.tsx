@@ -17,36 +17,17 @@ const EVENT_LABELS: Record<string, string> = {
   report: "Compliance report generated",
 };
 
-export function AuditPanel({ entries, health }: Props) {
-  const [showEngineInfo, setShowEngineInfo] = useState(false);
+export function AuditPanel({ entries, health: _health }: Props) {
   const [filter, setFilter] = useState<string>("all");
   const [expanded, setExpanded] = useState<number | null>(null);
-  const live = health?.llm_configured === true;
   const eventTypes = Array.from(new Set(entries.map((e) => e.event_type)));
   const visible = filter === "all" ? entries : entries.filter((e) => e.event_type === filter);
 
   return (
     <div className="card-muted flex h-full flex-col">
       <div className="border-b border-hair/30 px-5 py-3">
-        <div className="flex items-center gap-2">
-          <h2 className="font-serif text-base text-ink/90">Audit Trail</h2>
-          <button
-            type="button"
-            onClick={() => setShowEngineInfo((v) => !v)}
-            className="flex h-4 w-4 items-center justify-center rounded-full border border-gold/30 text-[10px] text-gold transition-colors hover:border-gold/50 hover:text-gold-400"
-            aria-label="Extraction engine info"
-            title="Extraction engine info"
-          >
-            i
-          </button>
-        </div>
-        <p className="text-[11px] text-muted/80">Append-only event log</p>
-        {showEngineInfo && (
-          <p className="mt-2 rounded bg-canvas/80 px-2.5 py-1.5 text-[10px] leading-relaxed text-muted">
-            Extraction engine: {live ? "Groq · llama-3.3-70b (live)" : "Cached extraction (demo)"}
-          </p>
-        )}
-        <div className="mt-3 flex flex-wrap gap-1.5">
+        <h2 className="font-serif text-base text-ink/90">Audit trail</h2>
+        <div className="mt-2 flex flex-wrap gap-1.5">
           <FilterChip active={filter === "all"} onClick={() => setFilter("all")}>
             All
           </FilterChip>

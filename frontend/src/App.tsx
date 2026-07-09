@@ -349,8 +349,6 @@ export default function App() {
 
         {view === "dashboard" && (
           <>
-            <PlainHeadline />
-
             {matrix && <StatsBar matrix={matrix} />}
 
             <div className="mt-3 flex items-center justify-between">
@@ -460,15 +458,9 @@ export default function App() {
         }}
       />
 
-      <footer className="border-t border-hair/30 bg-surface/40 px-6 py-3">
-        <p className="mx-auto max-w-[1440px] text-center text-[11px] text-muted/80">
-          Nirdesh is a decision-support system. All compliance determinations require
-          Compliance Officer sign-off before any operational action.
-          {health && (
-            <span className="mt-1 block text-[10px] text-muted/50">
-              Extraction: {health.llm_configured ? "Groq · llama-3.3-70b" : "Cached (demo)"}
-            </span>
-          )}
+      <footer className="border-t border-hair/30 bg-surface/40 px-6 py-2">
+        <p className="mx-auto max-w-[1440px] text-center text-[10px] text-muted/60">
+          Decision-support only · Officer sign-off required
         </p>
       </footer>
     </div>
@@ -617,17 +609,6 @@ function Stepper({
           );
         })}
       </div>
-    </div>
-  );
-}
-
-function PlainHeadline() {
-  return (
-    <div className="mb-3">
-      <h2 className="max-w-4xl font-serif text-2xl leading-snug text-ink md:text-[26px]">
-        See exactly what SEBI&rsquo;s new ETF pricing rules mean for each fund
-        <span className="text-gold"> — checked automatically, the moment the rules change.</span>
-      </h2>
     </div>
   );
 }

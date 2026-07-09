@@ -85,13 +85,8 @@ export function MatrixView({
     <div className="card-primary overflow-hidden">
       <div className="flex items-center justify-between border-b border-hair/40 px-5 py-4">
         <div>
-          <h2 className="font-serif text-lg text-ink">Compliance Matrix</h2>
+          <h2 className="font-serif text-lg text-ink">Compliance matrix</h2>
           <div className="mt-1 flex flex-wrap items-center gap-2">
-            <p className="text-[11px] text-muted">
-              {mode === "simple"
-                ? "Plain-English posture across funds · click a firm for its case file"
-                : "Machine fields · thresholds · actual vs expected · click a firm for case file"}
-            </p>
             {flaggedRules.length > 0 && (
               <div className="relative" ref={flagRef}>
                 <button
@@ -103,18 +98,10 @@ export function MatrixView({
                   className="inline-flex items-center gap-1 rounded border border-gold-700/40 bg-gold-700/20 px-2 py-0.5 text-[11px] font-medium text-gold transition-colors hover:bg-gold-700/30"
                 >
                   <span aria-hidden>⚠</span>
-                  {flaggedRules.length} flagged for review
+                  {flaggedRules.length} flagged
                 </button>
                 {showFlags && (
-                  <div className="absolute left-0 top-full z-20 mt-1.5 w-[340px] overflow-hidden rounded-card border border-gold/25 bg-elevated shadow-drawer">
-                    <div className="border-b border-gold/15 px-3 py-2">
-                      <div className="text-[10px] font-semibold uppercase tracking-[0.1em] text-gold">
-                        Flagged for human review
-                      </div>
-                      <p className="mt-0.5 text-[10px] text-muted">
-                        Extraction stayed honest — these couldn&apos;t be auto-checked.
-                      </p>
-                    </div>
+                  <div className="absolute left-0 top-full z-20 mt-1.5 w-[300px] overflow-hidden rounded-card border border-gold/25 bg-elevated shadow-drawer">
                     <ul className="divide-y divide-hair/40">
                       {flaggedRules.map((r) => (
                         <li key={r.rule_id} className="px-3 py-2.5">
@@ -185,9 +172,6 @@ export function MatrixView({
                     <div className="relative pr-10">
                       <div className="text-sm font-semibold leading-tight text-ink">
                         {r.plain_label ?? formatEntity(r.applicable_entity_type)}
-                      </div>
-                      <div className="mt-1 text-[11px] leading-tight text-muted">
-                        Applies to {formatEntity(r.applicable_entity_type)}
                       </div>
                       <div className="absolute right-0 top-0 inline-flex rounded-full bg-gold/12 px-2 py-0.5 font-mono text-[9px] text-gold">
                         {formatClause(r.clause_id)}

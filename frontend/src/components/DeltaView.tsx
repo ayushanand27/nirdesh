@@ -48,7 +48,7 @@ export function DeltaView({
         <div className="flex items-start justify-between gap-6">
           <div>
             <div className="flex items-center gap-2">
-              <span className="label-caps">Regulatory amendment detected</span>
+              <span className="label-caps">Amendment</span>
               {applied && (
                 <span className="rounded bg-gold/15 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-gold">
                   Applied
@@ -56,15 +56,11 @@ export function DeltaView({
               )}
             </div>
             <h2 className="mt-1 font-serif text-xl text-ink">
-              Phase 2 — Joint transition to T-1 closing NAV
+              Phase 2 — T-1 closing NAV
             </h2>
-            <p className="mt-1 max-w-xl text-sm text-muted">
-              Clause 4.4 requires Stock Exchanges and AMCs to jointly address the
-              operational challenges to implement T-1 day closing NAV as the base price
-              w.e.f.{" "}
-              <span className="font-mono text-ink tnum">01 Apr 2027</span>, superseding
-              clause 4.1. The system will recalculate all firm obligations
-              deterministically.
+            <p className="mt-1 text-sm text-muted">
+              §4.4 supersedes §4.1 · effective{" "}
+              <span className="font-mono text-ink tnum">01 Apr 2027</span>
             </p>
             {applied && appliedAt && (
               <p className="mt-2 font-mono text-[11px] text-muted tnum">
@@ -107,59 +103,19 @@ export function DeltaView({
 
       {delta && (
         <>
-          <div
-            className={`card px-5 py-4 transition-all duration-500 ease-precise ${
-              revealed ? "opacity-100 translate-y-0" : "opacity-0 translate-y-2"
-            }`}
-          >
-            <h3 className="font-serif text-lg text-ink">Why this changed</h3>
-            <p className="mt-2 text-sm leading-relaxed text-muted">
-              The base-price obligation moves from{" "}
-              <span className="font-medium text-ink">
-                T-1 closing price (last 30-min VWAP)
-              </span>{" "}
-              under clause 4.1 to{" "}
-              <span className="font-medium text-ink">T-1 closing NAV</span> under
-              clause 4.4 from <span className="font-mono text-ink">01 Apr 2027</span>.
-              This tighter rule changes who is compliant, which is why Meridian flips
-              from compliant to breach in Phase 2.
-            </p>
-            {delta.newly_effective.length > 0 && (
-              <div className="mt-3 rounded border border-hair bg-canvas px-4 py-3">
-                <div className="label-caps mb-1">Newly effective obligations</div>
-                <div className="space-y-1.5">
-                  {delta.newly_effective.map((rule) => (
-                    <div key={rule.rule_id} className="text-xs text-muted">
-                      <span className="font-mono text-gold">§ {rule.clause_id}</span>
-                      {" · "}
-                      <span className="text-ink">{rule.value_summary}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
-
           {/* Summary strip */}
           <div
             className={`grid grid-cols-3 gap-4 transition-all duration-500 ease-precise ${
               revealed ? "opacity-100 translate-y-0" : "opacity-0 translate-y-2"
             }`}
           >
+            <SummaryCard label="Superseded" value={delta.summary.obligations_superseded} accent />
             <SummaryCard
-              label="Obligations superseded"
-              value={delta.summary.obligations_superseded}
-              accent
-            />
-            <SummaryCard
-              label="Firms newly flagged"
+              label="Newly flagged"
               value={delta.summary.firms_newly_flagged}
               warn={delta.summary.firms_newly_flagged > 0}
             />
-            <SummaryCard
-              label="Total status transitions"
-              value={delta.summary.total_transitions}
-            />
+            <SummaryCard label="Transitions" value={delta.summary.total_transitions} />
           </div>
 
           {/* Rule changes — the visual heart of the delta */}
@@ -181,10 +137,7 @@ export function DeltaView({
               style={{ transitionDelay: revealed ? "240ms" : "0ms" }}
             >
               <div className="border-b border-hair px-5 py-3.5">
-                <h3 className="font-serif text-lg text-ink">Firm status transitions</h3>
-                <p className="text-xs text-muted">
-                  Firms whose compliance posture changed due to the amendment
-                </p>
+                <h3 className="font-serif text-lg text-ink">Firm transitions</h3>
               </div>
               <div className="divide-y divide-hair">
                 {delta.firm_transitions.map((t) => (
@@ -203,11 +156,8 @@ export function DeltaView({
       )}
 
       {!delta && !applying && (
-        <div className="card px-5 py-12 text-center">
-          <p className="text-sm text-muted">
-            Click <strong className="text-gold">Apply amendment</strong> to compute the
-            regulatory delta and see which obligations and firms are affected.
-          </p>
+        <div className="card px-5 py-8 text-center text-sm text-muted">
+          Apply amendment to compute delta.
         </div>
       )}
     </div>

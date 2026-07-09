@@ -77,31 +77,13 @@ export function IngestView({
 
   return (
     <div className="space-y-4">
-      <div className="rounded-card border border-gold/20 border-l-4 border-l-gold bg-gold/[0.05] px-5 py-4">
-        <div className="flex items-start justify-between gap-4">
-          <div>
-            <div className="label-caps text-gold">Ingest Circular</div>
-            <h2 className="mt-1 font-serif text-xl text-ink">
-              Turn a SEBI circular into structured obligations
-            </h2>
-            <p className="mt-1 max-w-3xl text-sm text-muted">
-              Upload a PDF or paste regulatory text. Nirdesh extracts candidate rule
-              objects, highlights anything that needs human review, and keeps the
-              downstream compliance engine deterministic.
-            </p>
-            <p className="mt-2 max-w-3xl rounded border border-hair bg-canvas/70 px-3 py-2 text-xs text-muted">
-              <span className="font-medium text-ink">Demo note:</span> this screen is an
-              extraction preview. The compliance matrix, delta, and reports use the
-              human-reviewed canonical ruleset seeded for this circular — not a live
-              overwrite of the evaluation ledger.
-            </p>
-            <p className="mt-2 text-[11px] text-muted">
-              Sample PDF in repo:{" "}
-              <span className="font-mono text-ink/80">
-                backend/data/circular_MRD-POD3-2026_ORIGINAL.pdf
-              </span>
-            </p>
-          </div>
+      <div className="card flex items-start justify-between gap-4 px-5 py-3.5">
+        <div>
+          <h2 className="font-serif text-lg text-ink">Circular ingest</h2>
+          <p className="mt-0.5 text-xs text-muted">
+            PDF or text → structured rules · matrix uses seeded canonical ruleset
+          </p>
+        </div>
           {extraction && (
             <div className="shrink-0 rounded border border-hair bg-canvas px-4 py-3 text-right">
               <div className="font-mono text-xl font-semibold text-ink tnum">
@@ -124,7 +106,6 @@ export function IngestView({
               </div>
             </div>
           )}
-        </div>
       </div>
 
       <div className="card px-5 py-4">
@@ -137,7 +118,7 @@ export function IngestView({
           </ModeButton>
         </div>
 
-        <div className="mt-4 grid gap-4 lg:grid-cols-[1.2fr_1fr]">
+        <div className="mt-4 space-y-4">
           <div className="space-y-4">
             <div>
               <label className="label-caps mb-1.5 block">Source circular ID</label>
@@ -160,11 +141,7 @@ export function IngestView({
                     onChange={(e) => setFile(e.target.files?.[0] ?? null)}
                   />
                   <div className="text-sm font-medium text-ink">
-                    {file ? file.name : "Choose a PDF to extract from"}
-                  </div>
-                  <div className="mt-1 text-xs text-muted">
-                    Runtime extracts readable text from the uploaded PDF, then reuses the
-                    existing extraction pipeline.
+                    {file ? file.name : "Drop PDF or click to browse"}
                   </div>
                 </label>
               </div>
@@ -180,16 +157,8 @@ export function IngestView({
               </div>
             )}
           </div>
-
-          <div className="rounded-card border border-hair bg-canvas px-4 py-4">
-            <div className="label-caps mb-2">What this stage does</div>
-            <ul className="space-y-2 text-sm text-muted">
-              <li>LLM extracts candidate rule objects from the circular.</li>
-              <li>Code validates schema and confidence deterministically.</li>
-              <li>Non-checkable clauses are routed to human review, not guessed.</li>
-              <li>The compliance engine still decides using structured fields only.</li>
-            </ul>
-            {ingestMessage && <p className="mt-4 text-xs text-gold">{ingestMessage}</p>}
+          {ingestMessage && <p className="text-xs text-gold">{ingestMessage}</p>}
+          <div className="flex justify-end">
             <button
               onClick={handleSubmit}
               disabled={
@@ -197,7 +166,7 @@ export function IngestView({
                 !sourceCircularId.trim() ||
                 (mode === "upload" ? !file : !circularText.trim())
               }
-              className="mt-4 w-full rounded border border-gold bg-gold px-4 py-2 text-sm font-semibold text-canvas transition-colors hover:bg-gold-400 disabled:opacity-50"
+              className="rounded border border-gold bg-gold px-5 py-2 text-sm font-semibold text-canvas transition-colors hover:bg-gold-400 disabled:opacity-50"
             >
               {extracting ? "Extracting…" : "Extract rules"}
             </button>
@@ -226,23 +195,16 @@ export function IngestView({
                 done={reviewStats.rejected === 0 && reviewStats.pending === 0}
               />
             </div>
-            <p className="mt-3 text-xs text-muted">
-              Approve or reject each flagged clause before promoting to the canonical ruleset.
-              In this demo build, QA decisions are shown in the UI only — the matrix still uses
-              the seeded human-reviewed ruleset.
-            </p>
           </div>
 
           <div className="grid gap-4 lg:grid-cols-2">
             <RulesSection
-              title="Machine-checkable obligations"
-              subtitle="These can feed deterministic evaluation."
+              title="Checkable"
               rules={machineCheckable}
               onSelectRule={onSelectRule}
             />
             <RulesSection
-              title="Human review required"
-              subtitle="The extractor stayed honest and refused to over-automate these."
+              title="Needs review"
               rules={flagged}
               onSelectRule={onSelectRule}
               highlighted
@@ -251,13 +213,10 @@ export function IngestView({
 
           <div className="card px-5 py-4">
             <div className="mb-3 flex items-center justify-between gap-3">
-              <div>
-                <h3 className="font-serif text-lg text-ink">Extraction output</h3>
-                <p className="text-xs text-muted">
-                  Source circular `{extraction.source_circular_id}` · model {extraction.model} ·{" "}
-                  {extraction.used_cache ? "cached path" : "live extraction"}
-                </p>
-              </div>
+              <h3 className="font-serif text-lg text-ink">Extracted rules</h3>
+              <span className="font-mono text-[10px] text-muted">
+                {extraction.model} · {extraction.used_cache ? "cached" : "live"}
+              </span>
             </div>
             <div className="space-y-3">
               {extraction.rules.map((rule) => (
@@ -302,13 +261,11 @@ function ModeButton({
 
 function RulesSection({
   title,
-  subtitle,
   rules,
   onSelectRule,
   highlighted = false,
 }: {
   title: string;
-  subtitle: string;
   rules: Rule[];
   onSelectRule: (rule: Rule) => void;
   highlighted?: boolean;
@@ -319,9 +276,8 @@ function RulesSection({
         highlighted ? "border-gold/25 bg-gold/[0.04]" : "border-hair bg-surface"
       }`}
     >
-      <h3 className="font-serif text-lg text-ink">{title}</h3>
-      <p className="mt-1 text-xs text-muted">{subtitle}</p>
-      <div className="mt-3 space-y-2">
+      <h3 className="font-serif text-base text-ink">{title}</h3>
+      <div className="mt-2 space-y-2">
         {rules.length === 0 ? (
           <div className="rounded border border-hair bg-canvas px-3 py-3 text-sm text-muted">
             No rules in this category.
@@ -403,13 +359,12 @@ function RuleCard({
           <h4 className="mt-1 text-sm font-medium text-ink">
             {rule.plain_label ?? rule.plain_description}
           </h4>
-          <p className="mt-1 text-xs leading-relaxed text-muted">{rule.plain_description}</p>
         </div>
         <button
           onClick={() => onSelectRule(rule)}
           className="rounded border border-gold/30 px-3 py-1.5 text-xs font-medium text-gold transition-colors hover:bg-gold/10"
         >
-          View rule detail
+          Detail
         </button>
       </div>
 
@@ -423,7 +378,7 @@ function RuleCard({
                 : "border-hair text-muted hover:border-compliant/40 hover:text-compliant-text"
             }`}
           >
-            Approve for ruleset
+            Approve
           </button>
           <button
             onClick={() => onDecisionChange(rule.rule_id, "rejected")}
@@ -433,7 +388,7 @@ function RuleCard({
                 : "border-hair text-muted hover:border-breach/40 hover:text-breach"
             }`}
           >
-            Reject / needs edit
+            Reject
           </button>
           {decision !== "pending" && (
             <button

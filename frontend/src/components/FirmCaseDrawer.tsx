@@ -205,11 +205,8 @@ function FirmCaseDetail({
         )}
       </div>
 
-      <footer className="border-t border-hair px-6 py-3">
-        <p className="text-[11px] text-muted">
-          Case file as of {formatDate(matrix.as_of)}. Decision-support only — officer sign-off
-          required before action.
-        </p>
+      <footer className="border-t border-hair px-6 py-2">
+        <p className="text-[10px] text-muted">As of {formatDate(matrix.as_of)}</p>
       </footer>
     </>
   );

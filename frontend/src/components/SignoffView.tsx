@@ -43,36 +43,23 @@ export function SignoffView({
   return (
     <div className="space-y-5">
       {/* Decision-support banner — unmissable */}
-      <div className="rounded-card border border-hair border-l-4 border-l-gold bg-gold/[0.06] px-5 py-4">
-        <div className="flex items-start gap-3">
-          <ShieldIcon />
-          <div>
-            <h2 className="font-serif text-lg text-ink">
-              Decision-support only — human authorisation required
-            </h2>
-            <p className="mt-1 max-w-3xl text-sm text-muted">
-              Nirdesh does not file, submit, or remediate anything autonomously. Every obligation
-              surfaced by the deterministic engine is a <strong className="text-ink">recommendation</strong> that
-              must be explicitly reviewed and signed off by a named Compliance Officer before it is
-              considered actioned.
-            </p>
-          </div>
-        </div>
+      <div className="rounded-card border border-hair border-l-4 border-l-gold bg-gold/[0.04] px-5 py-3">
+        <p className="text-sm text-muted">
+          <span className="font-medium text-ink">Decision-support only</span> — officer
+          sign-off required before action.
+        </p>
       </div>
 
       {/* Officer identity + generate */}
       <div className="card flex flex-wrap items-end justify-between gap-4 px-5 py-4">
         <div>
-          <label className="label-caps mb-1.5 block">Acting Compliance Officer</label>
+          <label className="label-caps mb-1.5 block">Compliance officer</label>
           <input
             value={officer}
             onChange={(e) => onOfficerChange(e.target.value)}
             placeholder="Full name"
-            className="w-72 rounded border border-hair bg-canvas px-3 py-2 text-sm text-ink outline-none transition-colors focus:border-gold"
+            className="w-64 rounded border border-hair bg-canvas px-3 py-2 text-sm text-ink outline-none transition-colors focus:border-gold"
           />
-          <p className="mt-1 text-[11px] text-muted">
-            Sign-offs are attributed to this name in the audit trail.
-          </p>
           {generateMessage && (
             <p className="mt-2 max-w-md text-xs text-gold">{generateMessage}</p>
           )}
@@ -86,7 +73,7 @@ export function SignoffView({
             disabled={generating || reportGenerating}
             className="rounded border border-gold/40 bg-transparent px-4 py-2 text-sm font-medium text-gold transition-colors hover:bg-gold/10 disabled:opacity-50"
           >
-            {generating ? "Scanning…" : "Generate tasks from current breaches"}
+            {generating ? "Scanning…" : "Generate tasks"}
           </button>
           <button
             onClick={onGenerateReport}
@@ -94,7 +81,7 @@ export function SignoffView({
             className="rounded border border-gold bg-gold px-4 py-2 text-sm font-semibold text-canvas transition-colors hover:bg-gold-400 disabled:opacity-50"
             title={`Download PDF compliance report for as-of ${asOf}`}
           >
-            {reportGenerating ? "Generating report…" : "Generate Report"}
+            {reportGenerating ? "Generating…" : "Download PDF"}
           </button>
         </div>
       </div>
@@ -109,7 +96,7 @@ export function SignoffView({
         </div>
         {pending.length === 0 ? (
           <div className="card px-5 py-8 text-center text-sm text-muted">
-            No tasks awaiting sign-off. Generate tasks from current breaches to populate the queue.
+            No pending tasks.
           </div>
         ) : (
           <div className="space-y-3">
@@ -220,9 +207,6 @@ function TaskCard({
       </div>
       <div className="mt-3 flex items-center justify-between border-t border-hair pt-3">
         <div className="flex items-center gap-2">
-          <span className="text-[11px] text-muted">
-            This recommendation is not actioned until signed off.
-          </span>
           {rule && (
             <button
               onClick={() => onOpenRule(rule)}
@@ -237,7 +221,7 @@ function TaskCard({
           disabled={busy}
           className="rounded border border-compliant bg-compliant px-3.5 py-1.5 text-xs font-semibold text-canvas transition-opacity hover:opacity-90 disabled:opacity-50"
         >
-          {busy ? "Recording…" : "Mark reviewed by Compliance Officer"}
+          {busy ? "Recording…" : "Mark reviewed"}
         </button>
       </div>
     </div>
@@ -261,20 +245,6 @@ function ReviewedRow({ task }: { task: ReviewTask }) {
         Reviewed
       </span>
     </div>
-  );
-}
-
-function ShieldIcon() {
-  return (
-    <svg className="mt-0.5 h-5 w-5 shrink-0 text-gold" viewBox="0 0 20 20" fill="none">
-      <path
-        d="M10 2l6 2.5v5c0 3.5-2.5 6.5-6 8-3.5-1.5-6-4.5-6-8v-5L10 2z"
-        stroke="currentColor"
-        strokeWidth="1.4"
-        strokeLinejoin="round"
-      />
-      <path d="M7.5 10l1.8 1.8L13 8" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
   );
 }
 
