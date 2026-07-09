@@ -119,15 +119,20 @@ State-changing actions (apply amendment, generate tasks, mark reviewed) are **id
 
 ### Screenshots
 
-| View | Screenshot |
-|---|---|
-| Compliance matrix (simple) | ![Matrix — simple view](docs/assets/screenshots/01-matrix-simple-phase1.png) |
-| Compliance matrix (technical) | ![Matrix — technical view](docs/assets/screenshots/02-matrix-technical-phase1.png) |
-| Regulatory delta (before apply) | ![Delta — preview](docs/assets/screenshots/03-delta-before-apply.png) |
-| Meridian flip after apply | ![Delta — Meridian breach](docs/assets/screenshots/04-delta-meridian-flip.png) |
-| Officer sign-off | ![Officer sign-off](docs/assets/screenshots/05-officer-signoff.png) |
+| View | Screenshot | Status |
+|------|------------|--------|
+| Compliance matrix (simple, Phase 1) | ![Matrix — simple](docs/assets/screenshots/01-matrix-simple-phase1.png) | In repo |
+| Compliance matrix (technical) | ![Matrix — technical](docs/assets/screenshots/02-matrix-technical-phase1.png) | In repo |
+| Regulatory delta (before apply) | ![Delta — preview](docs/assets/screenshots/03-delta-before-apply.png) | In repo |
+| Meridian flip after apply | ![Delta — Meridian](docs/assets/screenshots/04-delta-meridian-flip.png) | In repo |
+| Officer sign-off | ![Sign-off](docs/assets/screenshots/05-officer-signoff.png) | In repo |
+| Circular ingest | `06-ingest.png` | **Capture for PPT** |
+| Firm case file | `07-firm-casefile.png` | **Capture for PPT** |
+| Matrix Phase 2 | `08-matrix-phase2.png` | **Capture for PPT** |
+| Evidence pack | `09-evidence-pack.png` | **Capture for PPT** |
+| Sign-off reviewed | `10-signoff-reviewed.png` | **Capture for PPT** |
 
-Full gallery: [docs/assets/screenshots/](docs/assets/screenshots/)
+PPT slide-by-slide guide: [docs/PPT_IMPROVEMENT.md](docs/PPT_IMPROVEMENT.md)
 
 ---
 
