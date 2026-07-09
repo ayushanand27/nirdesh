@@ -52,7 +52,9 @@ export default function App() {
   const [health, setHealth] = useState<Health | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  const pendingTasks = tasks.filter((t) => t.status === "pending").length;
+  const pendingTasks = tasks.filter(
+    (t) => t.status === "pending" && t.as_of_date === asOf
+  ).length;
 
   const load = useCallback(async (date: string) => {
     setLoading(true);
@@ -82,6 +84,26 @@ export default function App() {
 
   useEffect(() => {
     api.health().then(setHealth).catch(() => setHealth(null));
+  }, []);
+
+  // Sync amendment application state on load / refresh so a warm session
+  // does not show "Apply amendment" when the window is already APPLIED.
+  useEffect(() => {
+    api
+      .delta(PHASE1, PHASE2, false)
+      .then((d) => {
+        setDelta(d);
+        if (d.application?.status === "APPLIED") {
+          setAmendmentApplied(true);
+          setAmendmentAppliedAt(d.application.applied_at ?? null);
+        } else {
+          setAmendmentApplied(false);
+          setAmendmentAppliedAt(null);
+        }
+      })
+      .catch(() => {
+        /* non-blocking — delta tab will retry on open */
+      });
   }, []);
 
   useEffect(() => {
@@ -291,7 +313,12 @@ export default function App() {
         pendingTasks={pendingTasks}
       />
 
-      <Stepper view={view} onSelect={setView} onDeltaClick={handlePreviewDelta} />
+      <Stepper
+        view={view}
+        onSelect={setView}
+        onDeltaClick={handlePreviewDelta}
+        onReportClick={openReportView}
+      />
 
       <main className="mx-auto max-w-[1440px] px-6 py-4">
         {error && (
@@ -508,25 +535,35 @@ function Stepper({
   view,
   onSelect,
   onDeltaClick,
+  onReportClick,
 }: {
   view: View;
   onSelect: (v: View) => void;
   onDeltaClick: () => void;
+  onReportClick: () => void;
 }) {
   const steps: { id: View; n: number; label: string }[] = [
-    { id: "dashboard", n: 1, label: "Compliance Matrix" },
-    { id: "delta", n: 2, label: "What Changed" },
-    { id: "signoff", n: 3, label: "Officer Review" },
+    { id: "ingest", n: 1, label: "Ingest" },
+    { id: "dashboard", n: 2, label: "Matrix" },
+    { id: "delta", n: 3, label: "What Changed" },
+    { id: "signoff", n: 4, label: "Officer Review" },
+    { id: "report", n: 5, label: "Evidence Pack" },
   ];
   return (
     <div className="border-b border-hair/30 bg-surface/40">
-      <div className="mx-auto flex max-w-[1440px] items-center gap-1 px-6 py-2">
+      <div className="mx-auto flex max-w-[1440px] items-center gap-1 overflow-x-auto px-6 py-2">
         {steps.map((s, i) => {
           const active = view === s.id;
           return (
-            <div key={s.id} className="flex items-center">
+            <div key={s.id} className="flex shrink-0 items-center">
               <button
-                onClick={() => (s.id === "delta" ? onDeltaClick() : onSelect(s.id))}
+                onClick={() =>
+                  s.id === "delta"
+                    ? onDeltaClick()
+                    : s.id === "report"
+                      ? onReportClick()
+                      : onSelect(s.id)
+                }
                 className={`group flex items-center gap-2 rounded px-2.5 py-1 transition-colors ${
                   active ? "" : "hover:bg-elevated"
                 }`}

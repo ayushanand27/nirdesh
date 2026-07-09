@@ -20,9 +20,17 @@ Built for **Securities Market TechSprint @ GFF 2026** — *Agentic Compliance: F
 
 The hosted backend may take 30–60 seconds to wake from sleep on the free tier. Refresh once if the first load fails.
 
-**Compliance report PDF:** Officer sign-off tab → **Generate Report** (downloads to your browser; also logged in the audit trail).
+**Workflow tabs:** Circular ingest → Compliance matrix → Regulatory delta → Officer sign-off → Evidence pack (in-app report preview + PDF download).
 
 Interactive API docs: https://nirdesh-backend.onrender.com/docs
+
+### 2-minute demo script
+
+1. **Circular ingest** — upload [`backend/data/circular_MRD-POD3-2026_ORIGINAL.pdf`](backend/data/circular_MRD-POD3-2026_ORIGINAL.pdf) (circular ID is pre-filled). Show extracted rules and human-review flags. *This is an extraction preview; the matrix uses the seeded canonical ruleset.*
+2. **Compliance matrix** — as of **01 Sept 2026**: Bharat Growth in breach, Meridian compliant, Sentinel N/A. Toggle Simple / Technical.
+3. **Regulatory delta** — **Apply amendment**. Meridian flips compliant → breach for Phase 2 (§4.4).
+4. **Officer sign-off** — Generate tasks → Mark reviewed as **A. Sharma**.
+5. **Evidence pack** — Refresh preview → Download PDF (also available from Officer sign-off).
 
 ---
 
@@ -30,12 +38,13 @@ Interactive API docs: https://nirdesh-backend.onrender.com/docs
 
 | Capability | Description |
 |---|---|
-| **Rule compilation** | Circular text → structured rules (clause, condition, threshold, deadline). Uncheckable clauses are flagged `needs_human_review` — never guessed. |
+| **Circular ingest** | Upload PDF or paste text → LLM extracts candidate rules; non-checkable clauses are flagged for human review. |
+| **Rule compilation** | Circular text → structured rules (clause, condition, threshold, deadline). Never invents checkable conditions. |
 | **Compliance matrix** | Firms × obligations → **compliant**, **breach**, or **not applicable**, as of any effective date. |
 | **Regulatory delta** | When a rule supersedes another, see old vs new and which firms flip **compliant → breach**. |
-| **Officer sign-off** | Breaches become review tasks. A named Compliance Officer must sign off before an obligation is considered actioned. |
+| **Officer sign-off** | Breaches become review tasks with evidence. A named Compliance Officer must sign off before an obligation is considered actioned. |
+| **Evidence pack** | In-app report preview + PDF export with matrix, source citations, delta (if applied), and sign-off log. |
 | **Audit trail** | Append-only log of extractions, evaluations, amendments, reviews, and report exports. |
-| **Compliance report** | Download a PDF with matrix, source citations, delta (if applicable), and sign-off log. |
 
 **Governance:** decision-support only. No autonomous filing to SEBI.
 
@@ -83,13 +92,13 @@ Firm profiles  →  Deterministic evaluator  →  Matrix / Delta / Tasks / PDF
                                               Officer sign-off + audit log
 ```
 
-1. **Ingest** — LLM (Groq) proposes rule objects, or the demo uses a human-reviewed canonical ruleset verified against the official circular PDF.
+1. **Ingest** — LLM (Groq) proposes rule objects from PDF/text. The live demo matrix uses a human-reviewed canonical ruleset verified against the official circular PDF.
 2. **Evaluate** — Python compares firm data to active rules. No LLM at compliance-check time.
 3. **Delta** — Superseded obligations and firm status transitions are computed when an amendment window is applied.
 4. **Sign-off** — Review tasks are generated for breaches; officer approval is recorded in the audit trail.
-5. **Report** — A compliance summary PDF is generated and logged.
+5. **Report** — Evidence pack preview + compliance summary PDF, both logged when exported.
 
-State-changing actions (apply amendment, mark reviewed, etc.) are **idempotent** — duplicate clicks do not create duplicate audit noise.
+State-changing actions (apply amendment, generate tasks, mark reviewed) are **idempotent** — duplicate clicks do not create duplicate audit noise.
 
 ---
 
@@ -133,7 +142,9 @@ Full gallery: [docs/assets/screenshots/](docs/assets/screenshots/)
 | Reports | reportlab (PDF) |
 | Deploy | Render (static site + web service) |
 
-**Roadmap** (not in current build): PostgreSQL + pgvector, async ingestion workers, live SEBI RSS/PDF upload UI, multi-user auth.
+**Shipped in this build:** PDF upload + paste-text circular ingest UI, evidence-pack preview, deterministic matrix/delta/sign-off/report.
+
+**Roadmap** (not in current build): PostgreSQL + pgvector for multi-circular retrieval, Celery/Redis for background ingestion, live SEBI RSS monitoring, deployment hardening, multi-user authentication for named officer attribution.
 
 ---
 
@@ -148,7 +159,7 @@ cd nirdesh
 ./run.sh
 ```
 
-Open http://127.0.0.1:5173
+On Windows (Git Bash or WSL), the same `./run.sh` works. Open http://127.0.0.1:5173
 
 **Environment:** copy `backend/.env.example` → `backend/.env`. A Groq API key is optional; the demo runs with a cached extraction and seeded canonical rules.
 
@@ -161,12 +172,14 @@ Open http://127.0.0.1:5173
 | Endpoint | Purpose |
 |---|---|
 | `GET /health` | Service status |
+| `POST /extract` | Extract rules from pasted circular text |
+| `POST /extract-upload` | Extract rules from uploaded PDF |
 | `GET /matrix?as_of=` | Compliance matrix (read-only) |
 | `POST /evaluate?as_of=` | Record evaluation when outcome changes |
 | `GET /delta?from_as_of=&to_as_of=` | Regulatory delta preview or apply |
 | `POST /review-tasks/generate` | Create officer review tasks |
 | `POST /review-tasks/{id}/review` | Officer sign-off |
-| `GET /reports/compliance-summary?format=pdf` | Compliance report PDF |
+| `GET /reports/compliance-summary?format=json\|pdf` | Evidence pack JSON or PDF |
 | `GET /audit` | Audit trail |
 
 Full reference: `/docs` on the running backend.
@@ -177,12 +190,12 @@ Full reference: `/docs` on the running backend.
 
 ```
 backend/
-  app/              API, evaluation engine, delta, sign-off, report
+  app/              API, extraction, evaluation, delta, sign-off, report
   data/
     circular_MRD-POD3-2026_ORIGINAL.pdf   Official SEBI source PDF
     circular_MRD-POD3-2026_VERIFIED.txt   Verified text extract
     cache/                                LLM extraction cache
-frontend/src/     Matrix, delta, sign-off, audit, report download
+frontend/src/     Ingest, matrix, delta, sign-off, evidence pack, audit
 docs/             Architecture diagrams, demo corpus, submission notes
 render.yaml       Render deployment blueprint
 ```

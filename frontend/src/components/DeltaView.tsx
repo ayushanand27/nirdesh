@@ -90,13 +90,13 @@ export function DeltaView({
                 {applying ? "Recalculating…" : "Apply amendment"}
               </button>
             )}
-            {applied && onReset && (
+            {applied && onReset && import.meta.env.DEV && (
               <button
                 type="button"
                 onClick={onReset}
                 disabled={resetting}
                 className="rounded border border-dashed border-muted/50 px-3 py-1.5 text-[11px] font-medium text-muted transition-colors hover:border-muted hover:text-ink disabled:opacity-50"
-                title="Dev/demo only — resets amendment state so the demo can be re-run"
+                title="Dev only — resets amendment state so the demo can be re-run"
               >
                 {resetting ? "Resetting…" : "Reset to Phase 1 (dev only)"}
               </button>

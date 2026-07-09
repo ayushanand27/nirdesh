@@ -17,6 +17,8 @@
 | `04-delta-meridian-flip.png` | Slide: amendment impact — Meridian compliant → breach |
 | `05-officer-signoff.png` | Slide: human-in-the-loop / governance |
 
+Also capture live screenshots of **Circular ingest** and **Evidence pack** for the deck if not already included.
+
 ## Primary source files
 
 - **Official circular PDF:** [backend/data/circular_MRD-POD3-2026_ORIGINAL.pdf](../backend/data/circular_MRD-POD3-2026_ORIGINAL.pdf)

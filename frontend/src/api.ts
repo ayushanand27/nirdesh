@@ -15,9 +15,20 @@ import type {
 const RAW_BASE = import.meta.env.VITE_API_BASE_URL ?? "/api";
 const BASE = RAW_BASE.replace(/\/+$/, "");
 
+async function readError(res: Response, fallback: string): Promise<string> {
+  try {
+    const data = (await res.json()) as { detail?: string | { msg?: string }[] };
+    if (typeof data.detail === "string") return data.detail;
+    if (Array.isArray(data.detail) && data.detail[0]?.msg) return data.detail[0].msg;
+  } catch {
+    /* ignore non-JSON bodies */
+  }
+  return `${fallback}: ${res.status}`;
+}
+
 async function get<T>(path: string): Promise<T> {
   const res = await fetch(`${BASE}${path}`);
-  if (!res.ok) throw new Error(`GET ${path} failed: ${res.status}`);
+  if (!res.ok) throw new Error(await readError(res, `GET ${path} failed`));
   return res.json() as Promise<T>;
 }
 
@@ -27,7 +38,7 @@ async function post<T>(path: string, body?: unknown): Promise<T> {
     headers: body ? { "Content-Type": "application/json" } : undefined,
     body: body ? JSON.stringify(body) : undefined,
   });
-  if (!res.ok) throw new Error(`POST ${path} failed: ${res.status}`);
+  if (!res.ok) throw new Error(await readError(res, `POST ${path} failed`));
   return res.json() as Promise<T>;
 }
 
@@ -36,7 +47,7 @@ async function postForm<T>(path: string, body: FormData): Promise<T> {
     method: "POST",
     body,
   });
-  if (!res.ok) throw new Error(`POST ${path} failed: ${res.status}`);
+  if (!res.ok) throw new Error(await readError(res, `POST ${path} failed`));
   return res.json() as Promise<T>;
 }
 

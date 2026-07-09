@@ -61,6 +61,18 @@ export function IngestView({
               objects, highlights anything that needs human review, and keeps the
               downstream compliance engine deterministic.
             </p>
+            <p className="mt-2 max-w-3xl rounded border border-hair bg-canvas/70 px-3 py-2 text-xs text-muted">
+              <span className="font-medium text-ink">Demo note:</span> this screen is an
+              extraction preview. The compliance matrix, delta, and reports use the
+              human-reviewed canonical ruleset seeded for this circular — not a live
+              overwrite of the evaluation ledger.
+            </p>
+            <p className="mt-2 text-[11px] text-muted">
+              Sample PDF in repo:{" "}
+              <span className="font-mono text-ink/80">
+                backend/data/circular_MRD-POD3-2026_ORIGINAL.pdf
+              </span>
+            </p>
           </div>
           {extraction && (
             <div className="shrink-0 rounded border border-hair bg-canvas px-4 py-3 text-right">
