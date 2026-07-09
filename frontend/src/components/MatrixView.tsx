@@ -6,7 +6,6 @@ import { exportMatrixCsv } from "../lib/exportMatrix";
 import { SourcePopover } from "./SourcePopover";
 
 type ViewMode = "simple" | "technical";
-type Density = "standard" | "compact";
 
 interface Props {
   matrix: Matrix;
@@ -33,7 +32,6 @@ export function MatrixView({
 }: Props) {
   const { firms, rules, cells } = matrix;
   const [mode, setMode] = useState<ViewMode>("simple");
-  const [density, setDensity] = useState<Density>("standard");
   const [showFlags, setShowFlags] = useState(false);
   const flagRef = useRef<HTMLDivElement>(null);
   const [popover, setPopover] = useState<{ key: string; anchor: HTMLElement } | null>(null);
@@ -136,7 +134,6 @@ export function MatrixView({
           >
             Export CSV
           </button>
-          <DensityToggle density={density} onChange={setDensity} />
           <Legend />
           <ModeToggle mode={mode} onChange={setMode} />
         </div>
@@ -219,7 +216,6 @@ export function MatrixView({
                 lookup={lookup}
                 recalcKey={recalcKey}
                 mode={mode}
-                density={density}
                 popoverKey={popover?.key ?? null}
                 selected={selectedFirmId === firm.id}
                 onSelectRule={onSelectRule}
@@ -252,7 +248,6 @@ function FirmRow({
   lookup,
   recalcKey,
   mode,
-  density,
   popoverKey,
   selected,
   onSelectRule,
@@ -265,7 +260,6 @@ function FirmRow({
   lookup: Map<string, Cell>;
   recalcKey: number;
   mode: ViewMode;
-  density: Density;
   popoverKey: string | null;
   selected: boolean;
   onSelectRule: (rule: Rule) => void;
@@ -278,7 +272,7 @@ function FirmRow({
       <td
         className={`sticky left-0 z-10 border-b border-r group-hover:bg-elevated/40 ${
           selected ? "bg-gold/10" : "bg-elevated/20"
-        } ${mode === "technical" ? "border-hair/60 px-3 py-2" : density === "compact" ? "border-hair/30 px-3 py-2" : "border-hair/30 px-5 py-4"}`}
+        } ${mode === "technical" ? "border-hair/60 px-3 py-2" : "border-hair/30 px-5 py-4"}`}
       >
         <button
           type="button"
@@ -307,7 +301,6 @@ function FirmRow({
             status={status}
             meta={m}
             mode={mode}
-            density={density}
             detail={cell?.detail}
             recalcKey={recalcKey}
             isPopoverOpen={popoverKey === cellKey}
@@ -339,7 +332,6 @@ function MatrixCell({
   status,
   meta,
   mode,
-  density,
   detail,
   recalcKey,
   isPopoverOpen,
@@ -352,7 +344,6 @@ function MatrixCell({
   status: CellStatus;
   meta: (typeof STATUS_META)[CellStatus];
   mode: ViewMode;
-  density: Density;
   detail?: CellDetail;
   recalcKey: number;
   isPopoverOpen: boolean;
@@ -387,11 +378,7 @@ function MatrixCell({
         className={`cell-recalc flex cursor-pointer flex-col items-center justify-center rounded text-center transition-colors ${meta.cell} ${
           isPopoverOpen ? "ring-1 ring-gold/40" : ""
         } ${hasSource ? "hover:brightness-110" : ""} ${
-          mode === "technical"
-            ? "min-h-[52px] px-1.5 py-1.5"
-            : density === "compact"
-              ? "h-12 px-1.5"
-              : "h-16 px-2"
+          mode === "technical" ? "min-h-[52px] px-1.5 py-1.5" : "h-16 px-2"
         }`}
         key={`${status}-${recalcKey}`}
       >
@@ -412,28 +399,6 @@ function MatrixCell({
         )}
       </div>
     </td>
-  );
-}
-
-function DensityToggle({
-  density,
-  onChange,
-}: {
-  density: Density;
-  onChange: (d: Density) => void;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={() => onChange(density === "compact" ? "standard" : "compact")}
-      className={`rounded border px-2.5 py-1 text-[11px] font-medium transition-colors ${
-        density === "compact"
-          ? "border-gold/40 bg-gold/10 text-gold"
-          : "border-hair text-muted hover:text-ink"
-      }`}
-    >
-      Compact
-    </button>
   );
 }
 

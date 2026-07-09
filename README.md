@@ -27,7 +27,7 @@ Interactive API docs: https://nirdesh-backend.onrender.com/docs
 ### 2-minute demo script
 
 1. **Circular ingest** — upload [`backend/data/circular_MRD-POD3-2026_ORIGINAL.pdf`](backend/data/circular_MRD-POD3-2026_ORIGINAL.pdf). Show extracted rules, review flags, and QA preview (*matrix uses seeded canonical ruleset*).
-2. **Compliance matrix** — as of **01 Sept 2026**: Bharat Growth breach, Meridian compliant, Sentinel N/A. Click a firm for its case file. Optional: Export CSV, Compact density.
+2. **Compliance matrix** — as of **01 Sept 2026**: Bharat Growth breach, Meridian compliant, Sentinel N/A. Click a firm for its case file. Optional: Export CSV, Simple/Technical views.
 3. **Regulatory delta** — **Apply amendment**. Meridian flips compliant → breach for Phase 2 (§4.4).
 4. **Officer sign-off** — Generate tasks → Mark reviewed as **A. Sharma**.
 5. **Evidence pack** — Refresh preview → Download PDF.
@@ -40,7 +40,7 @@ Interactive API docs: https://nirdesh-backend.onrender.com/docs
 |---|---|
 | **Circular ingest** | Upload PDF or paste text → LLM extracts candidate rules; non-checkable clauses flagged; officer QA preview (demo: matrix uses seeded ruleset). |
 | **Rule compilation** | Circular text → structured rules (clause, condition, threshold, deadline). Never invents checkable conditions. |
-| **Compliance matrix** | Firms × obligations → **compliant**, **breach**, or **not applicable**, as of any effective date. Firm case files, CSV export, compact density. |
+| **Compliance matrix** | Firms × obligations → **compliant**, **breach**, or **not applicable**, as of any effective date. Firm case files, CSV export, simple/technical views. |
 | **Regulatory delta** | When a rule supersedes another, see old vs new and which firms flip **compliant → breach**. |
 | **Officer sign-off** | Breaches become review tasks with evidence. A named Compliance Officer must sign off before an obligation is considered actioned. |
 | **Evidence pack** | In-app report preview + PDF export with matrix, source citations, delta (if applied), and sign-off log. |

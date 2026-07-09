@@ -151,7 +151,7 @@ Phase 2: 01 Apr 2027 (§4.4 · T-1 NAV — supersedes §4.1)
 Click firm → case file with profile + breach evidence
 ```
 
-**Mention:** Export CSV · Simple/Technical · Compact density
+**Mention:** Export CSV · Simple / Technical views
 
 ---
 
