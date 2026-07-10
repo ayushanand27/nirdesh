@@ -119,8 +119,7 @@ State-changing actions (apply amendment, generate tasks, mark reviewed) are **id
 
 ### Screenshots (complete — Jul 2026)
 
-All 12 UI captures are in [`docs/assets/screenshots/`](docs/assets/screenshots/).  
-**PPT / Kimi brief:** [docs/PPT_IMPROVEMENT.md](docs/PPT_IMPROVEMENT.md)
+All 12 UI captures are in [`docs/assets/screenshots/`](docs/assets/screenshots/).
 
 | # | View | File |
 |---|------|------|
@@ -251,8 +250,6 @@ render.yaml       Render deployment blueprint
 **Ayush Anand** — Manipal University Jaipur
 
 **Hackathon:** Securities Market TechSprint @ GFF 2026 — *Agentic Compliance: From Regulatory Text to Operational Action*
-
-Form copy and field-by-field submission text: [docs/SUBMISSION_FORM.md](docs/SUBMISSION_FORM.md)
 
 ---
 
