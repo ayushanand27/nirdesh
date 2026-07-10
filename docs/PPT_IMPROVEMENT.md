@@ -27,7 +27,7 @@ Match the **live prototype**: https://nirdesh-frontend.onrender.com
 | `09-officer-signoff-pending.png` | Sign-off | Pending queue |
 | `10-officer-signoff-reviewed.png` | Sign-off + Evidence | Reviewed by A. Sharma |
 | `11-evidence-pack.png` | Evidence Pack | Preview metrics · Download PDF |
-| `12-audit-trail-details.png` | Technology / Governance | Eval **Details** — As of / Outcome rows |
+| `12-audit-trail-details.png` | Technology / Governance | Review or Amendment **Details** expanded — labeled rows, not JSON |
 
 ### Deprecated (delete from PPT if still embedded)
 
@@ -185,7 +185,7 @@ One circular · two deadlines · Meridian flips when §4.4 supersedes §4.1
 
 **Bullets:**
 - In-app preview + Download PDF
-- Audit trail: human-readable event details (As of, Outcome, Officer)
+- Audit trail: human-readable event details (Review/Amendment Details; Eval outcome in message line)
 - Governance: decision-support only
 
 ---

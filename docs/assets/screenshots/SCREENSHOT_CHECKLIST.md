@@ -4,7 +4,7 @@
 **Save all files here:** `docs/assets/screenshots/`  
 **Format:** PNG, width ~1400–1600px, compress to **&lt;400 KB** each for PPT.
 
-> **UI refresh (commit `8d0353e`):** Human-readable audit details, firm profiles, rule conditions, breach lines — **no raw JSON**. Old screenshots in this folder are **outdated** until you replace them.
+> **UI refresh (Jul 2026):** Human-readable audit details, firm profiles, rule conditions, breach lines — **no raw JSON**. All 12 required screenshots are in this folder.
 
 ---
 
@@ -21,9 +21,9 @@
 | 7 | `07-delta-before-apply.png` | Regulatory delta | Before **Apply amendment** · §4.1 → §4.4 preview · Meridian transition shown |
 | 8 | `08-delta-after-apply.png` | Regulatory delta | After **Apply** (or applied state) · firms newly flagged / Meridian flip |
 | 9 | `09-officer-signoff-pending.png` | Officer sign-off | **Awaiting sign-off** with ≥1 pending task · breach line in plain English |
-| 10 | `10-officer-signoff-reviewed.png` | Officer sign-off | Same tasks **Reviewed** by **A. Sharma** |
+| 10 | `10-officer-signoff-reviewed.png` | Officer sign-off | All tasks **Signed off** (0 open) · officer name visible |
 | 11 | `11-evidence-pack.png` | Evidence pack | Preview loaded · metric tiles · breach citations · **Download PDF** button |
-| 12 | `12-audit-trail-details.png` | Matrix (audit panel right) | Audit trail · click **Details** on an **Eval** event · labeled rows (As of, Outcome) — **not** a JSON block |
+| 12 | `12-audit-trail-details.png` | Matrix (audit panel right) | Audit trail · **Details** on a **Review** or **Amendment** event · labeled rows (Firm, Clause, Task / Superseded counts) — **not** raw JSON. Eval events show outcome in the message line only. |
 
 ---
 
@@ -48,9 +48,10 @@
 
 ---
 
-## After you send screenshots
+## Status
 
-1. Drop files into `docs/assets/screenshots/`
-2. Recreate PPT using [PPT_IMPROVEMENT.md](../../PPT_IMPROVEMENT.md)
-3. Record Loom (short script will be provided on request)
-4. Paste Loom URL in HackCulture form → **Save**
+All 12 required screenshots captured (Jul 10, 2026). Next steps:
+
+1. Recreate PPT using [PPT_IMPROVEMENT.md](../../PPT_IMPROVEMENT.md)
+2. Record Loom demo video (under 3 min)
+3. Paste Loom URL in HackCulture form → **Save**

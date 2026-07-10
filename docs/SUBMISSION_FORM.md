@@ -139,7 +139,7 @@ https://github.com/ayushanand27/nirdesh
 
 ## Before you click Save
 
-- [ ] **12 new screenshots** captured per [SCREENSHOT_CHECKLIST.md](assets/screenshots/SCREENSHOT_CHECKLIST.md) (old repo images are outdated)
+- [x] **12 screenshots** in `docs/assets/screenshots/` (complete Jul 10, 2026)
 - [ ] PPT recreated with new screenshots (see [PPT_IMPROVEMENT.md](../PPT_IMPROVEMENT.md)) and re-uploaded if slides changed
 - [ ] Demo video URL filled (Loom, unlisted or public, under 3 min)
 - [ ] PPT uses Meridian / Sentinel / Bharat (not Alpha / Pinnacle)

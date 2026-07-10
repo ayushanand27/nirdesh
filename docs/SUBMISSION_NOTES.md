@@ -33,6 +33,19 @@
 - Verbatim source citations on breaches and in the PDF.
 - Live URLs in README (Render may cold-start).
 
+## Screenshots (complete — in repo)
+
+All 12 files in [`docs/assets/screenshots/`](assets/screenshots/). PPT mapping: [PPT_IMPROVEMENT.md](PPT_IMPROVEMENT.md).
+
+| Slide topic | Files |
+|---|---|
+| Ingest | `06-ingest-extracted.png` |
+| Matrix | `01-matrix-simple-phase1.png` + `04-firm-casefile-bharat.png` |
+| Delta | `07-delta-before-apply.png` + `08-delta-after-apply.png` |
+| Sign-off | `09-officer-signoff-pending.png` → `10-officer-signoff-reviewed.png` |
+| Evidence | `11-evidence-pack.png` |
+| Governance | `12-audit-trail-details.png` |
+
 ## Do not claim as built today
 
 - Celery/Redis job queue as current infra

@@ -26,7 +26,7 @@ Interactive API docs: https://nirdesh-backend.onrender.com/docs
 
 ### 2-minute demo script
 
-1. **Circular ingest** — upload [`backend/data/circular_MRD-POD3-2026_ORIGINAL.pdf`](backend/data/circular_MRD-POD3-2026_ORIGINAL.pdf). Show extracted rules, review flags, and QA preview (*matrix uses seeded canonical ruleset*).
+1. **Circular ingest** — upload [`backend/data/circular_MRD-POD3-2026_ORIGINAL.pdf`](backend/data/circular_MRD-POD3-2026_ORIGINAL.pdf). Circular ID is pre-filled for the demo corpus. Show extracted rules, review flags, and QA preview (*Draft — not persisted; matrix uses human-reviewed canonical ruleset*).
 2. **Compliance matrix** — as of **01 Sept 2026**: Bharat Growth breach, Meridian compliant, Sentinel N/A. Click a firm for its case file. Optional: Export CSV, Simple/Technical views.
 3. **Regulatory delta** — **Apply amendment**. Meridian flips compliant → breach for Phase 2 (§4.4).
 4. **Officer sign-off** — Generate tasks → Mark reviewed as **A. Sharma**.
@@ -117,38 +117,33 @@ State-changing actions (apply amendment, generate tasks, mark reviewed) are **id
 - **Meridian Asset Management** — compliant on Phase 1, **flips to breach** when §4.4 is applied
 - **Sentinel Debt Fund** — not applicable (no ETF schemes)
 
-### Screenshots (current UI — Jul 2026 refresh)
+### Screenshots (live prototype — Jul 2026)
 
-> **Replace all images below** after you capture the new set. Full capture instructions: **[docs/assets/screenshots/SCREENSHOT_CHECKLIST.md](docs/assets/screenshots/SCREENSHOT_CHECKLIST.md)**
+Full capture list: **[docs/assets/screenshots/SCREENSHOT_CHECKLIST.md](docs/assets/screenshots/SCREENSHOT_CHECKLIST.md)** · PPT guide: [docs/PPT_IMPROVEMENT.md](docs/PPT_IMPROVEMENT.md)
 
-Send **12 required screenshots** (filenames below). Old repo images are outdated (raw JSON audit, code-style profiles).
+| # | View | File |
+|---|------|------|
+| 1 | Matrix — Simple, Phase 1 | `01-matrix-simple-phase1.png` |
+| 2 | Matrix — Technical, Phase 1 | `02-matrix-technical-phase1.png` |
+| 3 | Matrix — Phase 2 (Meridian breach) | `03-matrix-phase2.png` |
+| 4 | Firm case file — Bharat | `04-firm-casefile-bharat.png` |
+| 5 | Rule drawer — condition | `05-rule-drawer.png` |
+| 6 | Circular ingest — extracted | `06-ingest-extracted.png` |
+| 7 | Regulatory delta — before apply | `07-delta-before-apply.png` |
+| 8 | Regulatory delta — after apply | `08-delta-after-apply.png` |
+| 9 | Officer sign-off — pending | `09-officer-signoff-pending.png` |
+| 10 | Officer sign-off — reviewed | `10-officer-signoff-reviewed.png` |
+| 11 | Evidence pack preview | `11-evidence-pack.png` |
+| 12 | Audit trail — Review Details | `12-audit-trail-details.png` |
 
-| # | View | File | PPT slide |
-|---|------|------|-----------|
-| 1 | Matrix — Simple, Phase 1 | `01-matrix-simple-phase1.png` | Live Demo — Matrix |
-| 2 | Matrix — Technical, Phase 1 | `02-matrix-technical-phase1.png` | Optional / appendix |
-| 3 | Matrix — Phase 2 (Meridian breach) | `03-matrix-phase2.png` | Demo Scenario / Matrix |
-| 4 | Firm case file — Bharat | `04-firm-casefile-bharat.png` | Live Demo — Matrix |
-| 5 | Rule drawer — condition | `05-rule-drawer.png` | Solution / Architecture |
-| 6 | Circular ingest — extracted | `06-ingest-extracted.png` | Live Demo — Ingest |
-| 7 | Regulatory delta — before apply | `07-delta-before-apply.png` | Regulatory Delta |
-| 8 | Regulatory delta — after apply | `08-delta-after-apply.png` | Regulatory Delta |
-| 9 | Officer sign-off — pending | `09-officer-signoff-pending.png` | Sign-off |
-| 10 | Officer sign-off — reviewed | `10-officer-signoff-reviewed.png` | Sign-off + Evidence |
-| 11 | Evidence pack preview | `11-evidence-pack.png` | Evidence Pack |
-| 12 | Audit trail — Details expanded | `12-audit-trail-details.png` | Technology / Governance |
+**Preview:**
 
-**Preview (update when new files land):**
-
-| View | Screenshot | Status |
-|------|------------|--------|
-| Compliance matrix (simple, Phase 1) | ![Matrix — simple](docs/assets/screenshots/01-matrix-simple-phase1.png) | **Replace** |
-| Compliance matrix (technical) | ![Matrix — technical](docs/assets/screenshots/02-matrix-technical-phase1.png) | **Replace** |
-| Regulatory delta (before apply) | ![Delta — preview](docs/assets/screenshots/03-delta-before-apply.png) | **Replace** |
-| Meridian flip after apply | ![Delta — Meridian](docs/assets/screenshots/04-delta-meridian-flip.png) | **Replace** |
-| Officer sign-off | ![Sign-off](docs/assets/screenshots/05-officer-signoff.png) | **Replace** |
-
-PPT slide-by-slide guide: [docs/PPT_IMPROVEMENT.md](docs/PPT_IMPROVEMENT.md)
+| View | Screenshot |
+|------|------------|
+| Compliance matrix (Phase 1) | ![Matrix](docs/assets/screenshots/01-matrix-simple-phase1.png) |
+| Circular ingest | ![Ingest](docs/assets/screenshots/06-ingest-extracted.png) |
+| Regulatory delta (after apply) | ![Delta](docs/assets/screenshots/08-delta-after-apply.png) |
+| Evidence pack | ![Evidence](docs/assets/screenshots/11-evidence-pack.png) |
 
 ---
 
