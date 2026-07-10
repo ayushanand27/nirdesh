@@ -9,24 +9,63 @@
 
 ---
 
-## KIMI K2 PROMPT (paste this first)
+## KIMI K2 PROMPT (paste this first — then paste full doc below)
 
 ```
-You are refining a 12-slide hackathon pitch deck for "Nirdesh" — a SEBI compliance impact system.
+You are building a hackathon pitch deck for "Nirdesh" — a SEBI compliance impact system.
 
-RULES:
-- Dark institutional theme (navy/black + gold accents) — match the screenshots
-- 12 slides max. One core idea per slide.
-- Put "Decision-support only — no autonomous filing to SEBI" ONLY on slide 1 (small) and slide 12 (closing). Remove from all other slides.
-- Use the exact firm names: Bharat Growth AMC, Meridian Asset Management, Sentinel Debt Fund. NEVER use Alpha, Pinnacle, or fictional names from old deck.
-- Use real clause IDs: §4.1, §4.4, §5.1.1, §5.2.1, §5.3.1
-- Tagline on title slide: "The LLM extracts. The code decides."
-- Insert the screenshots listed per slide (upload the PNG files I provide, or use the GitHub raw URLs).
-- Keep text minimal on screenshot slides — let the UI speak.
-- Speaker notes: 1–2 sentences per slide for a 2–3 min live demo pitch.
+═══════════════════════════════════════════════════════════════
+PRIORITY #1 — SCREENSHOT VISIBILITY (NON-NEGOTIABLE)
+═══════════════════════════════════════════════════════════════
+- Every UI screenshot MUST be clearly readable when projected (judge sitting 3 metres away).
+- NEVER shrink screenshots to fit text. Text shrinks; screenshots do NOT.
+- On any slide with a screenshot: the image takes ≥75% of slide area (width or height). Max 2–3 short bullet lines beside or below.
+- If two screenshots are needed (e.g. before/after delta, pending/reviewed sign-off):
+  → PREFER splitting into TWO slides (e.g. "Delta — Before" and "Delta — After") rather than squeezing both small on one slide.
+  → If you keep them on one slide: each image gets ≥45% slide width; never thumbnail size.
+- Do NOT crop screenshots. Show full UI capture. Letterbox with dark background if aspect ratio differs.
+- Slide count is FLEXIBLE: use 14–18 slides if needed for readable screenshots. Quality > brevity.
+- Compress images for file size only; do NOT reduce on-slide display dimensions.
 
-OUTPUT: Slide-by-slide title, body bullets, which screenshot goes where, and speaker notes.
+═══════════════════════════════════════════════════════════════
+DESIGN
+═══════════════════════════════════════════════════════════════
+- Dark institutional theme (near-black / navy + gold accents) — match the screenshots.
+- 16:9 widescreen. Consistent margins. No cluttered footers.
+- "Decision-support only — no autonomous filing to SEBI" ONLY on slide 1 (small) and final slide. Nowhere else.
+
+═══════════════════════════════════════════════════════════════
+CONTENT RULES
+═══════════════════════════════════════════════════════════════
+- Firm names: Bharat Growth AMC, Meridian Asset Management, Sentinel Debt Fund (NEVER Alpha, Pinnacle).
+- Clause IDs: §4.1, §4.4, §5.1.1, §5.2.1, §5.3.1
+- Title tagline: "The LLM extracts. The code decides."
+- Text-heavy slides (Problem, Stakes, Why Not Chatbot, Tech): no screenshot required.
+- Screenshot slides: minimal text — let the UI speak.
+
+═══════════════════════════════════════════════════════════════
+SCREENSHOTS (use uploaded PNGs or GitHub raw URLs I provide)
+═══════════════════════════════════════════════════════════════
+06-ingest-extracted.png        → Ingest (FULL SLIDE hero)
+01-matrix-simple-phase1.png    → Matrix (FULL SLIDE hero)
+04-firm-casefile-bharat.png    → Firm case file (FULL SLIDE — own slide if matrix already used)
+07-delta-before-apply.png      → Delta before (FULL SLIDE or 45%+ if paired)
+08-delta-after-apply.png       → Delta after (FULL SLIDE or 45%+ if paired)
+09-officer-signoff-pending.png → Sign-off before (FULL SLIDE or 45%+ if paired)
+10-officer-signoff-reviewed.png→ Sign-off after (FULL SLIDE or 45%+ if paired)
+11-evidence-pack.png           → Evidence (FULL SLIDE hero)
+12-audit-trail-details.png     → Audit (FULL SLIDE — own slide, not tiny inset)
+03-matrix-phase2.png           → Demo scenario (only if large enough; else skip or dedicated slide)
+05-rule-drawer.png             → Solution slide optional; skip if it would be too small
+
+═══════════════════════════════════════════════════════════════
+OUTPUT
+═══════════════════════════════════════════════════════════════
+Produce the full deck. For each slide: title, layout note (where screenshot sits, % size), bullets, speaker notes (1–2 sentences).
+After building: confirm every screenshot slide passes the "readable from back of room" test.
 ```
+
+**Then paste the rest of this file** (slide-by-slide content + embedded images below).
 
 ---
 
