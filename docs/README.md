@@ -6,6 +6,8 @@
 | [DEMO_CORPUS.md](./DEMO_CORPUS.md) | Why this circular, 2026 vs 2027 phases, firms, rules, source PDF |
 | [assets/screenshots/](./assets/screenshots/) | UI screenshots for README (12 workflow captures) |
 
+**Demo video:** https://www.loom.com/share/09deb6f1327e4b369a357127b95f737c
+
 ## Screenshots
 
 | File | View |

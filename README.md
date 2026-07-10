@@ -15,6 +15,7 @@ Built for **Securities Market TechSprint @ GFF 2026** — *Agentic Compliance: F
 | | URL |
 |---|---|
 | **Application** | https://nirdesh-frontend.onrender.com |
+| **Demo video** | https://www.loom.com/share/09deb6f1327e4b369a357127b95f737c |
 | **API** | https://nirdesh-backend.onrender.com |
 | **Health** | https://nirdesh-backend.onrender.com/health |
 
