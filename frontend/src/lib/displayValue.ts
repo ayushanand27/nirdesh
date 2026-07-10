@@ -65,6 +65,26 @@ export function formatOperator(operator: string): string {
   return OPERATOR_LABELS[operator] ?? operator;
 }
 
+/** Plain-English rule check — no Field / Check / Required grid. */
+export function formatRuleCheck(rule: {
+  condition?: { field: string; operator: string; value: unknown } | null;
+}): string | null {
+  const c = rule.condition;
+  if (!c) return null;
+  const field = formatFieldLabel(c.field);
+  const value = formatConditionValue(c.value);
+  switch (c.operator) {
+    case "equals":
+      return `${field} must be ${value}`;
+    case "not_equals":
+      return `${field} must not be ${value}`;
+    case "in":
+      return `${field} must include ${value}`;
+    default:
+      return `${field} ${formatOperator(c.operator)} ${value}`;
+  }
+}
+
 export function formatConditionValue(value: unknown): string {
   return formatDisplayValue(value);
 }

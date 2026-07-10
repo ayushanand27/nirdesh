@@ -35,7 +35,7 @@ export default function App() {
   const [delta, setDelta] = useState<Delta | null>(null);
   const [tasks, setTasks] = useState<ReviewTask[]>([]);
   const [officer, setOfficer] = useState("A. Sharma");
-  const [generating, setGenerating] = useState(false);
+  const [signoffSyncing, setSignoffSyncing] = useState(false);
   const [selectedRule, setSelectedRule] = useState<Rule | null>(null);
   const [ruleFocusFirmId, setRuleFocusFirmId] = useState<number | null>(null);
   const [sourcePanel, setSourcePanel] = useState<SourcePanel | null>(null);
@@ -47,7 +47,6 @@ export default function App() {
   const [resetting, setResetting] = useState(false);
   const [amendmentApplied, setAmendmentApplied] = useState(false);
   const [amendmentAppliedAt, setAmendmentAppliedAt] = useState<string | null>(null);
-  const [generateMsg, setGenerateMsg] = useState<string | null>(null);
   const [reportMsg, setReportMsg] = useState<string | null>(null);
   const [reportGenerating, setReportGenerating] = useState(false);
   const [reportPreviewLoading, setReportPreviewLoading] = useState(false);
@@ -118,7 +117,6 @@ export default function App() {
   useEffect(() => {
     setReportPreview(null);
     setReportMsg(null);
-    setGenerateMsg(null);
   }, [asOf, officer]);
 
   const refreshReportPreview = useCallback(
@@ -140,6 +138,26 @@ export default function App() {
     [asOf, officer]
   );
 
+  const syncSignoffQueue = useCallback(async () => {
+    setSignoffSyncing(true);
+    try {
+      await api.generateReviewTasks(asOf);
+      const [t, a] = await Promise.all([api.reviewTasks(), api.audit()]);
+      setTasks(t);
+      setAudit(a);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Failed to sync sign-off queue");
+    } finally {
+      setSignoffSyncing(false);
+    }
+  }, [asOf]);
+
+  useEffect(() => {
+    if (view === "signoff") {
+      void syncSignoffQueue();
+    }
+  }, [view, asOf, syncSignoffQueue]);
+
   const handleRecalculate = async () => {
     setEvaluating(true);
     try {
@@ -148,6 +166,9 @@ export default function App() {
       setMatrix(m);
       setAudit(a);
       setRecalcKey((k) => k + 1);
+      await api.generateReviewTasks(asOf).catch(() => undefined);
+      const t = await api.reviewTasks();
+      setTasks(t);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Evaluation failed");
     } finally {
@@ -194,23 +215,6 @@ export default function App() {
       setError(e instanceof Error ? e.message : "Reset failed");
     } finally {
       setResetting(false);
-    }
-  };
-
-  const handleGenerateTasks = async () => {
-    setGenerating(true);
-    setError(null);
-    setGenerateMsg(null);
-    try {
-      const result = await api.generateReviewTasks(asOf);
-      setGenerateMsg(result.created ? `${result.created} task(s)` : "No new tasks");
-      const [t, a] = await Promise.all([api.reviewTasks(), api.audit()]);
-      setTasks(t);
-      setAudit(a);
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "Failed to generate tasks");
-    } finally {
-      setGenerating(false);
     }
   };
 
@@ -354,7 +358,7 @@ export default function App() {
                 disabled={evaluating || loading}
                 className="rounded border border-gold bg-gold px-4 py-2 text-sm font-semibold text-canvas transition-colors hover:bg-gold-400 disabled:opacity-50"
               >
-                {evaluating ? "Recalculating…" : "Record evaluation"}
+                {evaluating ? "Running…" : "Run evaluation"}
               </button>
             </div>
 
@@ -406,17 +410,15 @@ export default function App() {
               rules={matrix?.rules ?? []}
               officer={officer}
               asOf={asOf}
+              syncing={signoffSyncing}
               onOfficerChange={setOfficer}
-              onGenerate={handleGenerateTasks}
               onReview={handleReviewTask}
               onGenerateReport={handleGenerateReport}
               onOpenRule={(rule, firmId) => {
                 setRuleFocusFirmId(firmId ?? null);
                 setSelectedRule(rule);
               }}
-              generating={generating}
               reportGenerating={reportGenerating}
-              generateMessage={generateMsg}
               reportMessage={reportMsg}
             />
             <AuditPanel entries={audit} health={health} />
@@ -429,7 +431,6 @@ export default function App() {
               report={reportPreview}
               loading={reportPreviewLoading}
               asOf={asOf}
-              onRefresh={() => refreshReportPreview(false)}
               onDownload={handleGenerateReport}
               downloadBusy={reportGenerating}
             />

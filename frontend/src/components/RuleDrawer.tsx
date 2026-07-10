@@ -2,11 +2,7 @@ import { useEffect } from "react";
 import type { Cell, Firm, Rule } from "../types";
 import { ConfidenceBar } from "./ConfidenceBar";
 import { StatusBadge } from "./StatusBadge";
-import {
-  formatConditionValue,
-  formatFieldLabel,
-  formatOperator,
-} from "../lib/displayValue";
+import { formatRuleCheck } from "../lib/displayValue";
 import { isDuplicateText } from "../lib/textSimilarity";
 import { formatClause, formatDate, formatEntity } from "../lib/status";
 
@@ -132,13 +128,11 @@ function RuleDetail({
         </div>
 
         {(rule.condition || (rule.threshold && !rule.condition)) && (
-          <Section label="Machine check">
-            {rule.condition && (
-              <dl className="space-y-1.5 rounded border border-hair bg-canvas px-3 py-2.5 text-xs">
-                <Row label="Field" value={formatFieldLabel(rule.condition.field)} />
-                <Row label="Check" value={formatOperator(rule.condition.operator)} />
-                <Row label="Required" value={formatConditionValue(rule.condition.value)} strong />
-              </dl>
+          <Section label="Evaluates as">
+            {rule.condition && formatRuleCheck(rule) && (
+              <p className="rounded border border-hair bg-canvas px-3 py-2.5 text-sm text-ink">
+                {formatRuleCheck(rule)}
+              </p>
             )}
             {rule.threshold && !rule.condition && (
               <ThresholdGrid threshold={rule.threshold} />
@@ -249,15 +243,6 @@ function ThresholdGrid({ threshold }: { threshold: NonNullable<Rule["threshold"]
           <span className="font-mono text-xs font-medium text-ink tnum">{v}</span>
         </div>
       ))}
-    </div>
-  );
-}
-
-function Row({ label, value, strong }: { label: string; value: string; strong?: boolean }) {
-  return (
-    <div className="grid grid-cols-[minmax(5rem,auto)_1fr] gap-x-3">
-      <dt className="text-muted">{label}</dt>
-      <dd className={strong ? "font-medium text-ink" : "text-ink"}>{value}</dd>
     </div>
   );
 }

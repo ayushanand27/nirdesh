@@ -9,14 +9,12 @@ interface Props {
   rules: Rule[];
   officer: string;
   asOf: string;
+  syncing?: boolean;
   onOfficerChange: (v: string) => void;
-  onGenerate: () => void;
   onReview: (taskId: number) => Promise<void>;
   onGenerateReport: () => void;
   onOpenRule: (rule: Rule, firmId?: number) => void;
-  generating: boolean;
   reportGenerating?: boolean;
-  generateMessage?: string | null;
   reportMessage?: string | null;
 }
 
@@ -26,14 +24,12 @@ export function SignoffView({
   rules,
   officer,
   asOf,
+  syncing = false,
   onOfficerChange,
-  onGenerate,
   onReview,
   onGenerateReport,
   onOpenRule,
-  generating,
   reportGenerating = false,
-  generateMessage,
   reportMessage,
 }: Props) {
   const tasksForAsOf = tasks.filter((t) => t.as_of_date === asOf);
@@ -51,43 +47,31 @@ export function SignoffView({
             placeholder="Full name"
             className="w-64 rounded border border-hair bg-canvas px-3 py-2 text-sm text-ink outline-none transition-colors focus:border-gold"
           />
-          {generateMessage && (
-            <p className="mt-2 max-w-md text-xs text-gold">{generateMessage}</p>
-          )}
           {reportMessage && (
             <p className="mt-2 max-w-md text-xs text-compliant-text">{reportMessage}</p>
           )}
         </div>
-        <div className="flex flex-wrap items-center gap-2">
-          <button
-            onClick={onGenerate}
-            disabled={generating || reportGenerating}
-            className="rounded border border-gold/40 bg-transparent px-4 py-2 text-sm font-medium text-gold transition-colors hover:bg-gold/10 disabled:opacity-50"
-          >
-            {generating ? "Scanning…" : "Generate tasks"}
-          </button>
-          <button
-            onClick={onGenerateReport}
-            disabled={reportGenerating || generating}
-            className="rounded border border-gold bg-gold px-4 py-2 text-sm font-semibold text-canvas transition-colors hover:bg-gold-400 disabled:opacity-50"
-            title={`Download PDF compliance report for as-of ${asOf}`}
-          >
-            {reportGenerating ? "Generating…" : "Download PDF"}
-          </button>
-        </div>
+        <button
+          onClick={onGenerateReport}
+          disabled={reportGenerating}
+          className="rounded border border-gold bg-gold px-4 py-2 text-sm font-semibold text-canvas transition-colors hover:bg-gold-400 disabled:opacity-50"
+          title={`Download PDF compliance report for as-of ${asOf}`}
+        >
+          {reportGenerating ? "Generating…" : "Download PDF"}
+        </button>
       </div>
 
-      {/* Pending queue */}
       <div>
         <div className="mb-2 flex items-center gap-2">
-          <h3 className="font-serif text-lg text-ink">Awaiting sign-off</h3>
+          <h3 className="font-serif text-lg text-ink">Open items</h3>
           <span className="rounded-full bg-breach/15 px-2 py-0.5 font-mono text-xs font-semibold text-breach tnum">
             {pending.length}
           </span>
+          {syncing && <span className="text-[10px] text-muted">Syncing…</span>}
         </div>
         {pending.length === 0 ? (
           <div className="card px-5 py-8 text-center text-sm text-muted">
-            No pending tasks.
+            {syncing ? "Loading breach queue…" : "No breaches awaiting sign-off."}
           </div>
         ) : (
           <div className="space-y-3">
@@ -105,7 +89,6 @@ export function SignoffView({
         )}
       </div>
 
-      {/* Reviewed */}
       {reviewed.length > 0 && (
         <div>
           <div className="mb-2 flex items-center gap-2">
@@ -222,4 +205,3 @@ function CheckIcon() {
     </span>
   );
 }
-

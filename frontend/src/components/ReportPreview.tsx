@@ -7,7 +7,6 @@ interface Props {
   report: ComplianceReport | null;
   loading: boolean;
   asOf: string;
-  onRefresh: () => void;
   onDownload: () => void;
   downloadBusy?: boolean;
 }
@@ -16,35 +15,32 @@ export function ReportPreview({
   report,
   loading,
   asOf,
-  onRefresh,
   onDownload,
   downloadBusy = false,
 }: Props) {
   return (
     <div className="space-y-4">
       <div className="card flex flex-wrap items-center justify-between gap-4 px-5 py-3.5">
-        <h2 className="font-serif text-lg text-ink">Evidence pack</h2>
-        <div className="flex items-center gap-2">
-            <button
-              onClick={onRefresh}
-              disabled={loading}
-              className="rounded border border-gold/30 px-3 py-2 text-sm font-medium text-gold transition-colors hover:bg-gold/10 disabled:opacity-50"
-            >
-              {loading ? "Loading…" : "Refresh preview"}
-            </button>
-            <button
-              onClick={onDownload}
-              disabled={downloadBusy || loading}
-              className="rounded border border-gold bg-gold px-4 py-2 text-sm font-semibold text-canvas transition-colors hover:bg-gold-400 disabled:opacity-50"
-            >
-              {downloadBusy ? "Generating PDF…" : "Download PDF"}
-            </button>
-          </div>
+        <div>
+          <h2 className="font-serif text-lg text-ink">Evidence pack</h2>
+          {report && (
+            <p className="mt-0.5 text-xs text-muted">
+              As of {formatDate(report.as_of)} · {report.generated_by}
+            </p>
+          )}
+        </div>
+        <button
+          onClick={onDownload}
+          disabled={downloadBusy || loading}
+          className="rounded border border-gold bg-gold px-4 py-2 text-sm font-semibold text-canvas transition-colors hover:bg-gold-400 disabled:opacity-50"
+        >
+          {downloadBusy ? "Generating PDF…" : "Download PDF"}
+        </button>
       </div>
 
       {!report ? (
         <div className="card px-5 py-12 text-center text-sm text-muted">
-          {loading ? "Loading…" : `Refresh preview for ${formatDate(asOf)}.`}
+          {loading ? "Building report…" : `Open this tab to load the report for ${formatDate(asOf)}.`}
         </div>
       ) : (
         <>
