@@ -72,10 +72,12 @@ function RuleDetail({
   const summary = rule.plain_label ?? rule.plain_description;
   const showSummary =
     summary && !isDuplicateText(summary, rule.source_text_span) && !isDuplicateText(summary, rule.required_action);
+  const checkSentence = formatRuleCheck(rule);
   const showRemediation =
     rule.required_action &&
     !isDuplicateText(rule.required_action, rule.plain_description) &&
-    !isDuplicateText(rule.required_action, rule.source_text_span);
+    !isDuplicateText(rule.required_action, rule.source_text_span) &&
+    !isDuplicateText(rule.required_action, checkSentence);
 
   const firmRows = focusFirmId
     ? related.filter((c) => c.firm_id === focusFirmId)

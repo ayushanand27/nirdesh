@@ -120,15 +120,16 @@ export function ReportPreview({
                     report.officer_signoff.log.map((item) => (
                       <div key={item.task_id} className="rounded border border-hair bg-canvas px-4 py-3">
                         <div className="flex items-center justify-between gap-3">
-                          <div className="text-sm font-medium text-ink">{item.title}</div>
+                          <div className="text-sm font-medium text-ink">
+                            {item.firm_name} · {formatClause(item.clause_id)}
+                          </div>
                           <StatusBadge
                             status={item.status === "reviewed" ? "compliant" : "breach"}
                           />
                         </div>
-                        <div className="mt-1 text-[11px] text-muted">
-                          {item.reviewed_by && `${item.reviewed_by} · `}
-                          {item.firm_name}
-                        </div>
+                        {item.reviewed_by && (
+                          <div className="mt-1 text-[11px] text-muted">{item.reviewed_by}</div>
+                        )}
                       </div>
                     ))
                   )}

@@ -71,7 +71,7 @@ def generate_review_tasks(session: Session, as_of: str, actor: str = "system") -
                             rule_id=rule.rule_id,
                             clause_id=rule.clause_id,
                             as_of_date=as_of,
-                            title=f"{firm.name} — potential breach of clause §{rule.clause_id}",
+                            title=f"{firm.name} · §{rule.clause_id}",
                             recommended_action=rule.required_action,
                             severity="high",
                         )
