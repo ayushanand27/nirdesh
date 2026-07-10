@@ -1,56 +1,78 @@
-# PPT / submission alignment notes (not part of the runtime app).
-# Keep the slide deck OUT of git unless judges explicitly ask for a repo upload —
-# submit the .pptx/.pdf via the TechSprint form separately.
+# Submission notes — Securities Market TechSprint @ GFF 2026
 
-## Must-fix on slides (match the live prototype)
+**Live app:** https://nirdesh-frontend.onrender.com  
+**GitHub:** https://github.com/ayushanand27/nirdesh  
+**PPT brief:** [PPT_IMPROVEMENT.md](PPT_IMPROVEMENT.md) (copy into Kimi K2 + insert screenshots)  
+**Form fields:** [SUBMISSION_FORM.md](SUBMISSION_FORM.md)
 
-| Slide | Current copy | Change to |
-|---|---|---|
-| Demo Scenario | Alpha Mutual Fund / Pinnacle Broking | **Meridian Asset Management** (compliant → breach on Phase 2) / **Sentinel Debt Fund** (N/A) |
-| Demo / Delta | clause_3.2, §2.1 | Real IDs: **§4.1** (Phase 1 VWAP) → **§4.4** (Phase 2 T-1 NAV); bands **§5.1.1 / §5.2.1 / §5.3.1** |
-| Tech stack | Celery + Redis, pgvector + Cohere, SEBI RSS, Docker as shipped | Label those as **Roadmap**. Shipped stack: **FastAPI · SQLite · Groq (ingest) · React · reportlab · Render** |
-| Architecture | Implies live Postgres/RAG now | Draw **ingest-time LLM** vs **check-time deterministic Python** (matches product reality) |
-| Solution | Compile → Evaluate → Act | Add **Report / Evidence pack** as closing step (preview + PDF + audit entry) |
-| Delta | Only Sept 1 headline | Keep the **Apr 1 2027** second deadline — it is the demo's strongest point |
-| Ingest | Missing | Show **Circular ingest** screenshot: PDF upload → extracted rules + human-review flags |
-| Evidence | Missing | Show **Evidence pack** screenshot: in-app preview before PDF download |
+---
 
 ## Demo click path (2–3 min)
 
-1. Circular ingest — upload `backend/data/circular_MRD-POD3-2026_ORIGINAL.pdf`
-2. Compliance matrix — Phase 1 Simple + Technical
-3. Regulatory delta — Apply amendment → Meridian flip
-4. Officer sign-off — Generate tasks → Mark reviewed
-5. Evidence pack — Preview → Download PDF
+1. **Circular ingest** — upload `backend/data/circular_MRD-POD3-2026_ORIGINAL.pdf` (Circular ID pre-filled)
+2. **Compliance matrix** — 01 Sep 2026 · Bharat breach · Meridian compliant · open firm case file
+3. **Regulatory delta** — Apply amendment → Meridian flips (§4.4 supersedes §4.1)
+4. **Officer sign-off** — Generate tasks → Sign off as **A. Anand**
+5. **Evidence pack** — Preview → Download PDF
 
-**Honesty line for ingest:** extraction is a live preview; the matrix uses the human-reviewed canonical ruleset for this demo circular.
+**Honesty line for ingest:** extraction is live (PDF parse + cache/LLM); matrix uses human-reviewed canonical ruleset (*Draft — not persisted* in UI).
+
+**Run evaluation:** idempotent — repeat clicks do not change matrix if outcome is unchanged. Seed eval runs on app boot ("By Seed data" in audit).
+
+---
 
 ## Safe claims for judges
 
-- LLM extracts; code decides; human signs off; no autonomous filing.
-- Firm case files (click firm in matrix), matrix CSV export, extraction QA preview (UI-only in demo build)
-- Idempotent apply / generate-tasks / mark-reviewed; audit is a trail of state changes.
-- Verbatim source citations on breaches and in the PDF.
-- Live URLs in README (Render may cold-start).
-
-## Screenshots (complete — in repo)
-
-All 12 files in [`docs/assets/screenshots/`](assets/screenshots/). PPT mapping: [PPT_IMPROVEMENT.md](PPT_IMPROVEMENT.md).
-
-| Slide topic | Files |
-|---|---|
-| Ingest | `06-ingest-extracted.png` |
-| Matrix | `01-matrix-simple-phase1.png` + `04-firm-casefile-bharat.png` |
-| Delta | `07-delta-before-apply.png` + `08-delta-after-apply.png` |
-| Sign-off | `09-officer-signoff-pending.png` → `10-officer-signoff-reviewed.png` |
-| Evidence | `11-evidence-pack.png` |
-| Governance | `12-audit-trail-details.png` |
+- LLM extracts at ingest; deterministic Python decides compliant / breach / N/A
+- Human Compliance Officer sign-off; no autonomous filing to SEBI
+- Firm case files, matrix CSV export, regulatory delta with supersession redline UI
+- Idempotent apply / generate-tasks / mark-reviewed; append-only audit trail
+- Verbatim source citations on breaches and in PDF export
+- Live URLs on Render (free tier may cold-start ~30–60s)
 
 ## Do not claim as built today
 
-- Celery/Redis job queue as current infra
-- pgvector + Cohere rerank in production path
+- Celery/Redis job queue
+- pgvector / live RAG retrieval
 - Live SEBI RSS auto-ingestion
 - Multi-user auth / SSO
+- Ingest → ledger promotion (ingest is QA preview only in this build)
 - Filing into CTR/HYTR systems
-- Extraction overwrite of the live evaluation ledger (preview only in this build)
+
+---
+
+## Screenshots (in repo — complete)
+
+All 12 files: [`docs/assets/screenshots/`](assets/screenshots/)
+
+| PPT topic | Files |
+|---|---|
+| Ingest | `06-ingest-extracted.png` |
+| Matrix | `01-matrix-simple-phase1.png`, `04-firm-casefile-bharat.png` |
+| Delta | `07-delta-before-apply.png`, `08-delta-after-apply.png` |
+| Sign-off | `09-officer-signoff-pending.png`, `10-officer-signoff-reviewed.png` |
+| Evidence + audit | `11-evidence-pack.png`, `12-audit-trail-details.png` |
+
+---
+
+## PPT deck — update checklist
+
+Use old deck only as structure. Replace content per [PPT_IMPROVEMENT.md](PPT_IMPROVEMENT.md).
+
+| Fix in deck | Correct value |
+|---|---|
+| Firm names | Bharat Growth AMC · Meridian Asset Management · Sentinel Debt Fund |
+| Clause IDs | §4.1 · §4.4 · §5.1.1 · §5.2.1 · §5.3.1 |
+| Officer in demo | A. Anand |
+| Tech "shipped" | FastAPI · SQLite · Groq (ingest) · React · reportlab · Render |
+| Tech "roadmap" | PostgreSQL · pgvector · Celery · SEBI RSS · SSO |
+| Footer disclaimer | Title slide + last slide only |
+| Screenshots | Insert all 12 from `docs/assets/screenshots/` |
+
+---
+
+## Remaining before deadline (Jul 12, 2026)
+
+- [ ] Final PPT from [PPT_IMPROVEMENT.md](PPT_IMPROVEMENT.md) → upload to HackCulture
+- [ ] Loom video (under 3 min) → paste URL in form
+- [ ] Re-save HackCulture form

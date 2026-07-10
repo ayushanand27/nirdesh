@@ -29,7 +29,7 @@ Interactive API docs: https://nirdesh-backend.onrender.com/docs
 1. **Circular ingest** — upload [`backend/data/circular_MRD-POD3-2026_ORIGINAL.pdf`](backend/data/circular_MRD-POD3-2026_ORIGINAL.pdf). Circular ID is pre-filled for the demo corpus. Show extracted rules, review flags, and QA preview (*Draft — not persisted; matrix uses human-reviewed canonical ruleset*).
 2. **Compliance matrix** — as of **01 Sept 2026**: Bharat Growth breach, Meridian compliant, Sentinel N/A. Click a firm for its case file. Optional: Export CSV, Simple/Technical views.
 3. **Regulatory delta** — **Apply amendment**. Meridian flips compliant → breach for Phase 2 (§4.4).
-4. **Officer sign-off** — Generate tasks → Mark reviewed as **A. Sharma**.
+4. **Officer sign-off** — Generate tasks → Mark reviewed as **A. Anand**.
 5. **Evidence pack** — Refresh preview → Download PDF.
 
 ---
@@ -117,9 +117,10 @@ State-changing actions (apply amendment, generate tasks, mark reviewed) are **id
 - **Meridian Asset Management** — compliant on Phase 1, **flips to breach** when §4.4 is applied
 - **Sentinel Debt Fund** — not applicable (no ETF schemes)
 
-### Screenshots (live prototype — Jul 2026)
+### Screenshots (complete — Jul 2026)
 
-Full capture list: **[docs/assets/screenshots/SCREENSHOT_CHECKLIST.md](docs/assets/screenshots/SCREENSHOT_CHECKLIST.md)** · PPT guide: [docs/PPT_IMPROVEMENT.md](docs/PPT_IMPROVEMENT.md)
+All 12 UI captures are in [`docs/assets/screenshots/`](docs/assets/screenshots/).  
+**PPT / Kimi brief:** [docs/PPT_IMPROVEMENT.md](docs/PPT_IMPROVEMENT.md)
 
 | # | View | File |
 |---|------|------|
@@ -136,14 +137,39 @@ Full capture list: **[docs/assets/screenshots/SCREENSHOT_CHECKLIST.md](docs/asse
 | 11 | Evidence pack preview | `11-evidence-pack.png` |
 | 12 | Audit trail — Review Details | `12-audit-trail-details.png` |
 
-**Preview:**
+#### Workflow gallery
 
-| View | Screenshot |
-|------|------------|
-| Compliance matrix (Phase 1) | ![Matrix](docs/assets/screenshots/01-matrix-simple-phase1.png) |
-| Circular ingest | ![Ingest](docs/assets/screenshots/06-ingest-extracted.png) |
-| Regulatory delta (after apply) | ![Delta](docs/assets/screenshots/08-delta-after-apply.png) |
-| Evidence pack | ![Evidence](docs/assets/screenshots/11-evidence-pack.png) |
+**Circular ingest**
+
+![Circular ingest](docs/assets/screenshots/06-ingest-extracted.png)
+
+**Compliance matrix (Phase 1)**
+
+![Matrix Simple Phase 1](docs/assets/screenshots/01-matrix-simple-phase1.png)
+
+**Firm case file — Bharat Growth AMC**
+
+![Firm case file](docs/assets/screenshots/04-firm-casefile-bharat.png)
+
+**Regulatory delta — before / after Apply**
+
+![Delta before](docs/assets/screenshots/07-delta-before-apply.png)
+
+![Delta after](docs/assets/screenshots/08-delta-after-apply.png)
+
+**Officer sign-off**
+
+![Sign-off pending](docs/assets/screenshots/09-officer-signoff-pending.png)
+
+![Sign-off reviewed](docs/assets/screenshots/10-officer-signoff-reviewed.png)
+
+**Evidence pack**
+
+![Evidence pack](docs/assets/screenshots/11-evidence-pack.png)
+
+**Audit trail**
+
+![Audit Details](docs/assets/screenshots/12-audit-trail-details.png)
 
 ---
 

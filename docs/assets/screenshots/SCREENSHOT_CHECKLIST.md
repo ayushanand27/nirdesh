@@ -1,57 +1,81 @@
-# Screenshot checklist — current UI (Jul 2026)
+# Screenshot index — live prototype (complete)
 
+**Status:** All 12 required screenshots captured **Jul 10, 2026** and committed to this folder.  
 **Live app:** https://nirdesh-frontend.onrender.com  
-**Save all files here:** `docs/assets/screenshots/`  
-**Format:** PNG, width ~1400–1600px, compress to **&lt;400 KB** each for PPT.
-
-> **UI refresh (Jul 2026):** Human-readable audit details, firm profiles, rule conditions, breach lines — **no raw JSON**. All 12 required screenshots are in this folder.
+**PPT guide (Kimi-ready):** [docs/PPT_IMPROVEMENT.md](../../PPT_IMPROVEMENT.md)
 
 ---
 
-## Required (send all 12)
+## Required set (12) — all present
 
-| # | Filename | Tab / action | Must be visible in frame |
-|---|----------|--------------|---------------------------|
-| 1 | `01-matrix-simple-phase1.png` | Compliance matrix | **01 Sept 2026** · Simple view · KPI row (5 Compliant / 2 Breach / 5 N/A) · Bharat **Breach** · Meridian **Compliant** · Sentinel **N/A** · context bar `MRD-POD3/2026 · 3 firms × 4 rules` |
-| 2 | `02-matrix-technical-phase1.png` | Compliance matrix | Same date · **Technical** toggle on · human-readable cell lines (not JSON) |
-| 3 | `03-matrix-phase2.png` | Compliance matrix | Switch to **01 Apr 2027** · Meridian shows **Breach** on base price rule |
-| 4 | `04-firm-casefile-bharat.png` | Matrix → click firm | **Bharat Growth AMC** drawer · Profile as labeled rows (Base price method, ETF offerings, bands) · Active breaches with `T-2 NAV · required T-1 closing VWAP` style text |
-| 5 | `05-rule-drawer.png` | Matrix → click rule header | Rule drawer · **Condition** as Field / Check / Required · Source citation block |
-| 6 | `06-ingest-extracted.png` | Circular ingest | PDF uploaded + extracted rules visible · **Draft — not persisted** badge · Checkable / Needs review sections |
-| 7 | `07-delta-before-apply.png` | Regulatory delta | Before **Apply amendment** · §4.1 → §4.4 preview · Meridian transition shown |
-| 8 | `08-delta-after-apply.png` | Regulatory delta | After **Apply** (or applied state) · firms newly flagged / Meridian flip |
-| 9 | `09-officer-signoff-pending.png` | Officer sign-off | **Awaiting sign-off** with ≥1 pending task · breach line in plain English |
-| 10 | `10-officer-signoff-reviewed.png` | Officer sign-off | All tasks **Signed off** (0 open) · officer name visible |
-| 11 | `11-evidence-pack.png` | Evidence pack | Preview loaded · metric tiles · breach citations · **Download PDF** button |
-| 12 | `12-audit-trail-details.png` | Matrix (audit panel right) | Audit trail · **Details** on a **Review** or **Amendment** event · labeled rows (Firm, Clause, Task / Superseded counts) — **not** raw JSON. Eval events show outcome in the message line only. |
+| # | File | View | Used in |
+|---|------|------|---------|
+| 1 | `01-matrix-simple-phase1.png` | Matrix · Simple · 01 Sep 2026 | README · PPT slide 7 |
+| 2 | `02-matrix-technical-phase1.png` | Matrix · Technical · Phase 1 | PPT appendix |
+| 3 | `03-matrix-phase2.png` | Matrix · 01 Apr 2027 · Meridian breach | PPT slide 5 |
+| 4 | `04-firm-casefile-bharat.png` | Bharat Growth AMC case file drawer | PPT slide 7 |
+| 5 | `05-rule-drawer.png` | Rule condition + citation | PPT slide 4 |
+| 6 | `06-ingest-extracted.png` | Circular ingest · 8 rules | README · PPT slide 6 |
+| 7 | `07-delta-before-apply.png` | Delta · before Apply | PPT slide 8 |
+| 8 | `08-delta-after-apply.png` | Delta · Applied | README · PPT slide 8 |
+| 9 | `09-officer-signoff-pending.png` | Sign-off · pending tasks | PPT slide 9 |
+| 10 | `10-officer-signoff-reviewed.png` | Sign-off · all signed off | PPT slide 9 |
+| 11 | `11-evidence-pack.png` | Evidence pack preview | README · PPT slide 10 |
+| 12 | `12-audit-trail-details.png` | Audit · Review Details expanded | PPT slide 10 |
 
----
+## Optional
 
-## Optional (nice for PPT / README hero)
-
-| # | Filename | What |
-|---|----------|------|
-| 13 | `13-full-dashboard.png` | Wide crop: header tabs + matrix + audit panel (shows institutional density) |
-| 14 | `14-ingest-qa.png` | Ingest with a flagged rule expanded · Approve/Reject if visible |
-| 15 | `15-evidence-pdf.png` | Downloaded PDF open (proves export) — crop first page only |
+| File | View |
+|------|------|
+| `14-ingest-qa.png` | Ingest · Approve/Reject on flagged rules |
 
 ---
 
-## Capture tips
+## Gallery
 
-1. **Cold start:** wait 30–60s after first load on Render, then refresh once.
-2. **Record evaluation** on matrix if audit panel is empty (button on matrix context bar).
-3. **Delta:** if already applied, use **Reset** (dev control on delta tab) then re-capture before/after.
-4. **Sign-off:** run **Generate tasks** on Phase 1 or Phase 2 with breaches first.
-5. **Browser:** 100% zoom, dark theme as shipped, hide bookmarks bar.
-6. **Naming:** use exact filenames above so README and PPT docs auto-match.
+### 01 — Matrix Simple Phase 1
+![01](01-matrix-simple-phase1.png)
+
+### 02 — Matrix Technical Phase 1
+![02](02-matrix-technical-phase1.png)
+
+### 03 — Matrix Phase 2
+![03](03-matrix-phase2.png)
+
+### 04 — Firm case file Bharat
+![04](04-firm-casefile-bharat.png)
+
+### 05 — Rule drawer
+![05](05-rule-drawer.png)
+
+### 06 — Circular ingest
+![06](06-ingest-extracted.png)
+
+### 07 — Delta before apply
+![07](07-delta-before-apply.png)
+
+### 08 — Delta after apply
+![08](08-delta-after-apply.png)
+
+### 09 — Sign-off pending
+![09](09-officer-signoff-pending.png)
+
+### 10 — Sign-off reviewed
+![10](10-officer-signoff-reviewed.png)
+
+### 11 — Evidence pack
+![11](11-evidence-pack.png)
+
+### 12 — Audit trail Details
+![12](12-audit-trail-details.png)
+
+### 14 — Ingest QA (optional)
+![14](14-ingest-qa.png)
 
 ---
 
-## Status
+## Remaining submission tasks
 
-All 12 required screenshots captured (Jul 10, 2026). Next steps:
-
-1. Recreate PPT using [PPT_IMPROVEMENT.md](../../PPT_IMPROVEMENT.md)
-2. Record Loom demo video (under 3 min)
-3. Paste Loom URL in HackCulture form → **Save**
+1. Build final PPT from [PPT_IMPROVEMENT.md](../../PPT_IMPROVEMENT.md) (copy into Kimi K2 + insert these PNGs)
+2. Record Loom demo (under 3 min)
+3. Upload updated PPT + Loom URL to HackCulture form

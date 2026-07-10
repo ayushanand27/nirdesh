@@ -119,15 +119,15 @@ Principle: The LLM extracts. The code decides.
 
 ## Upload your idea deck
 
-Already uploaded: `submission_kuu6ze3k2vj.pptx` — update slides to match live prototype (see docs/SUBMISSION_NOTES.md).
+Use [PPT_IMPROVEMENT.md](PPT_IMPROVEMENT.md) — all slide copy + screenshot mapping. Insert PNGs from `docs/assets/screenshots/` (12 files, complete in repo). Re-upload `.pptx` to HackCulture when done.
 
 ## Demo video link (max 3 minutes)
 
 ```
-[PASTE YOUR LOOM URL HERE after recording]
+[PASTE LOOM URL HERE]
 ```
 
-Suggested flow: Ingest → Matrix (firm case file) → Delta (Apply) → Sign-off → Evidence pack → Download PDF.
+Suggested flow: Ingest → Matrix (firm case file) → Delta (Apply) → Sign-off → Evidence pack → Download PDF. Script in [PPT_IMPROVEMENT.md](PPT_IMPROVEMENT.md).
 
 ## GitHub repository link
 
@@ -139,19 +139,8 @@ https://github.com/ayushanand27/nirdesh
 
 ## Before you click Save
 
-- [x] **12 screenshots** in `docs/assets/screenshots/` (complete Jul 10, 2026)
-- [ ] PPT recreated with new screenshots (see [PPT_IMPROVEMENT.md](../PPT_IMPROVEMENT.md)) and re-uploaded if slides changed
-- [ ] Demo video URL filled (Loom, unlisted or public, under 3 min)
-- [ ] PPT uses Meridian / Sentinel / Bharat (not Alpha / Pinnacle)
-- [ ] Live app opens after cold start (~30s refresh)
-- [ ] Run demo once end-to-end on production URL
-
-### Form text — Jul 2026 UI refresh
-
-**No major form changes needed.** Features are unchanged; only presentation improved (human-readable audit details, firm profiles, rule conditions, breach lines).
-
-Optional micro-edits already reflected above:
-- "Decision-support disclaimer **in UI**" (footer removed from every view)
-- Frontend bullet mentions **human-readable audit trail**
-
-Re-save the form only after you add the **Loom URL** and optionally re-upload the updated PPT.
+- [x] **12 screenshots** in `docs/assets/screenshots/` (Jul 10, 2026)
+- [x] README + docs aligned with live prototype
+- [ ] **PPT** built from [PPT_IMPROVEMENT.md](PPT_IMPROVEMENT.md) and re-uploaded
+- [ ] **Loom URL** filled (under 3 min)
+- [ ] Live app smoke-tested on production URL (cold start ~30s)

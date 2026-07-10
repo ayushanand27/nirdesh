@@ -325,7 +325,7 @@ OUTPUT: Slide-by-slide title, body bullets, which screenshot goes where, and spe
 
 **Bullets:**
 - Compliance engine generates tasks from breaches
-- Named officer must sign off (demo: A. Anand)
+- Named officer must sign off (demo: **A. Anand**)
 - Plain-English breach lines: "T-2 NAV · required T-1 closing NAV"
 - Idempotent — no duplicate audit entries on re-click
 

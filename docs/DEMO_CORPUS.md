@@ -100,11 +100,12 @@ All ETF-specific rules return **not applicable**.
 
 | UI tab | Backend | What it shows |
 |---|---|---|
-| Compliance matrix | `GET /matrix`, `GET /rules` | Firm × rule grid; Simple/Technical toggle |
+| Circular ingest | `POST /extract`, `POST /extract-upload` | PDF → rules + review flags (draft; matrix uses canonical ruleset) |
+| Compliance matrix | `GET /matrix`, `GET /rules` | Firm × rule grid; Simple/Technical toggle; firm case files |
 | Regulatory delta | `GET /delta` | §4.1→§4.4 supersession + firm transitions |
 | Officer sign-off | `/review-tasks*` | Pending tasks, named officer, sign-off |
+| Evidence pack | `GET /reports/compliance-summary` | In-app preview + PDF download |
 | Audit trail | `GET /audit` | Append-only event log |
-| Generate Report | `GET /reports/compliance-summary?format=pdf` | Downloadable evidence pack |
 
 ---
 
