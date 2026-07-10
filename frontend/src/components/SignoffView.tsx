@@ -160,9 +160,9 @@ function TaskCard({
             <span className="font-mono text-xs text-gold">§ {task.clause_id}</span>
             <span className="text-[10px] uppercase text-breach">{task.severity}</span>
           </div>
-          <h4 className="mt-1 text-sm font-medium text-ink">{task.title}</h4>
+          <h4 className="mt-1 text-sm font-medium text-ink">{task.firm_name}</h4>
           {cell && (
-            <p className="mt-1.5 text-xs text-muted">
+            <p className="mt-1 text-xs text-muted">
               {formatComparison(cell.detail.actual, cell.detail.expected)}
             </p>
           )}
@@ -197,9 +197,12 @@ function ReviewedRow({ task }: { task: ReviewTask }) {
       <div className="flex items-center gap-3">
         <CheckIcon />
         <div>
-          <div className="text-sm text-ink">{task.title}</div>
+          <div className="text-sm text-ink">{task.firm_name}</div>
           <div className="text-[11px] text-muted">
-            {task.reviewed_by} · <span className="font-mono tnum">{formatTimestamp(task.reviewed_at)}</span>
+            § {task.clause_id}
+            {task.reviewed_by && ` · ${task.reviewed_by}`}
+            {" · "}
+            <span className="font-mono tnum">{formatTimestamp(task.reviewed_at)}</span>
           </div>
         </div>
       </div>

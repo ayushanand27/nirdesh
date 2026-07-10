@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { Cell, CellDetail, CellStatus, Firm, Matrix, Rule } from "../types";
 import { formatComparison, formatDisplayValue } from "../lib/displayValue";
-import { STATUS_META, formatClause, formatDate, formatEntity } from "../lib/status";
+import { STATUS_META, formatClause, formatEntity } from "../lib/status";
 import { exportMatrixCsv } from "../lib/exportMatrix";
 import { SourcePopover } from "./SourcePopover";
 
@@ -11,8 +11,6 @@ interface Props {
   matrix: Matrix;
   recalcKey: number;
   flaggedRules: Rule[];
-  asOf: string;
-  phase2Date: string;
   selectedRuleId: string | null;
   selectedFirmId: number | null;
   onSelectRule: (rule: Rule) => void;
@@ -24,8 +22,6 @@ export function MatrixView({
   matrix,
   recalcKey,
   flaggedRules,
-  asOf,
-  phase2Date,
   selectedRuleId,
   selectedFirmId,
   onSelectRule,
@@ -140,14 +136,6 @@ export function MatrixView({
           <ModeToggle mode={mode} onChange={setMode} />
         </div>
       </div>
-
-      {asOf === phase2Date && (
-        <div className="border-b border-gold/20 bg-gold/5 px-5 py-2">
-          <span className="inline-flex items-center gap-1.5 rounded border border-gold/30 bg-gold/10 px-2.5 py-1 text-[11px] font-medium text-gold">
-            Phase 2 preview · {formatDate(phase2Date)}
-          </span>
-        </div>
-      )}
 
       <div className="overflow-x-auto">
         <table

@@ -367,8 +367,6 @@ export default function App() {
                     matrix={matrix}
                     recalcKey={recalcKey}
                     flaggedRules={flaggedRules}
-                    asOf={asOf}
-                    phase2Date={PHASE2}
                     selectedRuleId={selectedRule?.rule_id ?? null}
                     selectedFirmId={selectedFirm?.id ?? null}
                     onSelectRule={(rule) => {
@@ -460,8 +458,8 @@ export default function App() {
         asOf={asOf}
         onClose={() => setSelectedFirm(null)}
         onOpenRule={(rule) => {
+          setRuleFocusFirmId(selectedFirm?.id ?? null);
           setSelectedFirm(null);
-          setRuleFocusFirmId(null);
           setSelectedRule(rule);
         }}
       />

@@ -56,15 +56,6 @@ export function ReportPreview({
             <Metric label="Pending" value={report.summary.signoff_pending} />
           </div>
 
-          <div className="card px-5 py-3">
-            <div className="flex flex-wrap items-center justify-between gap-2 font-mono text-[10px] text-muted tnum">
-              <span>
-                {formatDate(report.as_of)} · {report.generated_by}
-              </span>
-              <span>{report.engine.ruleset}</span>
-            </div>
-          </div>
-
           {report.regulatory_delta && (
             <div className="card px-5 py-4">
               <h3 className="font-serif text-base text-ink">Amendment impact</h3>
@@ -124,11 +115,7 @@ export function ReportPreview({
             <div className="space-y-4">
               <div className="card px-5 py-4">
                 <h3 className="font-serif text-base text-ink">Sign-off</h3>
-                <p className="mt-0.5 text-xs text-muted">
-                  {report.officer_signoff.reviewed_count} reviewed ·{" "}
-                  {report.officer_signoff.pending_count} pending
-                </p>
-                <div className="mt-3 space-y-3">
+                <div className="mt-3 space-y-2">
                   {report.officer_signoff.log.length === 0 ? (
                     <div className="rounded border border-hair bg-canvas px-4 py-4 text-sm text-muted">
                       None recorded.

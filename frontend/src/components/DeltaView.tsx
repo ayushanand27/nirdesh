@@ -40,8 +40,6 @@ export function DeltaView({
 
   return (
     <div className="space-y-4">
-      <DeltaTimeline />
-
       {/* Amendment trigger card */}
       <div className="card-primary px-6 py-5">
         <div className="flex items-start justify-between gap-6">
@@ -301,12 +299,3 @@ function TransitionRow({ transition }: { transition: DeltaTransition }) {
   );
 }
 
-function DeltaTimeline() {
-  return (
-    <div className="card-muted flex flex-wrap items-center gap-4 px-4 py-2 text-[11px] text-muted">
-      <span className="font-mono text-ink/80">MRD-POD3/2026</span>
-      <span>Ph1 {formatDate("2026-09-01")}</span>
-      <span>Ph2 {formatDate("2027-04-01")}</span>
-    </div>
-  );
-}

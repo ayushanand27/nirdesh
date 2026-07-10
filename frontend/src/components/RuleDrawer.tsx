@@ -131,7 +131,7 @@ function RuleDetail({
           </div>
         </div>
 
-        {(rule.condition || rule.threshold) && (
+        {(rule.condition || (rule.threshold && !rule.condition)) && (
           <Section label="Machine check">
             {rule.condition && (
               <dl className="space-y-1.5 rounded border border-hair bg-canvas px-3 py-2.5 text-xs">
@@ -140,7 +140,9 @@ function RuleDetail({
                 <Row label="Required" value={formatConditionValue(rule.condition.value)} strong />
               </dl>
             )}
-            {rule.threshold && <ThresholdGrid threshold={rule.threshold} nested={Boolean(rule.condition)} />}
+            {rule.threshold && !rule.condition && (
+              <ThresholdGrid threshold={rule.threshold} />
+            )}
           </Section>
         )}
 
@@ -220,13 +222,7 @@ export function SourceCallout({
   );
 }
 
-function ThresholdGrid({
-  threshold,
-  nested,
-}: {
-  threshold: NonNullable<Rule["threshold"]>;
-  nested?: boolean;
-}) {
+function ThresholdGrid({ threshold }: { threshold: NonNullable<Rule["threshold"]> }) {
   const rows: [string, string][] = [];
   if (threshold.static_band_pct != null) rows.push(["Fixed band", `±${threshold.static_band_pct}%`]);
   if (threshold.dynamic_band_pct != null) rows.push(["Dynamic band", `±${threshold.dynamic_band_pct}%`]);
@@ -246,11 +242,7 @@ function ThresholdGrid({
   if (rows.length === 0) return null;
 
   return (
-    <div
-      className={`grid grid-cols-2 gap-x-6 gap-y-1.5 rounded border border-hair bg-canvas px-3 py-2.5 ${
-        nested ? "mt-2" : ""
-      }`}
-    >
+    <div className="grid grid-cols-2 gap-x-6 gap-y-1.5 rounded border border-hair bg-canvas px-3 py-2.5">
       {rows.map(([k, v]) => (
         <div key={k} className="flex items-center justify-between gap-2">
           <span className="text-xs text-muted">{k}</span>

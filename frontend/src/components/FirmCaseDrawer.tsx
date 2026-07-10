@@ -1,8 +1,7 @@
 import { useEffect } from "react";
 import type { Firm, Matrix, ReviewTask, Rule } from "../types";
 import { formatComparison, firmProfileRows } from "../lib/displayValue";
-import { formatClause, formatDate, formatEntity } from "../lib/status";
-import { SourceCallout } from "./RuleDrawer";
+import { formatClause, formatEntity } from "../lib/status";
 import { StatusBadge } from "./StatusBadge";
 
 interface Props {
@@ -35,7 +34,7 @@ export function FirmCaseDrawer({ firm, matrix, tasks, asOf, onClose, onOpenRule 
         }`}
       />
       <aside
-        className={`fixed right-0 top-0 z-40 flex h-full w-full max-w-[520px] flex-col bg-surface shadow-drawer transition-transform duration-300 ease-precise ${
+        className={`fixed right-0 top-0 z-40 flex h-full w-full max-w-[440px] flex-col bg-surface shadow-drawer transition-transform duration-300 ease-precise ${
           open ? "translate-x-0" : "translate-x-full"
         }`}
       >
@@ -68,23 +67,16 @@ function FirmCaseDetail({
 }) {
   const rulesById = new Map(matrix.rules.map((r) => [r.rule_id, r]));
   const cells = matrix.cells.filter((c) => c.firm_id === firm.id);
-
   const breaches = cells.filter((c) => c.status === "breach");
   const compliant = cells.filter((c) => c.status === "compliant");
-  const na = cells.filter((c) => c.status === "not_applicable");
-
-  const pendingTasks = tasks.filter((t) => t.status === "pending");
-  const reviewedTasks = tasks.filter((t) => t.status === "reviewed");
 
   return (
     <>
-      <header className="flex items-start justify-between border-b border-hair px-6 py-5">
+      <header className="flex items-start justify-between border-b border-hair px-6 py-4">
         <div>
-          <div className="label-caps">Firm</div>
-          <h2 className="mt-1 font-serif text-xl text-ink">{firm.name}</h2>
-          <p className="mt-1 text-xs text-muted">
-            {formatEntity(firm.profile.offers_etf_types ?? []) || "No ETF offerings"} ·{" "}
-            {firm.legal_type}
+          <h2 className="font-serif text-xl text-ink">{firm.name}</h2>
+          <p className="mt-0.5 text-xs text-muted">
+            {formatEntity(firm.profile.offers_etf_types ?? []) || "No ETFs"} · {firm.legal_type}
           </p>
         </div>
         <button
@@ -98,75 +90,52 @@ function FirmCaseDetail({
         </button>
       </header>
 
-      <div className="flex-1 overflow-y-auto px-6 py-5">
-        <Section label="Profile">
-          <dl className="space-y-1.5 rounded border border-hair bg-canvas px-3 py-2.5">
-            {firmProfileRows(firm.profile).map((row) => (
-              <div
-                key={row.label}
-                className="grid grid-cols-[minmax(7rem,auto)_1fr] gap-x-3 text-xs"
-              >
-                <dt className="text-muted">{row.label}</dt>
-                <dd className="text-ink">{row.value}</dd>
-              </div>
-            ))}
-          </dl>
-        </Section>
-
-        <div className="mb-5 grid grid-cols-3 gap-2">
-          <StatPill label="Breach" value={breaches.length} tone="breach" />
-          <StatPill label="Compliant" value={compliant.length} tone="ok" />
-          <StatPill label="N/A" value={na.length} />
-        </div>
+      <div className="flex-1 overflow-y-auto px-6 py-4">
+        <dl className="mb-5 space-y-1.5 rounded border border-hair bg-canvas px-3 py-2.5">
+          {firmProfileRows(firm.profile).map((row) => (
+            <div
+              key={row.label}
+              className="grid grid-cols-[minmax(7rem,auto)_1fr] gap-x-3 text-xs"
+            >
+              <dt className="text-muted">{row.label}</dt>
+              <dd className="text-ink">{row.value}</dd>
+            </div>
+          ))}
+        </dl>
 
         {breaches.length > 0 && (
-          <Section label={`Active breaches (${breaches.length})`}>
-            <div className="space-y-3">
+          <Section label={`Breaches (${breaches.length})`}>
+            <div className="space-y-2">
               {breaches.map((cell) => {
                 const rule = rulesById.get(cell.rule_id);
                 if (!rule) return null;
                 return (
                   <div
                     key={cell.rule_id}
-                    className="rounded-card border border-breach/25 bg-breach-bg/30 px-4 py-3"
+                    className="rounded border border-breach/25 bg-breach-bg/20 px-3 py-2.5"
                   >
                     <div className="flex items-start justify-between gap-2">
-                      <div>
+                      <div className="min-w-0">
                         <div className="flex items-center gap-2">
                           <StatusBadge status="breach" />
                           <span className="font-mono text-xs text-muted">
                             {formatClause(rule.clause_id)}
                           </span>
                         </div>
-                        <p className="mt-1 text-sm font-medium text-ink">
-                          {rule.plain_label ?? rule.plain_description}
-                        </p>
+                        {cell.detail?.actual != null && (
+                          <p className="mt-1 text-xs text-ink">
+                            {formatComparison(cell.detail.actual, cell.detail.expected)}
+                          </p>
+                        )}
                       </div>
                       <button
+                        type="button"
                         onClick={() => onOpenRule(rule)}
-                        className="shrink-0 rounded border border-gold/30 px-2 py-1 text-[10px] font-medium text-gold hover:bg-gold/10"
+                        className="shrink-0 text-[10px] font-medium text-gold hover:underline"
                       >
-                        Rule
+                        Obligation
                       </button>
                     </div>
-                    {cell.detail?.actual != null && (
-                      <p className="mt-2 text-xs text-muted">
-                        {formatComparison(cell.detail.actual, cell.detail.expected)}
-                      </p>
-                    )}
-                    {rule.required_action && (
-                      <p className="mt-2 text-xs text-ink">
-                        Recommended: {rule.required_action}
-                      </p>
-                    )}
-                    {rule.source_text_span && (
-                      <div className="mt-2">
-                        <SourceCallout
-                          text={rule.source_text_span}
-                          clause={formatClause(rule.clause_id)}
-                        />
-                      </div>
-                    )}
                   </div>
                 );
               })}
@@ -175,80 +144,51 @@ function FirmCaseDetail({
         )}
 
         {compliant.length > 0 && (
-          <Section label={`Compliant obligations (${compliant.length})`}>
-            <div className="space-y-1.5">
+          <Section label={`Compliant (${compliant.length})`}>
+            <div className="space-y-1">
               {compliant.map((cell) => {
                 const rule = rulesById.get(cell.rule_id);
                 if (!rule) return null;
                 return (
-                  <button
+                  <div
                     key={cell.rule_id}
-                    onClick={() => onOpenRule(rule)}
-                    className="flex w-full items-center justify-between rounded border border-hair bg-canvas px-3 py-2 text-left transition-colors hover:border-gold/30"
+                    className="flex items-center justify-between rounded border border-hair bg-canvas px-3 py-1.5"
                   >
-                    <span className="text-sm text-ink">
-                      {rule.plain_label ?? rule.plain_description}
+                    <span className="truncate text-xs text-ink">
+                      {formatClause(rule.clause_id)} · {rule.plain_label ?? rule.plain_description}
                     </span>
                     <StatusBadge status="compliant" />
-                  </button>
+                  </div>
                 );
               })}
             </div>
           </Section>
         )}
 
-        {(pendingTasks.length > 0 || reviewedTasks.length > 0) && (
-          <Section label="Officer sign-off">
-            {pendingTasks.map((t) => (
-              <div key={t.id} className="mb-2 rounded border border-hair bg-canvas px-3 py-2 text-xs">
-                <span className="font-medium text-breach">Pending</span> — {t.title}
-              </div>
-            ))}
-            {reviewedTasks.map((t) => (
-              <div key={t.id} className="mb-2 rounded border border-hair bg-canvas px-3 py-2 text-xs">
-                <span className="font-medium text-compliant-text">Reviewed</span> by {t.reviewed_by}
+        {tasks.length > 0 && (
+          <Section label="Sign-off">
+            {tasks.map((t) => (
+              <div key={t.id} className="mb-1.5 text-xs text-muted">
+                {t.status === "reviewed" ? (
+                  <span className="text-compliant-text">Signed off</span>
+                ) : (
+                  <span className="text-breach">Pending</span>
+                )}{" "}
+                · {formatClause(t.clause_id)}
               </div>
             ))}
           </Section>
         )}
       </div>
-
-      <footer className="border-t border-hair px-6 py-2">
-        <p className="text-[10px] text-muted">As of {formatDate(matrix.as_of)}</p>
-      </footer>
     </>
   );
 }
 
 function Section({ label, children }: { label: string; children: React.ReactNode }) {
   return (
-    <div className="mb-5">
-      <div className="label-caps mb-2">{label}</div>
+    <div className="mb-4">
+      <div className="label-caps mb-1.5">{label}</div>
       {children}
     </div>
   );
 }
-
-function StatPill({
-  label,
-  value,
-  tone,
-}: {
-  label: string;
-  value: number;
-  tone?: "breach" | "ok";
-}) {
-  return (
-    <div className="rounded border border-hair bg-canvas px-3 py-2 text-center">
-      <div
-        className={`font-mono text-lg font-semibold tnum ${
-          tone === "breach" ? "text-breach" : tone === "ok" ? "text-compliant-text" : "text-ink"
-        }`}
-      >
-        {value}
-      </div>
-      <div className="text-[10px] text-muted">{label}</div>
-    </div>
-  );
-}
-

@@ -51,7 +51,9 @@ export function AuditPanel({ entries, health: _health }: Props) {
           <ol className="relative space-y-0">
             {visible.map((e, i) => {
               const detailRows = auditMetaRows(e.event_type, e.meta);
-              const hasDetails = detailRows.length > 0;
+              const showDetails =
+                detailRows.length > 0 &&
+                !["evaluation", "extraction"].includes(e.event_type);
 
               return (
                 <li key={e.id} className="relative flex gap-3 pb-4">
@@ -69,13 +71,10 @@ export function AuditPanel({ entries, health: _health }: Props) {
                       </time>
                     </div>
                     <p className="mt-0.5 text-xs leading-snug text-ink/80">{e.message}</p>
-                    {e.actor && (
-                      <p className="mt-0.5 text-[10px] text-muted">
-                        By {formatActor(e.actor)}
-                        {e.entity_ref ? ` · ${formatEntityRef(e.entity_ref)}` : null}
-                      </p>
+                    {e.actor && e.event_type !== "extraction" && (
+                      <p className="mt-0.5 text-[10px] text-muted">By {formatActor(e.actor)}</p>
                     )}
-                    {hasDetails && (
+                    {showDetails && (
                       <div className="mt-1.5">
                         <button
                           type="button"
@@ -108,13 +107,6 @@ export function AuditPanel({ entries, health: _health }: Props) {
       </div>
     </div>
   );
-}
-
-function formatEntityRef(ref: string): string {
-  return ref
-    .replace(/^as_of=/, "as of ")
-    .replace(/^task=/, "task ")
-    .replace(/ -> /g, " → ");
 }
 
 function FilterChip({
